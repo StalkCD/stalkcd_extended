@@ -1,15 +1,15 @@
 import * as readline from 'readline-sync';
 import * as fs from 'fs';
-import { URLSearchParams } from 'url';
+import {URLSearchParams} from 'url';
 import fetch from 'node-fetch';
-import { RequestInit, Response } from 'node-fetch';
-import { isArray } from 'util';
+import {RequestInit, Response} from 'node-fetch';
 
+
+const GITHUB_API_VERSION = 'application/vnd.github.v3+json'; // https://docs.github.com/en/rest/overview/resources-in-the-rest-api
 
 export class GitHubDownloader {
 
-    private username?: string;
-    private password?: string;
+    private token?: string;
 
     private allFileNames: any = {};
 
@@ -17,10 +17,10 @@ export class GitHubDownloader {
         private targetDir: string,
     ) {
         if (this.targetDir.endsWith('/')) {
-            this.targetDir = this.targetDir.substr(0, this.targetDir.length - 1);;
+            this.targetDir = this.targetDir.substr(0, this.targetDir.length - 1);
         }
         if (!fs.existsSync(this.targetDir)) {
-            fs.mkdirSync(this.targetDir, { recursive: true });
+            fs.mkdirSync(this.targetDir, {recursive: true});
         }
         if (!fs.statSync(this.targetDir).isDirectory()) {
             throw new Error('The target is no directory');
@@ -28,64 +28,89 @@ export class GitHubDownloader {
     }
 
     /**
+     * Extracts the link to the next Page
+     * @param result result of the last page.
+     * @private
+     */
+    private static getNextDownloadUrl(result: Response) {
+        const link = result.headers.get('link');
+        if (!link) {
+            return undefined;
+        }
+        const linkMatch = /<([^>]*?)>; rel="next"/.exec(link);
+        return linkMatch && linkMatch.length >= 2 ? linkMatch[1] : undefined;
+    }
+
+    /**
      * Initiates the download process
      */
     public async download(query: string) {
-        if (!this.username || !this.password) {
-            console.log('Please provide GitHub credentials');
-            if (!this.username) {
-                this.username = readline.question('Username: ');
-            }
-            if (!this.password) {
-                this.password = readline.question('Password: ', { hideEchoBack: true });
+        if (!this.token) {
+            console.log('Please provide GitHub Token');
+            if (!this.token) {
+                this.token = readline.question('Token: ');
             }
         }
 
         console.log('\nDownloading search results from GitHub...');
 
-        // All collected files in form of a GitHub item
-        // https://developer.github.com/v3/search/#search-code
+        let downloadUrl: string | undefined = GitHubDownloader.buildUrl('https://api.github.com/search/code', {
+            q: query,
+            per_page: 99,
+        });
+
         let allFiles: {
             url: string,
             name: string,
             repository: {
                 full_name: string,
             },
-        }[] = [];
+        }[] = await this.getFilesList(downloadUrl);
+        await this.downloadFilesInList(allFiles);
+    }
 
-        let downloadUrl: string | undefined = this.buildUrl('https://api.github.com/search/code', {
-            q: query,
-            per_page: 99,
-        });
 
+    /**
+     * Concat all DownloadUrls to an Array.
+     * If Error is thrown retry limit is 10; Time between retry is 1min
+     * All collected files in form of a GitHub item: https://developer.github.com/v3/search/#search-code
+     * @param downloadUrl the initial URL to download the Files from.
+     * @private
+     */
+    private async getFilesList(downloadUrl: string | undefined) {
+        let allFiles: {
+            url: string;
+            name: string;
+            repository: { full_name: string }
+        }[] = []; // Redundant ...
+        console.log(`${downloadUrl}`)
+        console.log('and following pages ...')
         while (downloadUrl) {
-            console.log('- ' + downloadUrl);
             const result = await this.tryFetch(downloadUrl);
-    
             const resultJson = await result.json();
-            if (!resultJson.items || !isArray(resultJson.items)) {
-                throw new Error('Got unexpected result.');
+            if (!resultJson.items || !Array.isArray(resultJson.items)) {
+                throw new Error('Got unexpected result.\n' + result);
             }
             allFiles = allFiles.concat(resultJson.items);
 
-            // Get URL of next page
-            downloadUrl = undefined;
-
-            const link = result.headers.get('link');
-            if (!link) {
-                break;
-            }
-            const linkMatch = /<([^>]*?)>; rel="next"/.exec(link);
-            if (linkMatch && linkMatch.length >= 2) {
-                downloadUrl = linkMatch[1];
-            }
+            downloadUrl = GitHubDownloader.getNextDownloadUrl(result);
         }
+        return allFiles;
+    }
 
+    /**
+     * Download up to 10 files at the same time
+     * Skipps if the File already exists or if it is a TypeScript File.
+     * @param allFiles - List of all Files to be downloaded
+     * @private
+     */
+    private async downloadFilesInList(allFiles: { url: string; name: string; repository: { full_name: string } }[]) {
         console.log('\n---------');
         console.log(`Found ${allFiles.length} files`);
         console.log(`Starting to download all files`);
-
-        // Download up to 10 files a the same time
+        let skipped = 0;
+        let typeScriptFilesSkipped = 0;
+        let downloaded = 0;
         let buffer: { promise?: Promise<void> }[] = [];
         for (let i = 0; i < allFiles.length; i++) {
             if (buffer.length > 10) {
@@ -106,12 +131,19 @@ export class GitHubDownloader {
             this.allFileNames[targetFileName] = true;
 
             if (fs.existsSync(targetFileName)) {
-                console.log(`Skipping ${targetFileName} as it already exists.`);
+                // console.log(`Skipping ${targetFileName} as it already exists.`);
+                skipped++;
                 continue;
             }
-            
-            console.log(`\n(${i+1} / ${allFiles.length}): ${file.repository.full_name}`);
-            console.log(`   > ${targetFileName}`);
+            if (targetFileName.endsWith(".ts")) {
+                // console.log("Skipping ${targetFileName} because it is a TypeScript file and messes with the current project.")
+                skipped++
+                typeScriptFilesSkipped++
+                continue
+            }
+
+            // console.log(`\n(${i + 1} / ${allFiles.length}): ${file.repository.full_name}`);
+            // console.log(`   > ${targetFileName}`);
 
             const bufferContainer: {
                 promise?: Promise<void>,
@@ -137,9 +169,14 @@ export class GitHubDownloader {
                     buffer.splice(buffer.indexOf(bufferContainer), 1);
                 }
             });
+            downloaded++
         }
+        console.log(`Skipped: (${skipped}/${allFiles.length})`)
+        if (typeScriptFilesSkipped > 0) {
+            console.log(`Skipped because they were TypeScript Files: ${typeScriptFilesSkipped}`);
+        }
+        console.log(`Downloaded: (${downloaded}/${allFiles.length})`)
     }
-
 
     private getFileName(repoName: string, addition: string, extension: string): string {
         return `${this.targetDir}/${repoName.replace('/', '_')}${addition}.${extension}`;
@@ -147,10 +184,10 @@ export class GitHubDownloader {
 
     /**
      * Builds an URL with parameters
-     * @param url 
-     * @param params 
+     * @param url
+     * @param params
      */
-    private buildUrl(url: string, params: any): string {
+    private static buildUrl(url: string, params: any): string {
         let res = url;
         const paramsBuilder = new URLSearchParams();
         for (const key in params) {
@@ -165,18 +202,17 @@ export class GitHubDownloader {
         }
         return res;
     }
-    
+
     /**
-     * Tries to download an URL and retries if it fails to handle rate limits
-     * @param url 
-     * @param urlParams 
-     * @param retryMax 
-     * @param retryCurrent 
+     * Tries to download a URL and retries if it fails to handle rate limits
+     * @param url - the url to fetch
+     * @param retryCount - the initial retry count, max retry is 10
      */
     private async tryFetch(url: string, retryCount = 0): Promise<Response> {
         let fetchParams: RequestInit = {
             headers: {
-                'Authorization': 'Basic ' + Buffer.from(this.username + ':' + this.password).toString('base64'),
+                'Accept': GITHUB_API_VERSION,
+                'Authorization': 'token ' + this.token,
             },
         };
         let res: Response | undefined;
@@ -205,10 +241,10 @@ export class GitHubDownloader {
             // Permanent error.
             console.error(`Request failed.`);
             console.error(`  URL: ${url}`);
-            console.error(`  Res: ${res ? res.status + ' ' + res.statusText : 'Not available' }`);
+            console.error(`  Res: ${res ? res.status + ' ' + res.statusText : 'Not available'}`);
             if (res) {
                 const resText = await res.text();
-                console.error(resText.substr(0, 200));
+                console.error(resText.substr(0, 5000)); // Arbitrary limit
             }
             throw new Error(res ? res.statusText : 'Query failed');
         }
