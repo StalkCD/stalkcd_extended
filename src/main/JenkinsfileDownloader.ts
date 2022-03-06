@@ -7,6 +7,12 @@ import {RequestInit, Response} from 'node-fetch';
 
 const GITHUB_API_VERSION = 'application/vnd.github.v3+json'; // https://docs.github.com/en/rest/overview/resources-in-the-rest-api
 
+type GitHubFiles = {
+    url: string;
+    name: string;
+    repository: { full_name: string }
+}[]
+
 export class GitHubDownloader {
 
     private token?: string;
@@ -59,13 +65,7 @@ export class GitHubDownloader {
             per_page: 99,
         });
 
-        let allFiles: {
-            url: string,
-            name: string,
-            repository: {
-                full_name: string,
-            },
-        }[] = await this.getFilesList(downloadUrl);
+        let allFiles: GitHubFiles = await this.getFilesList(downloadUrl);
         await this.downloadFilesInList(allFiles);
     }
 
@@ -77,12 +77,8 @@ export class GitHubDownloader {
      * @param downloadUrl the initial URL to download the Files from.
      * @private
      */
-    private async getFilesList(downloadUrl: string | undefined) {
-        let allFiles: {
-            url: string;
-            name: string;
-            repository: { full_name: string }
-        }[] = []; // Redundant ...
+    private async getFilesList(downloadUrl: string | undefined): Promise<GitHubFiles> {
+        let allFiles: GitHubFiles = [];
         console.log(`${downloadUrl}`)
         console.log('and following pages ...')
         while (downloadUrl) {
