@@ -131,12 +131,6 @@ export class GitHubDownloader {
                 skipped++;
                 continue;
             }
-            if (targetFileName.endsWith(".ts")) {
-                // console.log("Skipping ${targetFileName} because it is a TypeScript file and messes with the current project.")
-                skipped++
-                typeScriptFilesSkipped++
-                continue
-            }
 
             // console.log(`\n(${i + 1} / ${allFiles.length}): ${file.repository.full_name}`);
             // console.log(`   > ${targetFileName}`);
