@@ -17,7 +17,17 @@ export class JenkinsfileCollector {
         private jenkinsfileTarget: string,
         private stalkCdTarget: string,
         private stats: JenkinsfileStats,
-    ) { }
+    ) {
+        if (!fs.existsSync(jenkinsfileSource)) {
+            throw new Error(`Directory not found: ${jenkinsfileSource}`)
+        }
+        if (!fs.existsSync(jenkinsfileTarget)) {
+            fs.mkdir(jenkinsfileTarget, e => e)
+        }
+        if (!fs.existsSync(stalkCdTarget)) {
+            fs.mkdir(stalkCdTarget, e => e)
+        }
+    }
 
     collect(): FileConfig[] {
         this.allFiles = fs.readdirSync(this.jenkinsfileSource);
@@ -28,11 +38,10 @@ export class JenkinsfileCollector {
             if (!fileMatch) {
                 console.log(`Skipping ${jenkinsFileName}`);
                 this.stats.skippedInputFiles++;
-                continue;
             }
         }
         
-        const res = this.allFiles.map(f => {
+        return  this.allFiles.map(f => {
             const fileMatch = f.match(/^(.*)\.Jenkinsfile/);
             if (!fileMatch) {
                 console.log(`- Skipping file '${this.jenkinsfileSource + '/' + f}' (no Jenkinsfile)`);
@@ -49,7 +58,7 @@ export class JenkinsfileCollector {
         
             const contents = fs.readFileSync(config.jenkinsFileSource).toString();
         
-            const pipelineMatch = contents.match(/^\s*pipeline\s*\{\s*/mg);
+            const pipelineMatch = contents.match(/^\s*pipeline\s*{\s*/mg);
             if (!pipelineMatch) {
                 console.log(`- Skipping file '${config.jenkinsFileSource}' (no declarative Jenkinsfile)`);
                 this.stats.skippedNonDeclarative++;
@@ -64,8 +73,6 @@ export class JenkinsfileCollector {
             
             return config;
         }).filter(f => !!f.jenkinsFileSource);
-
-        return res;
     }
     
 }
