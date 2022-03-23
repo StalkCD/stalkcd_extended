@@ -1,0 +1,51 @@
+pipeline {
+
+    // this file requires you to install the following plugins for jenkins:
+    // - nodejs
+    // - docker [https://jenkins.io/doc/book/pipeline/docker/]
+    // - pipeline utils [https://jenkins.io/doc/pipeline/steps/pipeline-utility-steps/#code-readjson-code-read-json-from-files-in-the-workspace]
+
+    // this tool will be used for all stages/steps except over-written
+    tools {nodejs "nodejs 9.3.0"}
+
+    // use local docker file
+    //agent { dockerfile true }
+    agent any
+
+
+
+    stages {
+        stage('git'){
+            steps{
+                checkout scm
+            }
+        }
+        stage('install') {
+            steps {
+                tool name: 'nodejs 9.3.0'
+                sh 'npm install'
+            }
+        }
+        stage('lint') {
+            steps {
+                tool name: 'nodejs 9.3.0'
+                sh 'npm run lint'
+            }
+        }
+        stage('test') {
+            steps {
+                tool name: 'nodejs 9.3.0'
+                sh 'npm test'
+            }
+        }
+        stage('dockerize') {
+            steps {
+              script{
+                  // read package.json
+                  def props = readJSON file: 'package.json'
+                  echo props['version']
+              }
+            }
+        }
+    }
+}

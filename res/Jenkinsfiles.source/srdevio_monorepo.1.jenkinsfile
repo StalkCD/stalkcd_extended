@@ -1,0 +1,78 @@
+#!groovy
+
+//Use Shared libs
+@Library('pipeline-libs@master') _
+
+// This var controls the deployment and service name in k8s
+env.SERVICE_NAME = 'pants'
+// This is the project the private docker repo resides in in GCE.
+env.REPO_NAME = 'gcr.io/sr-poc-message-delivery'
+
+pipeline {
+  // Have to use none as an agent so an input stage won't block anything
+  agent none
+
+  // Build the docker image using the Jenkins agent
+  stages {
+    stage('Build') {
+      agent any
+      steps {
+        // From shared libs. Assumes SERVICE_NAME and REPO_NAME exist.
+        dockerBuild this
+      }
+    }
+    // These stages handle the artifacts from the docker build etc.
+    stage('Artifacts') {
+      parallel {
+        // Push to private docker repository
+        stage('Push Image') {
+          agent any
+          steps {
+              dockerPush this
+          }
+        }
+        // Copy deployment file(s) to a private storage bucket
+        stage('Copy deployment files') {
+          agent any
+          steps {
+              pushArtifactsGcloud this
+          }
+        }
+      }
+    }
+    // Deploy the new build to the PANTS environment.
+    stage('Deploy to Pants ENV') {
+      agent any
+      steps {
+          deployGen this, 'pants'
+      }
+    }
+    stage('Test') {
+      agent any
+      steps {
+          sh './tests/test.sh'
+      }
+      post {
+        always {
+            archive 'tests/*.xml'
+            junit 'tests/*.xml'
+        }
+      }
+    }
+    stage('Manual Input') {
+      agent none
+      steps {
+          timeout(time: 1, unit: 'DAYS') {
+            input 'Are you sure?'
+          }
+      }
+    }
+    // Manually deploy the build to the PANDA ENV. Will wait X time.
+    stage('Deploy to Panda ENV') {
+      agent any
+      steps {
+          deployGen this, 'panda'
+      }
+    }
+  }
+}

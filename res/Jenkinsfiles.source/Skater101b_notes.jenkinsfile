@@ -1,0 +1,83 @@
+lives in the scm and defines jenkins pipeline
+you can do Declarative or scripted. 
+
+declarative example
+
+
+pipeline {
+    agent any
+}
+
+stages {
+    stage('build') {
+        steps {
+            echo "building.."
+        }
+    }
+    stage('Test') {
+        steps {
+            echo 'Testing..'
+        }
+    }
+    stage('deploy') {
+        steps {
+            echo "deploying"
+        }
+    }
+}
+
+
+AGENT DIRECTIVE
+pipeline {
+    agent any # means any agent available
+}
+
+OTHER
+1. agent none # means switching agent based on stages So you declare none at the top, and use number 2 in the stage
+2. agent { label 'centos'} # this is an agent label
+3. agent { docker'openjdk:8u121-jre'} # to pull down different java runtimes 
+
+STAGES AND STAGE DIRECTIVES
+
+stages { } is a container for a list of stages
+
+stage {
+    stage('build') {
+        steps { 
+            echo "Testing"
+        }
+    }
+}
+
+You can also set env at the stages scope and agents
+
+STEPS DIRECTIVES
+a ton of different actions you can do. 
+most common is sh for running a shell scripted
+echo is another one
+steps {
+    sh 'printenv'
+    sh 'ant -f test.xml -v'
+    junit "reports/${env.BUILD_NUMBER_results.xml"
+}
+
+ENVIRONMENT DIRECTIVE
+sets environment variables, you can do it at the top in pipeline declaration
+you can set global to pipeline
+
+environment {
+    ENV_VAR = "my value"
+}
+
+import vars file into jenkinsfile
+
+
+
+
+
+
+
+
+
+
+

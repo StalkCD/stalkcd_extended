@@ -1,0 +1,127 @@
+#!groovy
+
+/*
+
+Syntax reference: https://jenkins.io/doc/book/pipeline/syntax/
+Steps reference: https://jenkins.io/doc/pipeline/steps/
+ */
+
+ */
+
+pipeline {
+    agent any
+    environment { 
+        CC = 'clang' /*option 1 to set env variables. applies to all steps in the pipeline*/
+    }
+    parameters {
+        string(name: 'Greeting', defaultValue: 'Hello', description: 'How should I greet the world?')
+    }
+    options {
+      timeout(time: 1, unit: 'HOURS')
+      retry(3)
+    }
+    triggers {
+        cron('H 4/* 0 0 1-5')
+        pollSCM('H 4/* 0 0 1-5')
+    }
+    tools {
+        maven 'apache-maven-3.0.1'
+        jdk 'Java SE Development Kit 8u121' 
+    }
+
+    stages {
+        stage('Example') {
+            steps {
+                sh 'mvn --version'
+                script {
+                    def browsers = ['chrome', 'firefox']
+                    for (int i = 0; i < browsers.size(); ++i) {
+                        echo "Testing the ${browsers[i]} browser"
+                    }
+                }
+            }
+        }s
+        stage('Build') {
+            environment { 
+                DEBUG_FLAGS = '-g' /*option 2 to set env variables. only applies to this stage*/
+            }
+            steps {
+                echo "${params.Greeting} World!"
+                echo 'Building..'
+                git url: 'git://example.com/amazing-project.git', branch: 'master'
+                /*git([url: 'git://example.com/amazing-project.git', branch: 'master'])*/
+                checkout scm /* this is from a scripted example...*/
+                echo "Running ${env.BUILD_ID} on ${env.JENKINS_URL}"
+                sh 'printenv'
+                sh 'make' 
+                archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
+                stash includes: '**/target/*.jar', name: 'app
+            }
+        }
+        stage('Test on Linux') {
+            steps {
+                echo 'Testing..'
+                /* `make check` returns non-zero on test failures,
+                * using `true` to allow the Pipeline to continue nonetheless
+                */
+                unstash 'app'
+                sh 'make check || true' 
+                junit '**/target/*.xml'
+            }
+        }
+        stage('Automation Test') {
+            parallel linux: {
+                node('linux') {
+                    checkout scm
+                    try {
+                        unstash 'app'
+                        sh 'make check'
+                    }
+                    finally {
+                        junit '**/target/*.xml'
+                    }
+                }
+            },
+            windows: {
+                node('windows') {
+                    /* .. snip .. */
+                }
+            }
+        }
+        stage('Deploy') {
+            agent { 
+                label 'linux'
+            }
+            steps {
+                echo 'Deploying....'
+                when {
+                  expression {
+                    currentBuild.result == null || currentBuild.result == 'SUCCESS' 
+                  }
+                }
+                steps {
+                    sh 'echo hello' /* short form  */
+                    sh([script: 'echo hello'])  /* long form */
+                    sh 'make publish'
+                }
+            }
+            post {
+                always {
+                    junit '**/target/*.xml'
+                }
+            }
+        }
+    }
+    post {
+        always {
+            junit '**/target/*.xml'
+        }
+        success {
+          /*or notify a slack channel (opro-builds)*/
+          mail to: team@example.com, subject: 'The Pipeline succeeded :)' 
+        }
+        failure {
+            mail to: team@example.com, subject: 'The Pipeline failed :('
+        }
+    }
+}
