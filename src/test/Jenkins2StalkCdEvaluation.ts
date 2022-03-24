@@ -25,8 +25,9 @@ export class Jenkins2StalkCDEvaluation {
                 console.trace(err);
             }
         }
+        TestUtils.checkResult("res/ExpectedResults/jenkins2stalkcd-result.json", this.stats)
         const statsOutput = this.stats.output();
-        console.log(statsOutput);
+        // console.log(statsOutput);
         fs.writeFileSync('res/evaluate-jenkins2stalkcd-result.txt', statsOutput);
         fs.writeFileSync('res/evaluate-jenkins2stalkcd-result.json', JSON.stringify(this.stats));
     }

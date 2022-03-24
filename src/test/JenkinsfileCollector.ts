@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { JenkinsfileStats } from './JenkinsfileStats';
+import {JenkinsfileStats} from './JenkinsfileStats';
 
 export interface FileConfig {
     title: string;
@@ -55,7 +55,7 @@ export class JenkinsfileCollector {
                 jenkinsFileTarget: this.jenkinsfileTarget + '/' + f,
                 stalkCdFileTarget: this.stalkCdTarget + '/' + fileMatch[0] + '.yml',
             };
-        
+
             const contents = fs.readFileSync(config.jenkinsFileSource).toString();
         
             const pipelineMatch = contents.match(/^\s*pipeline\s*{\s*/mg);
@@ -64,13 +64,13 @@ export class JenkinsfileCollector {
                 this.stats.skippedNonDeclarative++;
                 return {} as FileConfig;
             }
-        
+
             if (pipelineMatch.length > 1) {
                 console.log(`- Skipping file '${config.jenkinsFileSource}' (multiple pipeline definitions)`);
                 this.stats.skippedMultiplePipeline++;
                 return {} as FileConfig;
             }
-            
+
             return config;
         }).filter(f => !!f.jenkinsFileSource);
     }

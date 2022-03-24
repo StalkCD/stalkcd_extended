@@ -1,9 +1,14 @@
-import { JenkinsfileStats, JenkinsfileFailureClassification, ClassificationResult } from "./JenkinsfileStats";
+import {ClassificationResult, JenkinsfileFailureClassification, JenkinsfileStats} from "./JenkinsfileStats";
 import * as jsDiff from 'diff';
-import {
-    reporters as MochaReporters
-} from 'mocha';
-import { FileConfig } from "./JenkinsfileCollector";
+import * as fs from 'fs';
+import {PathLike} from 'fs';
+import {reporters as MochaReporters} from 'mocha';
+import {FileConfig} from "./JenkinsfileCollector";
+
+
+class ValidationError extends Error {
+    name: string = "ValidationError";
+}
 
 export class TestUtils {
 
@@ -12,7 +17,7 @@ export class TestUtils {
      * to ensure comparability
      */
     static normalizeJenkinsfile(src: string): string {
-        const res = src
+        return src
             // Indentation
             .replace(/^\s+/gm, '')
             // Head comment
@@ -36,7 +41,6 @@ export class TestUtils {
             // Spaces
             .replace(/\s/g, '')
             .trim();
-        return res;
     }
 
     static classifyJenkinsfileDiff(fileConfig: FileConfig, normSource: string, normResult: string, stats: JenkinsfileStats): void {
@@ -54,16 +58,16 @@ export class TestUtils {
                 if (diff.value.match(/^.{0,30}(parallel|wrapCommands)\(/)) {
                     classTarget = 'complexStep';
                     summaryKey = 'COMPLEX STEP';
-                } else if (diff.value.match(/^.{0,5}(agent|options|steps?|stages|parallel)\{/)) {
+                } else if (diff.value.match(/^.{0,5}(agent|options|steps?|stages|parallel){/)) {
                     classTarget = 'misplacedSection';
                     summaryKey = 'MISPLACED';
                 } else if (diff.value.match(/^properties\(/)) {
                     classTarget = 'prePipelineProperties';
                     summaryKey = 'PRE PROPERTIES';
-                } else if (diff.value.match(/^[^a-zA-Z]*script\{/)) {
+                } else if (diff.value.match(/^[^a-zA-Z]*script{/)) {
                     classTarget = 'script';
                     summaryKey = 'SCRIPT';
-                } else if (diff.value.match(/^[^a-zA-Z]*expression\{/)) {
+                } else if (diff.value.match(/^[^a-zA-Z]*expression{/)) {
                     classTarget = 'expression';
                     summaryKey = 'EXPRESSION';
                 } else if (diff.value.match(/^.{0,5}(def|import|@Library)/)) {
@@ -72,7 +76,7 @@ export class TestUtils {
                 } else if (diff.value.match(/^node/)) {
                     classTarget = 'scriptedPipeline';
                     summaryKey = 'SCRIPTED PIPELINE';
-                } else if (diff.value.match(/^\w+\{/)) {
+                } else if (diff.value.match(/^\w+{/)) {
                     classTarget = 'unsupportedEnvironment';
                     summaryKey = 'UNSUPPORTED ENV';
                 } else if (i === 0) {
@@ -114,4 +118,23 @@ export class TestUtils {
         ));
     }
 
+    static checkResult(expectedPath: PathLike, actualData: {[key: string]: any})  {
+        const expected = JSON.parse(fs.readFileSync(expectedPath).toString());
+        let failure:any[] = [];
+        for (let entry in expected) {
+            if (expected[entry] !== actualData[entry]) {
+                failure.push(entry)
+            }
+        }
+        if (failure.length > 0) {
+            console.error("Something went wrong while validating input. Failed properties: " + failure);
+            let message:string = "";
+            for (let pos in failure) {
+                let entry = failure[pos]
+                message = message + `Property '${entry}'\n    Expected: '${expected[entry]}'\n    actual: '${actualData[entry]}'\n`;
+            }
+            throw new ValidationError(message);
+        }
+        console.log("Successfully validated.")
+    }
 }
