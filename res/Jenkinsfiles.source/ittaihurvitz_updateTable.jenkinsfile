@@ -1,0 +1,112 @@
+import hudson.model.AbstractProject
+import hudson.tasks.Mailer
+import hudson.model.User
+
+
+// Declare function getUserEmail
+@NonCPS 
+def getUserEmail() { 
+    try {
+		def item = hudson.model.Hudson.instance.getItem(env.JOB_NAME) 
+		def build = item.getLastBuild()
+		def cause = build.getCause(hudson.model.Cause.UserIdCause.class)
+		def id = cause.getUserId()
+		User u = User.get(id)
+		def umail = u.getProperty(Mailer.UserProperty.class)
+		print "User email is: " + umail.getAddress()
+    } catch  (Exception e) {
+        println "Exception: ${e.message}"
+    }
+}
+
+
+// Declare function setDescription
+@NonCPS 
+def setDescription(newDescription) { 
+    try {
+		def item = Jenkins.instance.getItemByFullName("Test WinAgent")
+        if (item) {
+            println "Found the job"
+            item.setDescription(newDescription)
+            item.save()
+        } else {
+            pritln "Didn't find object woth this name"
+        }
+    } catch  (Exception e) {
+        println "Exception: ${e.message}"
+    }
+}
+
+// Run Pipeline
+pipeline {
+    agent {label 'WinAgent2016'}
+    stages {
+        stage('build') {
+            agent {label 'master'}
+			steps {
+                echo 'stage build runs temporary on master and not on WinAgent2016'
+                script {
+                    echo "running artifactory actions:"
+                    def downloadSpec = """{
+							"files": [
+								{
+									"pattern": "libs-release-local/bubbles/", 
+									"target": "./"
+								}
+							]
+						}"""
+                    println "downloadSpec = " + downloadSpec
+    				def server = Artifactory.newServer url: 'https://ittai.jfrog.io/ittai/', username: 'admin', password: '4LmWr0KWRT'
+    				server.download(downloadSpec)    				
+                }				
+            }
+            post {
+                success {
+                    echo "Only when we haven't failed running the first stage"
+                }
+                failure {
+                    echo "Only when we fail running the build stage."
+                }
+            }
+        }
+        stage('test') {
+            agent {label 'master'}
+            steps {
+                echo 'stage test runs on master'
+                sh 'python --version'
+                sh 'ls'
+                echo "Bubble name is ${params.bubbleName}"
+                echo "Buble usage is ${params.bubbleUsage}"
+                sh "sudo python updateTable.py \"${params.bubbleName}\" \"${params.bubbleUsage}\" \"bubbleStatus.html\""
+                script{
+					try {
+						htmlTable = readFile 'bubbleStatus.html'
+						println htmlTable
+						if (htmlTable) {
+							setDescription(htmlTable)
+						}
+						getUserEmail()
+					} catch (Exception e)  {
+						println "Exception: ${e.message}"
+					}
+                }
+            }
+        }
+        stage('deploy') {
+            steps {
+                echo 'stage deploy runs on WinAgent2016'
+            }
+        }
+    }
+    post { 
+        always { 
+            echo 'Post at the end of all stages'
+        }
+        success {
+            echo "Only when success"
+        }
+        failure {
+            echo "Only when fail"
+        }
+    }
+}
