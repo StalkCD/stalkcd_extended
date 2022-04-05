@@ -19,6 +19,6 @@ jobs:
       - name: Install TypeScript
         run: echo "todo"
       - name: Build from TypeScript
-        run: tsc
+        run: tsc -v
       - name: Run Tests
         run: node ./dist/main/stalk-cd.js evaluate-jenkins2stalkcd
