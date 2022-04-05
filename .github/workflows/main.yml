@@ -15,6 +15,10 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+      - name: Remove existing TypeScript
+        run: |
+          npm uninstall typescript --no-save
+          npm uninstall tslint --no-save
       - name: Install Specific TypeScript Version ${{ matrix.type-script-version }}
         run: npm install typescript@${{ matrix.type-script-version }}
       - name: Check TypeScript Version
