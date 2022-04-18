@@ -46,7 +46,7 @@ export class Jenkins2StalkCDEvaluation {
 
         } finally {
             // Cleanup
-            // TestUtils.removeDirectoryRecursively(this._jenkinsfileSource)
+            TestUtils.removeDirectoryRecursively(this._jenkinsfileSource)
             TestUtils.removeDirectoryRecursively(this._jenkinsfileTarget)
             TestUtils.removeDirectoryRecursively(this._stalkCdTarget)
         }
