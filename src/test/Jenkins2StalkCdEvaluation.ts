@@ -43,7 +43,7 @@ export class Jenkins2StalkCDEvaluation {
         try {
             TestUtils.checkResult("res/ExpectedResults/jenkins2stalkcd-result.json", this.stats);
         } catch (error){
-
+            throw error;
         } finally {
             // Cleanup
             TestUtils.removeDirectoryRecursively(this._jenkinsfileSource)
