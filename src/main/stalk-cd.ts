@@ -4,6 +4,8 @@ import { JenkinsfileCollector } from '../test/JenkinsfileCollector';
 import { GitHubDownloader } from './JenkinsfileDownloader';
 import { TestUtils } from '../test/TestUtils';
 import { Jenkins2StalkCDEvaluation } from '../test/Jenkins2StalkCdEvaluation';
+import {JSZipObject} from "jszip";
+import * as fs from "fs";
 
 enum Mode {
     Help,
@@ -15,6 +17,7 @@ enum Mode {
     NormalizeJenkinsfile,
     DownloadSampleJenkinsfiles,
     EvaluateJ2S,
+    Test
 }
 
 let mode: Mode = Mode.Help;
@@ -93,10 +96,17 @@ program
         config = cmd;
     });
 
+program.command('test')
+    .action((cmd) => {
+        mode = Mode.Test;
+        config = cmd;
+    })
+
 program.on('--help', () => {
     console.log('');
     console.log('For more information, append -h after a command');
-})
+    }
+)
 
 
 program.parse(process.argv);
@@ -139,6 +149,24 @@ switch (+mode) {
         break;
     case Mode.EvaluateJ2S:
         new Jenkins2StalkCDEvaluation().evaluate();
+        break;
+    case Mode.Test:
+        TestUtils.unzip("res/Evaluation-Jenkinsfile2StalkCD.zip", (file:JSZipObject, content: Buffer) => {
+            if (file.dir) {
+                return;
+            }
+            let regExpMatchArray = file.name.match(/1-Jenkinsfiles\.source/);
+            if (regExpMatchArray !== null && regExpMatchArray.length > 0) {
+                if (!fs.existsSync("res/Jenkinsfiles.source")) {
+                    fs.mkdirSync("res/Jenkinsfiles.source")
+                }
+                let indexOf = file.name.lastIndexOf('/');
+                fs.writeFileSync("res/Jenkinsfiles.source" + file.name.slice(indexOf), content)
+            }
+        });
+        if (!fs.existsSync("res/Jenkinsfiles.source")) {
+            throw new Error("Dir does not exist")
+        }
         break;
     default:
         program.outputHelp();

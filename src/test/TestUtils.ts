@@ -5,6 +5,9 @@ import {PathLike} from 'fs';
 import {reporters as MochaReporters} from 'mocha';
 import {FileConfig} from "./JenkinsfileCollector";
 
+import * as yaml from 'js-yaml';
+import * as JSZip from "jszip";
+import {JSZipObject} from "jszip";
 
 class ValidationError extends Error {
     name: string = "ValidationError";
@@ -118,23 +121,89 @@ export class TestUtils {
         ));
     }
 
-    static checkResult(expectedPath: PathLike, actualData: {[key: string]: any})  {
+    static checkResult(expectedPath: PathLike, actualData: { [key: string]: any }) {
         const expected = JSON.parse(fs.readFileSync(expectedPath).toString());
-        let failure:any[] = [];
+        let failure: any[] = [];
+        // General results
         for (let entry in expected) {
+            if (entry === "fileResults") {
+                continue
+            }
             if (expected[entry] !== actualData[entry]) {
                 failure.push(entry)
             }
         }
+
+        // TODO: specific results
+
         if (failure.length > 0) {
             console.error("Something went wrong while validating input. Failed properties: " + failure);
-            let message:string = "";
+            let message: string = "";
             for (let pos in failure) {
-                let entry = failure[pos]
+                let entry = failure[pos];
                 message = message + `Property '${entry}'\n    Expected: '${expected[entry]}'\n    actual: '${actualData[entry]}'\n`;
             }
             throw new ValidationError(message);
         }
         console.log("Successfully validated.")
     }
+
+    static async unzip(file: PathLike, entryCall: Unzipper) {
+        let promiseList: Promise<Buffer>[] = [];
+        let zipFileContent = fs.readFileSync(file);
+        let jsZip = await JSZip.loadAsync(zipFileContent);
+        for (let entry in jsZip.files) {
+            let file = jsZip.files[entry];
+            if (file === undefined) {
+                continue
+            }
+            let content = await file.async("nodebuffer");
+            entryCall(file, content);
+        }
+/*        new JSZip.external.Promise(function (resolve, reject) {
+            fs.readFile("res/Evaluation-Jenkinsfile2StalkCD.zip", function (err, data) {
+                if (err) {
+                    throw err;
+                } else {
+                    resolve(data);
+                }
+            });
+        }).then(function (data: any) {
+            return JSZip.loadAsync(data);
+            // @ts-ignore
+        }).then((zipped: JSZip) => {
+            for (let entry in zipped.files) {
+                let file = zipped.files[entry];
+                if (file === undefined) {
+                    continue
+                }
+                promiseList.push(file.async("nodebuffer")) ;
+            }
+        });
+        await Promise.all(promiseList)*/
+    }
+
+    static removeDirectoryRecursively(path: PathLike) {
+        let stats = fs.lstatSync(path);
+        if (stats.isDirectory()) {
+            let files = fs.readdirSync(path);
+            if (files.length !== 0) {
+                files.forEach((fileOrDirectory) => {
+                    this.removeDirectoryRecursively(path + '/' + fileOrDirectory);
+                });
+            }
+            fs.rmdirSync(path)
+        }
+        if (stats.isFile()) {
+            fs.unlinkSync(path)
+        }
+    }
+
+    static loadGitHubFile() {
+        yaml.safeLoad(fs.readFileSync(".github/workflows/main.yml", {encoding: 'utf8'}))
+    }
+}
+
+interface Unzipper {
+    (file: JSZipObject, content: Buffer): void
 }

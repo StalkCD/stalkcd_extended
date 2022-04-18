@@ -25,6 +25,7 @@
     "deep-cleaner": "^1.1.2",
     "diff": "^4.0.1",
     "js-yaml": "^3.12.0",
+    "jszip": "^3.9.1",
     "node": "^11.1.0",
     "node-fetch": "^2.3.0",
     "randomatic": "^3.1.1",
