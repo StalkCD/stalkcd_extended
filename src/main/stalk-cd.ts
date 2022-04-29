@@ -3,6 +3,7 @@ import { Runner } from './Runner';
 import { GitHubDownloader } from './JenkinsfileDownloader';
 import { TestUtils } from '../test/TestUtils';
 import { Jenkins2StalkCDEvaluation } from '../test/Jenkins2StalkCdEvaluation';
+import {GithubActionsWorkflowGenerator} from "../util/generator/GithubActionsWorkflowGenerator";
 
 enum Mode {
     Help,
@@ -148,7 +149,7 @@ switch (+mode) {
         new Jenkins2StalkCDEvaluation().evaluate();
         break;
     case Mode.Test:
-        TestUtils.validateJsonSchema("res/schema/github-workflow.json", ".github/workflows/main.yml");
+        GithubActionsWorkflowGenerator.generate("res/schema/github-workflow.json")
         break;
     default:
         program.outputHelp();

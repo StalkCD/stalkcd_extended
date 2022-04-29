@@ -26,12 +26,14 @@
     "deep-cleaner": "^1.1.2",
     "diff": "^4.0.1",
     "js-yaml": "^3.12.0",
+    "json-schema-to-typescript": "^10.1.5",
     "jszip": "^3.9.1",
     "node": "^11.1.0",
     "node-fetch": "^2.3.0",
     "randomatic": "^3.1.1",
     "readline-sync": "^1.4.9",
-    "xml2js": "^0.4.19"
+    "xml2js": "^0.4.19",
+    "yaml-to-json": "^0.3.0"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",
