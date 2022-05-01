@@ -10,6 +10,7 @@ import * as JSZip from "jszip";
 import {JSZipObject} from "jszip";
 
 import Ajv from "ajv";
+import { compile, compileFromFile } from 'json-schema-to-typescript'
 
 class ValidationError extends Error {
     name: string = "ValidationError";
@@ -208,7 +209,13 @@ export class TestUtils {
         const validate = ajv.compile(schema);
         const valid = validate(data);
         valid ? console.log("successfully validated.") : console.log(validate.errors);
-    }
+
+
+
+// compile from file
+        compileFromFile(schema)
+            .then(ts => fs.writeFileSync('src/main/model/GitHubActions/generatedTypes.ts', ts))
+      }
 }
 
 interface Unzipper {
