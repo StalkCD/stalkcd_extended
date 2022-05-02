@@ -3,6 +3,8 @@ import { Runner } from './Runner';
 import { GitHubDownloader } from './JenkinsfileDownloader';
 import { TestUtils } from '../test/TestUtils';
 import { Jenkins2StalkCDEvaluation } from '../test/Jenkins2StalkCdEvaluation';
+import {compileFromFile} from "json-schema-to-typescript";
+//import fs from "fs";
 
 enum Mode {
     Help,
@@ -148,7 +150,8 @@ switch (+mode) {
         new Jenkins2StalkCDEvaluation().evaluate();
         break;
     case Mode.Test:
-        TestUtils.validateJsonSchema("res/schema/github-workflow.json", ".github/workflows/main.yml");
+        TestUtils.validateJsonSchema("res/schema/github-workflow.json", ".github/workflows/main.yml")
+        TestUtils.generateTypesFromJsonSchema("res/schema/github-workflow.json", "src/main/model/GitHubActions/generatedTypes.ts");
         break;
     default:
         program.outputHelp();

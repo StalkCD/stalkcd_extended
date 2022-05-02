@@ -209,13 +209,17 @@ export class TestUtils {
         const validate = ajv.compile(schema);
         const valid = validate(data);
         valid ? console.log("successfully validated.") : console.log(validate.errors);
-
-
-
-// compile from file
-        compileFromFile(schemaPath)
-            .then(ts => fs.writeFileSync('src/main/model/GitHubActions/generatedTypes.ts', ts))
       }
+
+
+    static generateTypesFromJsonSchema(schemaPath: string, generatedPath: string)
+      {
+          // compile from file
+          compileFromFile(schemaPath)
+              .then(ts => fs.writeFileSync(generatedPath, ts))
+      }
+
+
 }
 
 interface Unzipper {
