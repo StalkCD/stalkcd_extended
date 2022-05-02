@@ -202,7 +202,7 @@ export class TestUtils {
         }
     }
 
-    static validateJsonSchema(schemaPath: PathLike, dataPath: PathLike ) {
+    static validateJsonSchema(schemaPath: string, dataPath: string ) {
         let ajv = new Ajv();
         const schema = JSON.parse(fs.readFileSync(schemaPath).toString("utf8"));
         const data = yaml.safeLoad(fs.readFileSync(dataPath, { encoding: 'utf8' }));
@@ -213,7 +213,7 @@ export class TestUtils {
 
 
 // compile from file
-        compileFromFile(schema)
+        compileFromFile(schemaPath)
             .then(ts => fs.writeFileSync('src/main/model/GitHubActions/generatedTypes.ts', ts))
       }
 }
