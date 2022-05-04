@@ -7,10 +7,10 @@ import {FileConfig} from "./JenkinsfileCollector";
 
 import * as yaml from 'js-yaml';
 import * as JSZip from "jszip";
-
 import {JSZipObject} from "jszip";
 
 import Ajv from "ajv";
+import { compile, compileFromFile } from 'json-schema-to-typescript'
 
 class ValidationError extends Error {
     name: string = "ValidationError";
@@ -190,6 +190,14 @@ export class TestUtils {
         let dataJson = JSON.stringify(data, null, 2);
         console.log(dataJson);
     }
+
+    static generateTypesFromJsonSchema(schemaPath: string, generatedPath: string)
+    {
+        // compile from file
+        compileFromFile(schemaPath)
+            .then(ts => fs.writeFileSync(generatedPath, ts))
+    }
+
 }
 
 interface Unzipper {
