@@ -9,7 +9,7 @@ export class StalkCdParser {
      * @param sourceFile The source file to load
      */
     load(sourceFile: string): Pipeline {
-        const doc = yaml.safeLoad(fs.readFileSync(sourceFile, { encoding: 'utf8' }));
+        const doc = yaml.load(fs.readFileSync(sourceFile, { encoding: 'utf8' }));
         return Pipeline.construct(doc);
     }
 

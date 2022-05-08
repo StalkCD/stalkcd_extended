@@ -7,7 +7,7 @@ export class StalkCdWriter {
     async write(pipeline: Pipeline): Promise<string> {
         const serialPipeline = pipeline.toSerial();
         try {
-            const res = yaml.safeDump(serialPipeline);
+            const res = yaml.dump(serialPipeline);
             return res;
         } catch (err) {
             console.error('Could not write YAML');

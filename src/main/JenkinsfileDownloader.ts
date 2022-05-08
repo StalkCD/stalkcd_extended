@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import {URLSearchParams} from 'url';
 import fetch from 'node-fetch';
 import {RequestInit, Response} from 'node-fetch';
+import {symlink} from "fs";
 
 
 const GITHUB_API_VERSION = 'application/vnd.github.v3+json'; // https://docs.github.com/en/rest/overview/resources-in-the-rest-api
@@ -82,8 +83,9 @@ export class GitHubDownloader {
         console.log(`${downloadUrl}`)
         console.log('and following pages ...')
         while (downloadUrl) {
-            const result = await this.tryFetch(downloadUrl);
-            const resultJson = await result.json();
+            const result: Response = await this.tryFetch(downloadUrl);
+            const resultJson: any = await result.json();
+
             if (!resultJson.items || !Array.isArray(resultJson.items)) {
                 throw new Error('Got unexpected result.\n' + result);
             }
@@ -142,9 +144,7 @@ export class GitHubDownloader {
             bufferContainer.promise = new Promise<void>(async (resolve, reject) => {
                 try {
                     const fileResponse = await this.tryFetch(file.url);
-                    const fileDescription: {
-                        download_url: string,
-                    } = await fileResponse.json();
+                    const fileDescription: any = await fileResponse.json();
                     const fileContentsResponse = await this.tryFetch(fileDescription.download_url);
                     const fileContents = await fileContentsResponse.text();
                     fs.writeFile(targetFileName, fileContents, (err) => {
@@ -205,7 +205,7 @@ export class GitHubDownloader {
                 'Authorization': 'token ' + this.token,
             },
         };
-        let res: Response | undefined;
+        let res: Response = new Response();
         try {
             res = await fetch(url, fetchParams);
         } catch (err) {

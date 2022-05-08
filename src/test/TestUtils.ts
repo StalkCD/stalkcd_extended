@@ -205,7 +205,7 @@ export class TestUtils {
     static validateJsonSchema(schemaPath: string, dataPath: string ) {
         let ajv = new Ajv();
         const schema = JSON.parse(fs.readFileSync(schemaPath).toString("utf8"));
-        const data = yaml.safeLoad(fs.readFileSync(dataPath, { encoding: 'utf8' }));
+        const data = yaml.load(fs.readFileSync(dataPath, { encoding: 'utf8' }));
         const validate = ajv.compile(schema);
         const valid = validate(data);
         valid ? console.log("successfully validated.") : console.log(validate.errors);
