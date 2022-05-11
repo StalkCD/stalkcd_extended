@@ -1,0 +1,7 @@
+version: '3.9'
+services:
+  stalkcd-application:
+    image: stalkcd
+    volumes:
+      - "C:/Users/Clemens Kurz/WebstormProjects/stalkcd/src:/usr/app/src"
+      - "C:/Users/Clemens Kurz/WebstormProjects/stalkcd/res:/usr/app/res"
