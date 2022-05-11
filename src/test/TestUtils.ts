@@ -9,6 +9,9 @@ import * as yaml from 'js-yaml';
 import * as JSZip from "jszip";
 import {JSZipObject} from "jszip";
 
+import Ajv from "ajv";
+import { compile, compileFromFile } from 'json-schema-to-typescript'
+
 class ValidationError extends Error {
     name: string = "ValidationError";
 }
@@ -149,7 +152,6 @@ export class TestUtils {
     }
 
     static async unzip(file: PathLike, entryCall: Unzipper) {
-        let promiseList: Promise<Buffer>[] = [];
         let zipFileContent = fs.readFileSync(file);
         let jsZip = await JSZip.loadAsync(zipFileContent);
         for (let entry in jsZip.files) {
@@ -160,27 +162,6 @@ export class TestUtils {
             let content = await file.async("nodebuffer");
             entryCall(file, content);
         }
-/*        new JSZip.external.Promise(function (resolve, reject) {
-            fs.readFile("res/Evaluation-Jenkinsfile2StalkCD.zip", function (err, data) {
-                if (err) {
-                    throw err;
-                } else {
-                    resolve(data);
-                }
-            });
-        }).then(function (data: any) {
-            return JSZip.loadAsync(data);
-            // @ts-ignore
-        }).then((zipped: JSZip) => {
-            for (let entry in zipped.files) {
-                let file = zipped.files[entry];
-                if (file === undefined) {
-                    continue
-                }
-                promiseList.push(file.async("nodebuffer")) ;
-            }
-        });
-        await Promise.all(promiseList)*/
     }
 
     static removeDirectoryRecursively(path: PathLike) {
@@ -199,9 +180,24 @@ export class TestUtils {
         }
     }
 
-    static loadGitHubFile() {
-        yaml.safeLoad(fs.readFileSync(".github/workflows/main.yml", {encoding: 'utf8'}))
+    static validateJsonSchema(schemaPath: PathLike, dataPath: PathLike ) {
+        let ajv = new Ajv();
+        const schema = JSON.parse(fs.readFileSync(schemaPath).toString("utf8"));
+        const data = yaml.safeLoad(fs.readFileSync(dataPath, { encoding: 'utf8' }));
+        const validate = ajv.compile(schema);
+        const valid = validate(data);
+        valid ? console.log("successfully validated.") : console.log(validate.errors);
+        let dataJson = JSON.stringify(data, null, 2);
+        console.log(dataJson);
     }
+
+    static generateTypesFromJsonSchema(schemaPath: string, generatedPath: string)
+    {
+        // compile from file
+        compileFromFile(schemaPath)
+            .then(ts => fs.writeFileSync(generatedPath, ts))
+    }
+
 }
 
 interface Unzipper {
