@@ -9,7 +9,7 @@ jobs:
         uses: actions/checkout@v3
       - name: Build image locally
         run: docker build --target stalkcd-application --tag stalkcd-application:latest --file docker/Application.dockerfile .
-      - name: Run Tests in image
-        run: ls -la
-      - name: Run Tests in image
+      - name: Current directory
         run: pwd
+      - name: Run tests
+        run: docker run --rm -v "/home/runner/work/stalkcd/stalkcd/res:/usr/app/res" -v "/home/runner/work/stalkcd/stalkcd/src:/usr/app/src" stalkcd-application
