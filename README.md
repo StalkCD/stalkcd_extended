@@ -76,6 +76,6 @@ Files/Folders which might change often are excluded like the `src` and the `res`
 `src` and `res` have to be provided as volumes. 
 The test can be run with the following command:
 ```bash
-docker run -v "/absolute/path/to/folder/res:/usr/app/res" -v "/absolute/path/to/folder/src:/usr/app/src" stalkcd-application
+docker run --rm -v "/absolute/path/to/folder/res:/usr/app/res" -v "/absolute/path/to/folder/src:/usr/app/src" stalkcd-application
 ```
 Please provide the correct paths for the volumes on your local machine.
