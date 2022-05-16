@@ -29,7 +29,7 @@
     "json-schema-to-typescript": "^10.1.5",
     "jszip": "^3.9.1",
     "node": "^17.7.2",
-    "node-fetch": "^3.2.4",
+    "node-fetch": "^2.6.7",
     "randomatic": "^3.1.1",
     "readline-sync": "^1.4.10",
     "xml2js": "^0.4.23"
