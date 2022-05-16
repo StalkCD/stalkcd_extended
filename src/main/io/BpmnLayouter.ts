@@ -215,6 +215,7 @@ export class BpmnLayouter {
                     }
                 }]
             };
+            // @ts-ignore
             if (node.isSubGraph) {
                 shape.$.isExpanded = true;
             }

@@ -1,5 +1,5 @@
 import { AbstractParseTreeVisitor } from 'antlr4ts/tree';
-import { EnvironmentContext, AgentContext, Pipeline_optionsContext, TriggersContext, StagesContext, PostContext, DefinitionContext, ParametersContext, ToolsContext } from "./antlr4/jenkinsfileParser";
+import { EnvironmentContext, AgentContext, Pipeline_optionsContext, TriggersContext, StagesContext, PostContext, Groovy_definitionContext, ParametersContext, ToolsContext } from "./antlr4/jenkinsfileParser";
 import { jenkinsfileVisitor } from "./antlr4/jenkinsfileVisitor";
 import { Pipeline } from "../../model/pipeline/Pipeline";
 import { EnvironmentParser } from './EnvironmentParser';
@@ -19,7 +19,7 @@ export class PipelineParser
     protected defaultResult(): Pipeline {
         return this.res;
     }
-    visitDefinition(ctx: DefinitionContext): Pipeline {
+    visitDefinition(ctx: Groovy_definitionContext): Pipeline {
         if (!this.res.definitions) {
             this.res.definitions = [];
             this.res.savePropertyPosition('definitions');
