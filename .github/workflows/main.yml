@@ -1,4 +1,4 @@
-name: GitHub Actions Demo
+name: StalkCd Application Tests
 on: [push]
 jobs:
   Regression-Test-Stalkcd-Application:
