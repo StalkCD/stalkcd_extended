@@ -1,15 +1,12 @@
 name: GitHub Actions Demo
 on: [push]
 jobs:
-  Regression-Test:
+  Regression-Test-Stalkcd-Application:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Build image locally
         run: docker build --target stalkcd-application --tag stalkcd-application:latest --file docker/Application.dockerfile .
-      - name: Current directory
-        run: pwd
-      - name: Run tests
+      - name: Run tests in docker image
         run: docker run --rm -v "/home/runner/work/stalkcd/stalkcd/res:/usr/app/res" -v "/home/runner/work/stalkcd/stalkcd/src:/usr/app/src" stalkcd-application
