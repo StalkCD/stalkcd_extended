@@ -151,8 +151,8 @@ switch (+mode) {
         // TestUtils.validateJsonSchema("res/schema/github-workflow.json", ".github/workflows/main.yml")
         // TestUtils.generateTypesFromJsonSchema("res/schema/github-workflow.json", "src/main/model/GitHubActions/GeneratedTypes.ts");
         let githubActionsFileParser = new GithubActionsFileParser();
-        let githubWorkflow = githubActionsFileParser.parse(".github/workflows/main.yml");
-        console.log(githubWorkflow);
+        let pipeline = githubActionsFileParser.parse(".github/workflows/main.yml");
+        console.log(pipeline);
         break;
     default:
         program.outputHelp();
