@@ -10,11 +10,9 @@ import * as JSZip from "jszip";
 import {JSZipObject} from "jszip";
 
 import Ajv from "ajv";
-import { compile, compileFromFile } from 'json-schema-to-typescript'
-
-class ValidationError extends Error {
-    name: string = "ValidationError";
-}
+import {compileFromFile} from 'json-schema-to-typescript'
+import {throws} from "assert";
+import {ValidationError} from "../main/errors/ValidationError";
 
 export class TestUtils {
 
@@ -186,9 +184,7 @@ export class TestUtils {
         const data = yaml.safeLoad(fs.readFileSync(dataPath, { encoding: 'utf8' }));
         const validate = ajv.compile(schema);
         const valid = validate(data);
-        valid ? console.log("successfully validated.") : console.log(validate.errors);
-        let dataJson = JSON.stringify(data, null, 2);
-        console.log(dataJson);
+        valid ? console.log(`successfully validated file ${dataPath}.`) : throws(() => new ValidationError(validate.errors));
     }
 
     static generateTypesFromJsonSchema(schemaPath: string, generatedPath: string)

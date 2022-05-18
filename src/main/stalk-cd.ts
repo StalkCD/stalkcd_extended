@@ -1,9 +1,8 @@
 import * as program from 'commander';
 import { Runner } from './Runner';
 import { GitHubDownloader } from './JenkinsfileDownloader';
-import { TestUtils } from '../test/TestUtils';
 import { Jenkins2StalkCDEvaluation } from '../test/Jenkins2StalkCdEvaluation';
-import {compileFromFile} from "json-schema-to-typescript";
+import {GithubActionsFileParser} from "./model/GitHubActions/GithubActionsFileParser";
 
 enum Mode {
     Help,
@@ -149,8 +148,11 @@ switch (+mode) {
         new Jenkins2StalkCDEvaluation().evaluate();
         break;
     case Mode.Test:
-        TestUtils.validateJsonSchema("res/schema/github-workflow.json", ".github/workflows/main.yml")
-        TestUtils.generateTypesFromJsonSchema("res/schema/github-workflow.json", "src/main/model/GitHubActions/generatedTypes.ts");
+        // TestUtils.validateJsonSchema("res/schema/github-workflow.json", ".github/workflows/main.yml")
+        // TestUtils.generateTypesFromJsonSchema("res/schema/github-workflow.json", "src/main/model/GitHubActions/GeneratedTypes.ts");
+        let githubActionsFileParser = new GithubActionsFileParser();
+        let githubWorkflow = githubActionsFileParser.parse(".github/workflows/main.yml");
+        console.log(githubWorkflow);
         break;
     default:
         program.outputHelp();
