@@ -19,7 +19,7 @@ export class PipelineParser
     protected defaultResult(): Pipeline {
         return this.res;
     }
-    visitDefinition(ctx: Groovy_definitionContext): Pipeline {
+    visitGroovy_definition(ctx: Groovy_definitionContext): Pipeline {
         if (!this.res.definitions) {
             this.res.definitions = [];
             this.res.savePropertyPosition('definitions');
