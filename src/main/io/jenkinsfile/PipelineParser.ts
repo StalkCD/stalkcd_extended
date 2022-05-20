@@ -8,8 +8,8 @@ import {
     PostContext,
     Groovy_definitionContext,
     ParametersContext,
-    ToolsContext,
-    
+    ToolsContext
+
 } from "./antlr4/jenkinsfileParser";
 import { jenkinsfileVisitor } from "./antlr4/jenkinsfileVisitor";
 import { Pipeline } from "../../model/pipeline/Pipeline";
