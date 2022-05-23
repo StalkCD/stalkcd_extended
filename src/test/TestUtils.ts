@@ -137,16 +137,32 @@ export class TestUtils {
             }
         }
 
-        // TODO: specific results
-
+        //get specific failure classes
         if (failure.length > 0) {
+
+            let failureClassArray: any[] = [];
+            for (let result in actualData.fileResults)
+            {
+                failureClassArray.push(actualData.fileResults[result].mainClass);
+            }
+
+            const failureClassMap = new Map();
+            for (let i = 0; i < failureClassArray.length; i++) {
+                let item = failureClassArray[i];
+
+                failureClassMap.has(item) ? failureClassMap.set(item, failureClassMap.get(item) + 1) : failureClassMap.set(item, 1)
+            }
+
+            console.log(failureClassMap);
             console.error("Something went wrong while validating input. Failed properties: " + failure);
             let message: string = "";
             for (let pos in failure) {
                 let entry = failure[pos];
                 message = message + `Property '${entry}'\n    Expected: '${expected[entry]}'\n    actual: '${actualData[entry]}'\n`;
             }
+
             throw new ValidationError(message);
+
         }
         console.log("Successfully validated.")
     }
