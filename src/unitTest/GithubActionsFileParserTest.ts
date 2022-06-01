@@ -2,8 +2,8 @@ import {GithubActionsFileParser} from "../main/model/GitHubActions/GithubActions
 import {Pipeline} from "../main/model/pipeline/Pipeline";
 import {EnvironmentVariable} from "../main/model/pipeline/EnvironmentSection";
 import {ParsingImpossibleError} from "../main/errors/ParsingImpossibleError";
-import {separateKeyValue} from "../main/model/util/Utils";
 import {assert, assertArray, assertDefined, assertThrows} from "./Asserts";
+import {separateKeyValue} from "../main/util";
 
 
 function parseData(filename: string): Pipeline {
