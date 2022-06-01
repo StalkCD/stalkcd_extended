@@ -1,0 +1,12 @@
+name: Test
+on: push
+defaults:
+  run:
+    shell: sh
+    working-directory: mydir
+jobs:
+  Regression-Test-Stalkcd-Application:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hello World
+        run: echo Hello World

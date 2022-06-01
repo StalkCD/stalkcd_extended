@@ -11,6 +11,7 @@ import {
     EnvironmentVariable,
     IEnvironmentVariable
 } from "../pipeline/EnvironmentSection";
+import {toKeyValueString} from "../util/Utils";
 
 
 export class GithubActionsFileParser {
@@ -34,6 +35,7 @@ export class GithubActionsFileParser {
         builder.setDefinitions(GithubActionsFileParser.definitions(githubWorkflow));
         builder.setEnvironment(GithubActionsFileParser.environment(githubWorkflow))
         builder.setTriggers(this.triggers(githubWorkflow));
+        builder.setParameters(GithubActionsFileParser.parameters(githubWorkflow));
         // builder.beginStage()
         // this.stages(githubWorkflow);
         return builder.pipeline;
@@ -105,5 +107,19 @@ export class GithubActionsFileParser {
             }
         }
         return pipelineEnvironment;
+    }
+
+    private static parameters(githubWorkflow: GithubWorkflow): string[] {
+        if (!githubWorkflow.defaults || !githubWorkflow.defaults.run) {
+            return [];
+        }
+
+        let params: string[] = [];
+        let run = githubWorkflow.defaults.run;
+        for (let runKey in run) {
+            // @ts-ignore
+            params.push(toKeyValueString(runKey, run[runKey].toString()))
+        }
+        return params;
     }
 }

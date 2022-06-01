@@ -239,11 +239,11 @@ export class PipelineBuilder {
         if (!definitions || definitions.length === 0) {
             return;
         }
-        if (this._pipeline.definitions === undefined) {
-            this._pipeline.definitions = definitions;
+        if (this._pipeline.definitions) {
+            let pipelineDefs = this._pipeline.definitions;
+            definitions.forEach(s => pipelineDefs.push(s));
         } else {
-            // @ts-ignore undefined is checked
-            definitions.forEach(s => this._pipeline.definitions.push(s));
+            this._pipeline.definitions = definitions;
         }
     }
 
@@ -251,11 +251,23 @@ export class PipelineBuilder {
         if (!environment || environment.length === 0) {
             return;
         }
-        if (this._pipeline.environment === undefined) {
-            this._pipeline.environment = environment;
+        if (this._pipeline.environment) {
+            let pipelineEnv = this._pipeline.environment;
+            environment.forEach(e => pipelineEnv.push(e))
         } else {
-            // @ts-ignore undefined is checked
-            environment.forEach(e => this._pipeline.environment.push(e))
+            this._pipeline.environment = environment;
+        }
+    }
+
+    setParameters(parameters: string[]): any {
+        if (!parameters || parameters.length === 0) {
+            return;
+        }
+        if (this._pipeline.parameters) {
+            let pipelineParams = this._pipeline.parameters;
+            parameters.forEach(e => pipelineParams.push(e))
+        } else {
+            this._pipeline.parameters = parameters;
         }
     }
 }
