@@ -1,0 +1,27 @@
+name: StalkCd Application Tests
+on: [push]
+env:
+  my-var: test
+  my-number: 0
+  my-boolean: true
+defaults:
+  run:
+    shell: sh
+    working-directory: mydir
+jobs:
+  Regression-Test-Stalkcd-Application:
+    runs-on: ubuntu-latest
+    env:
+      my-var: test
+      my-number: 0
+      my-boolean: true
+    if: my if statement
+    timeout-minutes: 360
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - name: Build image locally
+        run: docker build --target stalkcd-application --tag stalkcd-application:latest --file docker/Application.dockerfile .
+        shell: sh
+      - name: Run tests in docker image
+        run: docker run --rm -v "/home/runner/work/stalkcd/stalkcd/res:/usr/app/res" -v "/home/runner/work/stalkcd/stalkcd/src:/usr/app/src" stalkcd-application

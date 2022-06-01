@@ -14,6 +14,7 @@ import {
 import {Stage} from "../pipeline/Stage";
 import {Step} from "../pipeline/Step";
 import {toKeyValueString} from "../../util";
+import {IAgentOption} from "../pipeline/AgentSection";
 
 
 export class GithubActionsFileParser {
@@ -38,6 +39,11 @@ export class GithubActionsFileParser {
         builder.setEnvironment(GithubActionsFileParser.environment(githubWorkflow))
         builder.setTriggers(GithubActionsFileParser.triggers(githubWorkflow));
         builder.setParameters(GithubActionsFileParser.parameters(githubWorkflow));
+        let stages: Stage[] = GithubActionsFileParser.stages(githubWorkflow);
+        for (let stage of stages) {
+            builder.beginStage(stage.toSerial())
+            builder.endStage()
+        }
         // builder.beginStage()
         // this.stages(githubWorkflow);
         return builder.pipeline;
@@ -46,34 +52,58 @@ export class GithubActionsFileParser {
     private static stages(githubWorkflow: GithubWorkflow): Stage[] {
         let stages: Stage[] = [];
         let jobs = githubWorkflow.jobs;
+        // fail fast
         if (GithubActionsFileParser.hasReusableWorkflowCallJob(jobs)) {
             throw new ParsingImpossibleError(jobs.toString(), ParsingImpossibleReason.UnableToHandleReusableWorkflowCallJob)
         }
+        if (GithubActionsFileParser.hasOutput(jobs)) {
+            throw new ParsingImpossibleError(jobs.toString(), ParsingImpossibleReason.HasOutput)
+        }
+
+        // processing
         for (let jobId in jobs) {
             let job: NormalJob = <NormalJob>jobs[jobId];
+            let pipelineStage: Stage = new Stage({
+                name: jobId,
+            });
+            if (job.name) {
+                pipelineStage.baseName = job.name;
+            }
+            pipelineStage.when = GithubActionsFileParser.when(job)
+            pipelineStage.agent = GithubActionsFileParser.runsOn(job)
+            pipelineStage.environment = GithubActionsFileParser.environment(job)
+            pipelineStage.options = GithubActionsFileParser.options(job)
+
             let steps: Step[] = [];
             if (job.steps) {
                 for (let stepKey in job.steps) {
                     let githubStep = job.steps[stepKey];
-                    let pipelineStep = new Step({
+                    let stageStep = new Step({
                         label: githubStep.name,
-                        command: githubStep.run ? githubStep.run : githubStep.uses
+                        command: githubStep.run ? (githubStep.shell ? githubStep.shell + " " : "") + githubStep.run : githubStep.uses
                     });
-                    steps.push(pipelineStep);
+                    steps.push(stageStep);
                 }
             }
+            pipelineStage.steps = steps;
 
-            let stage = new Stage({
-                name: jobId,
-            });
-            stages.push(stage);
+            stages.push(pipelineStage);
         }
         return stages
     }
 
+    private static when(job: NormalJob): string {
+        // TODO: extract also jobs.<job-id>.JobNeeds
+        if (job.if) {
+            return job.if;
+        }
+        return "";
+    }
+
     private static hasReusableWorkflowCallJob(jobs: { [p: string]: NormalJob | ReusableWorkflowCallJob }): boolean {
-        for (let jobsId in jobs) {
-            if (jobs[jobsId] as ReusableWorkflowCallJob) {
+        for (let jobId in jobs) {
+            // @ts-ignore
+            if (jobs[jobId].with) { // very ugly, this is an attribute which only exists on ReusableWorkflowCallJob
                 return true;
             }
         }
@@ -100,16 +130,16 @@ export class GithubActionsFileParser {
         return definitions;
     }
 
-    private static environment(githubWorkflow: GithubWorkflow): IEnvironmentVariable[] {
-        if (!githubWorkflow.env) {
+    private static environment(entity: GithubWorkflow | NormalJob): IEnvironmentVariable[] {
+        if (!entity.env) {
             return [];
         }
 
         let pipelineEnvironment: IEnvironmentVariable[] = [];
-        let env = githubWorkflow.env;
+        let env = entity.env;
         if (typeof env === "string") {
             pipelineEnvironment.push(new EnvironmentVariable(EnvironmentalVariableNameMarker.EXTERNAL_ENVIRONMENT, env));
-        } else if (typeof env === "object"){
+        } else if (typeof env === "object") {
             for (let envKey in env) {
                 pipelineEnvironment.push(new EnvironmentVariable(envKey, env[envKey].toString()))
             }
@@ -129,5 +159,27 @@ export class GithubActionsFileParser {
             params.push(toKeyValueString(runKey, run[runKey].toString()))
         }
         return params;
+    }
+
+    private static runsOn(job: NormalJob): IAgentOption[] {
+        if (job["runs-on"] instanceof Array) {
+            throw new ParsingImpossibleError("Unable to Handle the self-hosted option in 'runs-on'\n" + job["runs-on"].toString(), ParsingImpossibleReason.SelfHosted)
+        }
+        return [{name: job["runs-on"].toString()}];
+    }
+
+    private static hasOutput(jobs: { [p: string]: NormalJob | ReusableWorkflowCallJob }) {
+        for (let jobsKey in jobs) {
+            let job: NormalJob = <NormalJob>jobs[jobsKey];
+            if (job.outputs) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static options(job: NormalJob): string[] {
+        // @ts-ignore
+        return job["timeout-minutes"] ? [job["timeout-minutes"].toString()] : []
     }
 }

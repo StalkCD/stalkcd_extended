@@ -65,6 +65,9 @@ function testThrowsReusableWorkflowCallJob(){
     assertThrows(() => parseData("jobs.ReusableWorkflowCallJob.yml"), (err:Error) => err as ParsingImpossibleError)
 }
 
+function testSimpleMainRun() {
+    console.log(parseData("main.yml"));
+}
 
 
 testEnvironment()
@@ -73,6 +76,7 @@ testTriggers2()
 testTriggers3()
 testparameters()
 testThrowsReusableWorkflowCallJob()
+testSimpleMainRun()
 console.log("successfully tested")
 
 
