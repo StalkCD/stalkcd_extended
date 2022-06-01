@@ -1,4 +1,4 @@
-import {Event, GithubWorkflow} from "./GeneratedTypes";
+import {GithubWorkflow} from "./GeneratedTypes";
 import * as fs from "fs";
 import {PathLike} from "fs";
 import * as yaml from 'js-yaml';
@@ -72,12 +72,11 @@ export class GithubActionsFileParser {
 
     private triggers(githubWorkflow: GithubWorkflow): string[] {
         let triggers: string[] = [];
-        if (githubWorkflow.on as Event) { // Handling Event
-            triggers.push(githubWorkflow.on.toString())
-        } else if (githubWorkflow.on instanceof Array) { // Handling Event[]
+        if (githubWorkflow.on instanceof Array) { // Handling Event[]
             githubWorkflow.on.forEach(e => triggers.push(e.toString()));
-            // triggers.push(githubWorkflow.on[0]);
-        } else { // Handling Object or similar type which is unable to process
+        } else if ((typeof githubWorkflow.on) === "string") { // Handling Event; very ugly ts Seems Unnecessary Complicated Knowing typeS
+            triggers.push(githubWorkflow.on.toString())
+        } else {
             throw new ParsingImpossibleError(githubWorkflow.on.toString(), ParsingImpossibleReason.OnIsUnknownType);
         }
         return triggers;

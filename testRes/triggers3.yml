@@ -1,0 +1,16 @@
+name: Test
+on:
+  push:
+    branches:
+      - main
+      - 'releases/**'
+env:
+  my-var: test
+  my-number: 0
+  my-boolean: true
+jobs:
+  Regression-Test-Stalkcd-Application:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hello World
+        run: echo Hello World

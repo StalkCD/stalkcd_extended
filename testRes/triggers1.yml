@@ -1,0 +1,8 @@
+name: Test
+on: push
+jobs:
+  Regression-Test-Stalkcd-Application:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hello World
+        run: echo Hello World
