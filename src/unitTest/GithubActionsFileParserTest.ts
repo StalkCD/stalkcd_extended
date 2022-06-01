@@ -61,12 +61,18 @@ function testparameters() {
     }
 }
 
+function testThrowsReusableWorkflowCallJob(){
+    assertThrows(() => parseData("jobs.ReusableWorkflowCallJob.yml"), (err:Error) => err as ParsingImpossibleError)
+}
+
+
 
 testEnvironment()
 testTriggers1()
 testTriggers2()
 testTriggers3()
 testparameters()
+testThrowsReusableWorkflowCallJob()
 console.log("successfully tested")
 
 

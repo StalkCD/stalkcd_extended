@@ -1,4 +1,4 @@
-import {GithubWorkflow} from "./GeneratedTypes";
+import {GithubWorkflow, NormalJob, ReusableWorkflowCallJob} from "./GeneratedTypes";
 import * as fs from "fs";
 import {PathLike} from "fs";
 import * as yaml from 'js-yaml';
@@ -11,7 +11,9 @@ import {
     EnvironmentVariable,
     IEnvironmentVariable
 } from "../pipeline/EnvironmentSection";
-import {toKeyValueString} from "../util/Utils";
+import {Stage} from "../pipeline/Stage";
+import {Step} from "../pipeline/Step";
+import {toKeyValueString} from "../../util";
 
 
 export class GithubActionsFileParser {
@@ -34,19 +36,21 @@ export class GithubActionsFileParser {
         let builder: PipelineBuilder = new PipelineBuilder();
         builder.setDefinitions(GithubActionsFileParser.definitions(githubWorkflow));
         builder.setEnvironment(GithubActionsFileParser.environment(githubWorkflow))
-        builder.setTriggers(this.triggers(githubWorkflow));
+        builder.setTriggers(GithubActionsFileParser.triggers(githubWorkflow));
         builder.setParameters(GithubActionsFileParser.parameters(githubWorkflow));
         // builder.beginStage()
         // this.stages(githubWorkflow);
         return builder.pipeline;
     }
 
-    // job = stagge
-/*
-    private stages(githubWorkflow: GithubWorkflow): Stage[] {
+    private static stages(githubWorkflow: GithubWorkflow): Stage[] {
         let stages: Stage[] = [];
-        for (let jobKey in githubWorkflow.jobs) {
-            let job: NormalJob = <NormalJob>githubWorkflow.jobs[jobKey];
+        let jobs = githubWorkflow.jobs;
+        if (GithubActionsFileParser.hasReusableWorkflowCallJob(jobs)) {
+            throw new ParsingImpossibleError(jobs.toString(), ParsingImpossibleReason.UnableToHandleReusableWorkflowCallJob)
+        }
+        for (let jobId in jobs) {
+            let job: NormalJob = <NormalJob>jobs[jobId];
             let steps: Step[] = [];
             if (job.steps) {
                 for (let stepKey in job.steps) {
@@ -60,19 +64,23 @@ export class GithubActionsFileParser {
             }
 
             let stage = new Stage({
-                name: jobKey,
-                agent: {
-                    name: job['runs-on'].toString()
-                },
-                steps: steps
+                name: jobId,
             });
-            // pipeline.stages.push(stage);
+            stages.push(stage);
         }
         return stages
     }
-*/
 
-    private triggers(githubWorkflow: GithubWorkflow): string[] {
+    private static hasReusableWorkflowCallJob(jobs: { [p: string]: NormalJob | ReusableWorkflowCallJob }): boolean {
+        for (let jobsId in jobs) {
+            if (jobs[jobsId] as ReusableWorkflowCallJob) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static triggers(githubWorkflow: GithubWorkflow): string[] {
         let triggers: string[] = [];
         if (githubWorkflow.on instanceof Array) { // Handling Event[]
             githubWorkflow.on.forEach(e => triggers.push(e.toString()));

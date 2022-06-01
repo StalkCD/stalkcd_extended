@@ -10,4 +10,5 @@ export class ParsingImpossibleError extends Error {
 
 export enum ParsingImpossibleReason {
     OnIsUnknownType,
+    UnableToHandleReusableWorkflowCallJob
 }
