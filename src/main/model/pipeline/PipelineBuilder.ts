@@ -1,12 +1,13 @@
-import { Pipeline } from "./Pipeline";
-import { Stage, IStage } from "./Stage";
-import { Step } from "./Step";
-import { PostCondition } from "./PostSection";
-import { IAgentOption } from "./AgentSection";
+import {Pipeline} from "./Pipeline";
+import {Stage, IStage} from "./Stage";
+import {Step} from "./Step";
+import {PostCondition} from "./PostSection";
+import {IAgentOption} from "./AgentSection";
+import {IEnvironmentVariable} from "./EnvironmentSection";
 
 export class PipelineBuilder {
-    constructor (
-    ) { }
+    constructor() {
+    }
 
     private _pipeline: Pipeline = new Pipeline();
 
@@ -64,7 +65,7 @@ export class PipelineBuilder {
 
     /**
      * Starts a new stage
-     * @param newStage The new stage to begin
+     * @param init The new stage to begin
      */
     public beginStage(init: IStage): PipelineBuilder {
         if (this._currentPostSection) {
@@ -72,7 +73,7 @@ export class PipelineBuilder {
         }
 
         const newStage = new Stage(init);
-        
+
         if (this._currentStage) {
             // Begin a sub-stage
             if (this._currentStage.steps) {
@@ -122,7 +123,7 @@ export class PipelineBuilder {
     }
 
     /**
-     * 
+     *
      * @param condition The condition of the post section
      */
     public beginPostSection(condition: PostCondition): PipelineBuilder {
@@ -193,7 +194,7 @@ export class PipelineBuilder {
             isAutoStage,
         }
     }
-    
+
     /**
      * Sets the agent section of the current stage or the first one, if there is none yet.
      * @param agent The agent section
@@ -234,4 +235,27 @@ export class PipelineBuilder {
         }
     }
 
+    setDefinitions(definitions: string[]): any {
+        if (!definitions || definitions.length === 0) {
+            return;
+        }
+        if (this._pipeline.definitions === undefined) {
+            this._pipeline.definitions = definitions;
+        } else {
+            // @ts-ignore undefined is checked
+            definitions.forEach(s => this._pipeline.definitions.push(s));
+        }
+    }
+
+    setEnvironment(environment: IEnvironmentVariable[]): any {
+        if (!environment || environment.length === 0) {
+            return;
+        }
+        if (this._pipeline.environment === undefined) {
+            this._pipeline.environment = environment;
+        } else {
+            // @ts-ignore undefined is checked
+            environment.forEach(e => this._pipeline.environment.push(e))
+        }
+    }
 }

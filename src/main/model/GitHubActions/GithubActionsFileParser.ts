@@ -1,11 +1,16 @@
-import {GithubWorkflow, NormalJob} from "./GeneratedTypes";
+import {Event, GithubWorkflow} from "./GeneratedTypes";
 import * as fs from "fs";
 import {PathLike} from "fs";
 import * as yaml from 'js-yaml';
 import {JsonSchemaValidator} from "../../JsonSchemaValidator";
 import {Pipeline} from "../pipeline/Pipeline";
-import {Stage} from "../pipeline/Stage";
-import {Step} from "../pipeline/Step";
+import {PipelineBuilder} from "../pipeline/PipelineBuilder";
+import {ParsingImpossibleError, ParsingImpossibleReason} from "../../errors/ParsingImpossibleError";
+import {
+    EnvironmentalVariableNameMarker,
+    EnvironmentVariable,
+    IEnvironmentVariable
+} from "../pipeline/EnvironmentSection";
 
 
 export class GithubActionsFileParser {
@@ -25,17 +30,19 @@ export class GithubActionsFileParser {
     parse(input: PathLike): Pipeline {
         this.jsonSchemaValidator.validate(input);
         let githubWorkflow: GithubWorkflow = <GithubWorkflow>yaml.safeLoad(fs.readFileSync(input, {encoding: 'utf8'}));
-        let pipeline: Pipeline = new Pipeline();
-        if (githubWorkflow.name) {
-            pipeline.definitions = [];
-            pipeline.definitions.push(githubWorkflow.name);
-        }
-        // TODO: GithubWorkflow.on has an any type and needs to be identified
-        if (githubWorkflow.on) {
-            pipeline.triggers = [];
-            // @ts-ignore
-            pipeline.triggers.push(githubWorkflow.on[0]);
-        }
+        let builder: PipelineBuilder = new PipelineBuilder();
+        builder.setDefinitions(GithubActionsFileParser.definitions(githubWorkflow));
+        builder.setEnvironment(GithubActionsFileParser.environment(githubWorkflow))
+        builder.setTriggers(this.triggers(githubWorkflow));
+        // builder.beginStage()
+        // this.stages(githubWorkflow);
+        return builder.pipeline;
+    }
+
+    // job = stagge
+/*
+    private stages(githubWorkflow: GithubWorkflow): Stage[] {
+        let stages: Stage[] = [];
         for (let jobKey in githubWorkflow.jobs) {
             let job: NormalJob = <NormalJob>githubWorkflow.jobs[jobKey];
             let steps: Step[] = [];
@@ -49,17 +56,55 @@ export class GithubActionsFileParser {
                     steps.push(pipelineStep);
                 }
             }
-            // @ts-ignore
+
             let stage = new Stage({
                 name: jobKey,
                 agent: {
-                    // @ts-ignore
-                    name: job['runs-on']
+                    name: job['runs-on'].toString()
                 },
                 steps: steps
             });
-            pipeline.stages.push(stage);
+            // pipeline.stages.push(stage);
         }
-        return pipeline;
+        return stages
+    }
+*/
+
+    private triggers(githubWorkflow: GithubWorkflow): string[] {
+        let triggers: string[] = [];
+        if (githubWorkflow.on as Event) { // Handling Event
+            triggers.push(githubWorkflow.on.toString())
+        } else if (githubWorkflow.on instanceof Array) { // Handling Event[]
+            githubWorkflow.on.forEach(e => triggers.push(e.toString()));
+            // triggers.push(githubWorkflow.on[0]);
+        } else { // Handling Object or similar type which is unable to process
+            throw new ParsingImpossibleError(githubWorkflow.on.toString(), ParsingImpossibleReason.OnIsUnknownType);
+        }
+        return triggers;
+    }
+
+    private static definitions(githubWorkflow: GithubWorkflow): string[] {
+        let definitions: string[] = [];
+        if (githubWorkflow.name) {
+            definitions.push(githubWorkflow.name);
+        }
+        return definitions;
+    }
+
+    private static environment(githubWorkflow: GithubWorkflow): IEnvironmentVariable[] {
+        if (!githubWorkflow.env) {
+            return [];
+        }
+
+        let pipelineEnvironment: IEnvironmentVariable[] = [];
+        let env = githubWorkflow.env;
+        if (typeof env === "string") {
+            pipelineEnvironment.push(new EnvironmentVariable(EnvironmentalVariableNameMarker.EXTERNAL_ENVIRONMENT, env));
+        } else if (typeof env === "object"){
+            for (let envKey in env) {
+                pipelineEnvironment.push(new EnvironmentVariable(envKey, env[envKey].toString()))
+            }
+        }
+        return pipelineEnvironment;
     }
 }
