@@ -23,7 +23,7 @@ export class Step {
         return clean(Object.assign({}, this));
     }
 
-    static fromSerial(init: IStep): Step {
+    public static fromSerial(init: IStep): Step {
         return new Step(init as IStep);
     }
 }
