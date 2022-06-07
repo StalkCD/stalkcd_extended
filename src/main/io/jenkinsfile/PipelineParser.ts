@@ -6,7 +6,7 @@ import {
     TriggersContext,
     StagesContext,
     PostContext,
-    Groovy_definitionContext,
+    DefinitionContext,
     ParametersContext,
     ToolsContext
 
@@ -30,7 +30,7 @@ export class PipelineParser
     protected defaultResult(): Pipeline {
         return this.res;
     }
-    visitGroovy_definition(ctx: Groovy_definitionContext): Pipeline {
+    visitDefinition(ctx: DefinitionContext): Pipeline {
         if (!this.res.definitions) {
             this.res.definitions = [];
             this.res.savePropertyPosition('definitions');

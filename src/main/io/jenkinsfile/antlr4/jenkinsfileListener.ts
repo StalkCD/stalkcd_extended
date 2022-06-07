@@ -1,14 +1,13 @@
-// Generated from src/main/io/jenkinsfile/antlr4/jenkinsfile.g4 by ANTLR 4.9.0-SNAPSHOT
+// Generated from src/io/jenkinsfile/antlr4/jenkinsfile.g4 by ANTLR 4.6-SNAPSHOT
 
 
 import { ParseTreeListener } from "antlr4ts/tree/ParseTreeListener";
 
 import { PipelineContext } from "./jenkinsfileParser";
-import { Groovy_definitionContext } from "./jenkinsfileParser";
+import { DefinitionContext } from "./jenkinsfileParser";
 import { EnvironmentContext } from "./jenkinsfileParser";
 import { ParametersContext } from "./jenkinsfileParser";
 import { AgentContext } from "./jenkinsfileParser";
-import { Agent_sectionContext } from "./jenkinsfileParser";
 import { Agent_typeContext } from "./jenkinsfileParser";
 import { ToolsContext } from "./jenkinsfileParser";
 import { Pipeline_optionsContext } from "./jenkinsfileParser";
@@ -18,7 +17,6 @@ import { Stage_definitionContext } from "./jenkinsfileParser";
 import { Stage_nameContext } from "./jenkinsfileParser";
 import { Fail_fastContext } from "./jenkinsfileParser";
 import { StepsContext } from "./jenkinsfileParser";
-import { StepContext } from "./jenkinsfileParser";
 import { ScriptContext } from "./jenkinsfileParser";
 import { InputContext } from "./jenkinsfileParser";
 import { WhenContext } from "./jenkinsfileParser";
@@ -60,15 +58,15 @@ export interface jenkinsfileListener extends ParseTreeListener {
 	exitPipeline?: (ctx: PipelineContext) => void;
 
 	/**
-	 * Enter a parse tree produced by `jenkinsfileParser.groovy_definition`.
+	 * Enter a parse tree produced by `jenkinsfileParser.definition`.
 	 * @param ctx the parse tree
 	 */
-	enterGroovy_definition?: (ctx: Groovy_definitionContext) => void;
+	enterDefinition?: (ctx: DefinitionContext) => void;
 	/**
-	 * Exit a parse tree produced by `jenkinsfileParser.groovy_definition`.
+	 * Exit a parse tree produced by `jenkinsfileParser.definition`.
 	 * @param ctx the parse tree
 	 */
-	exitGroovy_definition?: (ctx: Groovy_definitionContext) => void;
+	exitDefinition?: (ctx: DefinitionContext) => void;
 
 	/**
 	 * Enter a parse tree produced by `jenkinsfileParser.environment`.
@@ -102,17 +100,6 @@ export interface jenkinsfileListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	exitAgent?: (ctx: AgentContext) => void;
-
-	/**
-	 * Enter a parse tree produced by `jenkinsfileParser.agent_section`.
-	 * @param ctx the parse tree
-	 */
-	enterAgent_section?: (ctx: Agent_sectionContext) => void;
-	/**
-	 * Exit a parse tree produced by `jenkinsfileParser.agent_section`.
-	 * @param ctx the parse tree
-	 */
-	exitAgent_section?: (ctx: Agent_sectionContext) => void;
 
 	/**
 	 * Enter a parse tree produced by `jenkinsfileParser.agent_type`.
@@ -212,17 +199,6 @@ export interface jenkinsfileListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	exitSteps?: (ctx: StepsContext) => void;
-
-	/**
-	 * Enter a parse tree produced by `jenkinsfileParser.step`.
-	 * @param ctx the parse tree
-	 */
-	enterStep?: (ctx: StepContext) => void;
-	/**
-	 * Exit a parse tree produced by `jenkinsfileParser.step`.
-	 * @param ctx the parse tree
-	 */
-	exitStep?: (ctx: StepContext) => void;
 
 	/**
 	 * Enter a parse tree produced by `jenkinsfileParser.script`.

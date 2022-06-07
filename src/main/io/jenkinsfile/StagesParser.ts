@@ -15,8 +15,8 @@ import {
     ScriptContext,
     Fail_fastContext,
     InputContext,
-    ToolsContext,
-    StepContext
+    ToolsContext
+
 } from "./antlr4/jenkinsfileParser";
 import { AgentParser } from "./AgentParser";
 import { EnvironmentParser } from "./EnvironmentParser";
@@ -149,18 +149,11 @@ export class StageParser
             if (!this.res.steps) {
                 this.res.steps = [];
             }
-
-            // hier werden bereits Method_callContext oder ScriptContext erwartet, es wird aber stattdessen die Vorstufe ein StepContext (nicht StepScontext) übergeben
             for (const child of ctx.children) {
-                if (child instanceof StepContext)
-                {
-                    const stepContextChild = child.getChild(0);
-                    if (stepContextChild instanceof Method_callContext
-                        || stepContextChild instanceof ScriptContext) {
-                        this.res.steps.push(stepContextChild.accept(new StepParser()));
-                    }
+                if (child instanceof Method_callContext
+                    || child instanceof ScriptContext) {
+                    this.res.steps.push(child.accept(new StepParser()));
                 }
-
             }
         }
         this.res.savePropertyPosition('steps');

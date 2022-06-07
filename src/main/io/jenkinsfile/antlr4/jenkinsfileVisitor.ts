@@ -1,14 +1,13 @@
-// Generated from src/main/io/jenkinsfile/antlr4/jenkinsfile.g4 by ANTLR 4.9.0-SNAPSHOT
+// Generated from src/io/jenkinsfile/antlr4/jenkinsfile.g4 by ANTLR 4.6-SNAPSHOT
 
 
 import { ParseTreeVisitor } from "antlr4ts/tree/ParseTreeVisitor";
 
 import { PipelineContext } from "./jenkinsfileParser";
-import { Groovy_definitionContext } from "./jenkinsfileParser";
+import { DefinitionContext } from "./jenkinsfileParser";
 import { EnvironmentContext } from "./jenkinsfileParser";
 import { ParametersContext } from "./jenkinsfileParser";
 import { AgentContext } from "./jenkinsfileParser";
-import { Agent_sectionContext } from "./jenkinsfileParser";
 import { Agent_typeContext } from "./jenkinsfileParser";
 import { ToolsContext } from "./jenkinsfileParser";
 import { Pipeline_optionsContext } from "./jenkinsfileParser";
@@ -18,7 +17,6 @@ import { Stage_definitionContext } from "./jenkinsfileParser";
 import { Stage_nameContext } from "./jenkinsfileParser";
 import { Fail_fastContext } from "./jenkinsfileParser";
 import { StepsContext } from "./jenkinsfileParser";
-import { StepContext } from "./jenkinsfileParser";
 import { ScriptContext } from "./jenkinsfileParser";
 import { InputContext } from "./jenkinsfileParser";
 import { WhenContext } from "./jenkinsfileParser";
@@ -59,11 +57,11 @@ export interface jenkinsfileVisitor<Result> extends ParseTreeVisitor<Result> {
 	visitPipeline?: (ctx: PipelineContext) => Result;
 
 	/**
-	 * Visit a parse tree produced by `jenkinsfileParser.groovy_definition`.
+	 * Visit a parse tree produced by `jenkinsfileParser.definition`.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	visitGroovy_definition?: (ctx: Groovy_definitionContext) => Result;
+	visitDefinition?: (ctx: DefinitionContext) => Result;
 
 	/**
 	 * Visit a parse tree produced by `jenkinsfileParser.environment`.
@@ -85,13 +83,6 @@ export interface jenkinsfileVisitor<Result> extends ParseTreeVisitor<Result> {
 	 * @return the visitor result
 	 */
 	visitAgent?: (ctx: AgentContext) => Result;
-
-	/**
-	 * Visit a parse tree produced by `jenkinsfileParser.agent_section`.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	visitAgent_section?: (ctx: Agent_sectionContext) => Result;
 
 	/**
 	 * Visit a parse tree produced by `jenkinsfileParser.agent_type`.
@@ -155,13 +146,6 @@ export interface jenkinsfileVisitor<Result> extends ParseTreeVisitor<Result> {
 	 * @return the visitor result
 	 */
 	visitSteps?: (ctx: StepsContext) => Result;
-
-	/**
-	 * Visit a parse tree produced by `jenkinsfileParser.step`.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	visitStep?: (ctx: StepContext) => Result;
 
 	/**
 	 * Visit a parse tree produced by `jenkinsfileParser.script`.
