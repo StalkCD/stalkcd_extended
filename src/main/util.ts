@@ -68,6 +68,7 @@ export function extractString(src: string): string {
             return src;
     }
 
+    // noinspection UnnecessaryLocalVariableJS
     let res = src
         .replace(new RegExp(quote, 'g'), '')
         .replace(new RegExp('\\' + quote), quote);
@@ -94,6 +95,7 @@ export abstract class PositionAwareObject<T> {
             return;
         }
 
+        // noinspection SuspiciousTypeOfGuard
         if (typeof src === 'string') {
             const key = src as keyof T;
             const existingIndex = this.propertiesOrder.indexOf(key);
@@ -144,5 +146,11 @@ export function separateKeyValue(keyValue: string): string[] {
 
 
 export function toKeyValueString(key: string, value: string): string {
+    if (!key) {
+        throw new Error("Key is not defined");
+    }
+    if (!value) {
+        throw new Error("Value is not defined for key: " + key);
+    }
     return key + KEY_VALUE_SEPARATOR + value.toString();
 }

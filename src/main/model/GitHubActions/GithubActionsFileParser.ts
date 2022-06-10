@@ -1,4 +1,9 @@
-import {GithubWorkflow, NormalJob, ReusableWorkflowCallJob} from "./GeneratedTypes";
+import {
+    GithubWorkflow,
+    NormalJob,
+    PermissionsEvent,
+    ReusableWorkflowCallJob
+} from "./GeneratedTypes";
 import * as fs from "fs";
 import {PathLike} from "fs";
 import * as yaml from 'js-yaml';
@@ -146,16 +151,28 @@ export class GithubActionsFileParser {
     }
 
     private static parameters(githubWorkflow: GithubWorkflow): string[] {
-        if (!githubWorkflow.defaults || !githubWorkflow.defaults.run) {
-            return [];
+        let params: string[] = [];
+
+        let defaults = githubWorkflow.defaults;
+        if (defaults) {
+            let run:any = defaults.run; // ugly, this should be properly typed by I'm at this point to annoyed to care
+            if (run) {
+                for (let runKey in run) {
+                    params.push(toKeyValueString(runKey, run[runKey]));
+                }
+            }
         }
 
-        let params: string[] = [];
-        let run = githubWorkflow.defaults.run;
-        for (let runKey in run) {
-            // @ts-ignore
-            params.push(toKeyValueString(runKey, run[runKey].toString()))
+        let permissions: PermissionsEvent | "read-all" | "write-all" | undefined = githubWorkflow.permissions;
+        if (permissions) {
+            if (typeof permissions === "string") {
+                params.push(toKeyValueString("permissions", permissions))
+            }
+            if (typeof permissions === "object") {
+                params.push(toKeyValueString("permissions", JSON.stringify(permissions)))
+            }
         }
+
         return params;
     }
 

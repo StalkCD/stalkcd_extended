@@ -74,7 +74,7 @@ function testParameters() {
     let pipeline = parseData("parameters.yml");
     assertDefined(pipeline.parameters);
     if (pipeline.parameters) {
-        assert(pipeline.parameters.length, 2);
+        assert(pipeline.parameters.length, 3);
         assertArray(pipeline.parameters, (p:string) => {
             let keyValue = separateKeyValue(p);
             return keyValue[0] === "shell" && keyValue[1] === "sh";
@@ -83,6 +83,27 @@ function testParameters() {
             let keyValue = separateKeyValue(p);
             return keyValue[0] === "working-directory" && keyValue[1] === "mydir";
         });
+        assertArray(pipeline.parameters, (p:string) => {
+            let keyValue = separateKeyValue(p);
+            return keyValue[0] === "permissions" && keyValue[1] === "read-all"
+        })
+    }
+}
+
+function testParameters2() {
+    let pipeline = parseData("parameters2.yml");
+    assertDefined(pipeline.parameters);
+    if (pipeline.parameters) {
+        assert(pipeline.parameters.length, 2);
+        assertArray(pipeline.parameters, (p:string) => {
+            let keyValue = separateKeyValue(p);
+            return keyValue[0] === "shell" && keyValue[1] === "sh";
+        });
+        assertArray(pipeline.parameters, (p:string) => {
+            let keyValue = separateKeyValue(p);
+            return keyValue[0] === "permissions" && keyValue[1] === "{\"actions\":\"write\",\"checks\":\"write\",\"contents\":\"read\",\"id-token\":\"read\"}"
+        })
+
     }
 }
 
@@ -136,6 +157,7 @@ function testTimout() {
 function testStepsName() {
     let pipeline = parseData("stages.steps.yml");
     let steps = pipeline.stages[0].steps;
+    assertDefined(steps)
     if (steps) {
         assert(steps.length, 4)
         assert(steps[0].label, "Check out repository code")
@@ -148,6 +170,7 @@ function testStepsName() {
 function testStepsRun() {
     let pipeline = parseData("stages.steps.yml");
     let steps = pipeline.stages[0].steps;
+    assertDefined(steps)
     if (steps) {
         assert(steps.length, 4)
         assert(steps[0].command, "actions/checkout@v3")
@@ -169,6 +192,7 @@ testTriggers1();
 testTriggers2();
 testTriggers3();
 testParameters();
+testParameters2()
 testThrowsReusableWorkflowCallJob();
 
 // Stages

@@ -3,8 +3,11 @@ on: push
 defaults:
   run:
     shell: sh
-    working-directory: mydir
-permissions: read-all
+permissions:
+  actions: write
+  checks: write
+  contents: read
+  "id-token": read
 jobs:
   Regression-Test-Stalkcd-Application:
     runs-on: ubuntu-latest
