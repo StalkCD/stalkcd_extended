@@ -4,6 +4,7 @@ import {EnvironmentVariable} from "../main/model/pipeline/EnvironmentSection";
 import {ParsingImpossibleError} from "../main/errors/ParsingImpossibleError";
 import {assert, assertArray, assertDefined, assertStringKeyValueArray, assertThrows} from "./Asserts";
 import {IStage} from "../main/model/pipeline/Stage";
+import {IAgentOption} from "../main/model/pipeline/AgentSection";
 
 
 const githubActionsFileParser = new GithubActionsFileParser();
@@ -66,7 +67,7 @@ function testTriggers2() {
 }
 
 function testTriggers3() {
-    assertThrows(() => parseData("triggers3.yml"), (err:Error) => err as ParsingImpossibleError);
+    assertThrows(() => parseData("triggers3.yml"), (err: Error) => err as ParsingImpossibleError);
 }
 
 function testOptions() {
@@ -103,12 +104,12 @@ function testStage() {
     }
 }
 
-function testThrowsReusableWorkflowCallJob(){
-    assertThrows(() => parseData("jobs.ReusableWorkflowCallJob.yml"), (err:Error) => err as ParsingImpossibleError)
+function testThrowsReusableWorkflowCallJob() {
+    assertThrows(() => parseData("jobs.ReusableWorkflowCallJob.yml"), (err: Error) => err as ParsingImpossibleError)
 }
 
 function testThrowsStagesOutputs() {
-    assertThrows(() => parseData("stages.output.yml"), (err:Error) => err as ParsingImpossibleError);
+    assertThrows(() => parseData("stages.output.yml"), (err: Error) => err as ParsingImpossibleError);
 }
 
 function testWhen() {
@@ -127,7 +128,14 @@ function testAgent() {
     if (pipeline.stages[0]) {
         assert(pipeline.stages.length, 2)
         // @ts-ignore
-        assert(pipeline.stages[0].agent[0].name, "ubuntu-latest")
+        let agents = pipeline.stages[0].agent;
+        assertDefined(agents)
+        if (agents) {
+            assert(agents.length, 3)
+            assertArray(agents, (a:IAgentOption) => a.name === "runs-on" && a.value === "ubuntu-latest" );
+            assertArray(agents, (a:IAgentOption) => a.name === "container" && a.value === "{\"image\":\"my-image\",\"env\":{\"var\":\"myVar\"},\"volumes\":[\"my_docker_volume:/volume_mount\",\"my_docker_volume2:/volume_mount2\"]}" );
+            assertArray(agents, (a:IAgentOption) => a.name === "services" && a.value === "{\"nginx\":{\"image\":\"nginx\",\"ports\":[\"8080:80\"]},\"redis\":{\"image\":\"redis\",\"ports\":[\"6379/tcp\"]}}" );
+        }
     }
 }
 
@@ -170,7 +178,7 @@ function testStageFailFast() {
 }
 
 function testStageFailFast2() {
-    assertThrows(() => parseData("stages.failfast2.yml"), (err:Error) => err as ParsingImpossibleError)
+    assertThrows(() => parseData("stages.failfast2.yml"), (err: Error) => err as ParsingImpossibleError)
 }
 
 function testStepsName() {
@@ -224,6 +232,7 @@ testStageOptions()
 testStageOptions2()
 testStageFailFast()
 testStageFailFast2()
+testAgent()
 
 // steps
 testStepsName()

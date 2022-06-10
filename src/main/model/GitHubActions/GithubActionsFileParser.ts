@@ -75,7 +75,7 @@ export class GithubActionsFileParser {
                 pipelineStage.baseName = job.name;
             }
             pipelineStage.when = GithubActionsFileParser.when(job)
-            pipelineStage.agent = GithubActionsFileParser.runsOn(job)
+            pipelineStage.agent = GithubActionsFileParser.agent(job)
             pipelineStage.environment = GithubActionsFileParser.environment(job)
             pipelineStage.options = GithubActionsFileParser.options(job)
 
@@ -213,12 +213,6 @@ export class GithubActionsFileParser {
         return options;
     }
 
-    private static runsOn(job: NormalJob): IAgentOption[] {
-        if (job["runs-on"] instanceof Array) {
-            throw new ParsingImpossibleError("Unable to Handle the self-hosted option in 'runs-on'\n" + job["runs-on"].toString(), ParsingImpossibleReason.SelfHosted)
-        }
-        return [{name: job["runs-on"].toString()}];
-    }
 
     private static hasOutput(jobs: { [p: string]: NormalJob | ReusableWorkflowCallJob }) {
         for (let jobsKey in jobs) {
@@ -230,4 +224,30 @@ export class GithubActionsFileParser {
         return false;
     }
 
+    private static agent(job: NormalJob): IAgentOption[] {
+        let agents: IAgentOption[] = []
+
+        if (job["runs-on"] instanceof Array) {
+            throw new ParsingImpossibleError("Unable to Handle the self-hosted option in 'runs-on'\n" + job["runs-on"].toString(), ParsingImpossibleReason.SelfHosted)
+        }
+        agents.push({
+            name: "runs-on",
+            value: job["runs-on"].toString()
+        })
+        let container = job.container;
+        if (container) {
+            agents.push({
+                name: "container",
+                value: JSON.stringify(container)
+            })
+        }
+        let services = job.services
+        if (services) {
+            agents.push({
+                name: "services",
+                value: JSON.stringify(services),
+            })
+        }
+        return agents;
+    }
 }

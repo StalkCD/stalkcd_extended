@@ -1,9 +1,24 @@
 name: Test
 on: push
 jobs:
-  A_Job_With_runs-on:
+  A_Job_With_agents:
     runs-on: ubuntu-latest
-    if: my if condition
+    container:
+      image: my-image
+      env:
+        var: myVar
+      volumes:
+        - my_docker_volume:/volume_mount
+        - my_docker_volume2:/volume_mount2
+    services:
+      nginx:
+        image: nginx
+        ports:
+          - 8080:80
+      redis:
+        image: redis
+        ports:
+          - 6379/tcp
     steps:
       - name: Hello World
         run: echo Hello World
