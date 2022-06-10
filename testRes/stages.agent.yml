@@ -1,0 +1,14 @@
+name: Test
+on: push
+jobs:
+  A_Job_With_runs-on:
+    runs-on: ubuntu-latest
+    if: my if condition
+    steps:
+      - name: Hello World
+        run: echo Hello World
+  A_Job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hello World
+        run: echo Hello World

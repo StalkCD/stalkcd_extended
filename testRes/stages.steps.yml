@@ -1,0 +1,16 @@
+name: Test
+on: push
+jobs:
+  A_Job_With_Steps:
+    runs-on: ubuntu-latest
+    if: my if condition
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - name: Build image locally
+        run: docker build --target stalkcd-application --tag stalkcd-application:latest --file docker/Application.dockerfile .
+      - name: Run tests in docker image
+        shell: bash
+        run: docker run --rm -v "/home/runner/work/stalkcd/stalkcd/res:/usr/app/res" -v "/home/runner/work/stalkcd/stalkcd/src:/usr/app/src" stalkcd-application
+      - name: Uses
+        uses: my-usage

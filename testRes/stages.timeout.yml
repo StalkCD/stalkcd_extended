@@ -1,0 +1,9 @@
+name: Test
+on: push
+jobs:
+  A_Job_With_Timeout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 42
+    steps:
+      - name: Hello World
+        run: echo Hello World

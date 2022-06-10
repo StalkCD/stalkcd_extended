@@ -1,0 +1,14 @@
+name: Test
+on: push
+jobs:
+  A_Job_With_Output:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hello World
+        run: echo Hello World
+  A_Job:
+    runs-on: ubuntu-latest
+    outputs: { name: "myFile" }
+    steps:
+      - name: Hello World
+        run: echo Hello World

@@ -44,8 +44,6 @@ export class GithubActionsFileParser {
             builder.beginStage(stage.toSerial())
             builder.endStage()
         }
-        // builder.beginStage()
-        // this.stages(githubWorkflow);
         return builder.pipeline;
     }
 
@@ -141,7 +139,7 @@ export class GithubActionsFileParser {
             pipelineEnvironment.push(new EnvironmentVariable(EnvironmentalVariableNameMarker.EXTERNAL_ENVIRONMENT, env));
         } else if (typeof env === "object") {
             for (let envKey in env) {
-                pipelineEnvironment.push(new EnvironmentVariable(envKey, env[envKey].toString()))
+                pipelineEnvironment.push(new EnvironmentVariable(envKey, env[envKey].toString()));
             }
         }
         return pipelineEnvironment;
@@ -179,7 +177,7 @@ export class GithubActionsFileParser {
     }
 
     private static options(job: NormalJob): string[] {
-        // @ts-ignore
-        return job["timeout-minutes"] ? [job["timeout-minutes"].toString()] : []
+        let timeoutMinutes = job["timeout-minutes"];
+        return timeoutMinutes ? [timeoutMinutes.toString()] : [];
     }
 }

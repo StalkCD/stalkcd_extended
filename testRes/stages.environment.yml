@@ -1,0 +1,17 @@
+name: Test
+on: push
+jobs:
+  A_Job_With_Environment:
+    runs-on: ubuntu-latest
+    env:
+      my-var: test
+      my-number: 0
+      my-boolean: true
+    steps:
+      - name: Hello World
+        run: echo Hello World
+  A_Job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hello World
+        run: echo Hello World
