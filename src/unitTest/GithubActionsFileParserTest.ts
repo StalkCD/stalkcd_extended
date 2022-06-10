@@ -136,9 +136,21 @@ function testStageOptions() {
     let options = pipeline.stages[0].options;
     assertDefined(options);
     if (options) {
-        assert(options.length, 2);
+        assert(options.length, 3);
         assertStringKeyValueArray(options, "timeout-minutes", "42");
         assertStringKeyValueArray(options, "permissions", "{\"contents\":\"read\"}");
+        assertStringKeyValueArray(options, "needs", "a_single_need");
+    }
+}
+
+function testStageOptions2() {
+    let pipeline = parseData("stages.options2.yml");
+    let options = pipeline.stages[0].options;
+    assertDefined(options);
+    if (options) {
+        assert(options.length, 2);
+        assertStringKeyValueArray(options, "needs", "first_need");
+        assertStringKeyValueArray(options, "needs", "second_need");
     }
 }
 
@@ -190,6 +202,7 @@ testWhen();
 testAgent();
 testEnvironmentWithStages();
 testStageOptions()
+testStageOptions2()
 
 // steps
 testStepsName()

@@ -1,6 +1,6 @@
 import {
     Concurrency,
-    GithubWorkflow,
+    GithubWorkflow, JobNeeds,
     NormalJob,
     PermissionsEvent,
     ReusableWorkflowCallJob
@@ -151,10 +151,10 @@ export class GithubActionsFileParser {
         return pipelineEnvironment;
     }
 
-    private static options(githubWorkflow: GithubWorkflow | NormalJob): string[] {
+    private static options(object: GithubWorkflow | NormalJob): string[] {
         let options: string[] = [];
 
-        let defaults = githubWorkflow.defaults;
+        let defaults = object.defaults;
         if (defaults) {
             let run:any = defaults.run; // ugly, this should be properly typed by I'm at this point to annoyed to care
             if (run) {
@@ -164,7 +164,7 @@ export class GithubActionsFileParser {
             }
         }
 
-        let permissions: PermissionsEvent | "read-all" | "write-all" | undefined = githubWorkflow.permissions;
+        let permissions: PermissionsEvent | "read-all" | "write-all" | undefined = object.permissions;
         if (permissions) {
             if (typeof permissions === "string") {
                 options.push(toKeyValueString("permissions", permissions))
@@ -174,7 +174,7 @@ export class GithubActionsFileParser {
             }
         }
 
-        let concurrency: string | Concurrency | undefined = githubWorkflow.concurrency;
+        let concurrency: string | Concurrency | undefined = object.concurrency;
         if (concurrency) {
             if (typeof concurrency === "string") {
                 options.push(toKeyValueString("concurrency", concurrency))
@@ -184,10 +184,21 @@ export class GithubActionsFileParser {
             }
         }
 
+        // Handling of special NormalJob attributes
         // @ts-ignore
-        let timeoutMinutes = githubWorkflow["timeout-minutes"];
+        let timeoutMinutes = object["timeout-minutes"];
         if (timeoutMinutes) {
             options.push(toKeyValueString("timeout-minutes", timeoutMinutes))
+        }
+
+        // @ts-ignore
+        let needs:JobNeeds = object.needs;
+        if (needs) {
+            if (typeof needs == "string") {
+                options.push(toKeyValueString("needs", needs));
+            } else {
+                needs.forEach(n => options.push(toKeyValueString("needs", n)))
+            }
         }
 
 

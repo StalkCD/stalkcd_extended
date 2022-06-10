@@ -3,10 +3,9 @@ on: push
 jobs:
   A_Job_With_Timeout:
     runs-on: ubuntu-latest
-    timeout-minutes: 42
-    permissions:
-      contents: read
-    needs: a_single_need
+    needs:
+      - first_need
+      - second_need
     steps:
       - name: Hello World
         run: echo Hello World
