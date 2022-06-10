@@ -136,10 +136,14 @@ function testStageOptions() {
     let options = pipeline.stages[0].options;
     assertDefined(options);
     if (options) {
-        assert(options.length, 3);
+        assert(options.length, 6);
         assertStringKeyValueArray(options, "timeout-minutes", "42");
         assertStringKeyValueArray(options, "permissions", "{\"contents\":\"read\"}");
         assertStringKeyValueArray(options, "needs", "a_single_need");
+        assertStringKeyValueArray(options, "concurrency", "my_concurrency_job");
+        assertStringKeyValueArray(options, "concurrency", "my_concurrency_job");
+        assertStringKeyValueArray(options, "shell", "sh")
+        assertStringKeyValueArray(options, "working-directory", "mydir")
     }
 }
 
@@ -148,9 +152,11 @@ function testStageOptions2() {
     let options = pipeline.stages[0].options;
     assertDefined(options);
     if (options) {
-        assert(options.length, 2);
+        assert(options.length, 3);
         assertStringKeyValueArray(options, "needs", "first_need");
         assertStringKeyValueArray(options, "needs", "second_need");
+        assertStringKeyValueArray(options, "concurrency", "{\"cancel-in-progress\":true,\"group\":\"the_job_concurrency_group\"}");
+        assertStringKeyValueArray(options, "concurrency", "{\"cancel-in-progress\":true,\"group\":\"the_job_concurrency_group\"}");
     }
 }
 

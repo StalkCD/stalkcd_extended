@@ -6,6 +6,9 @@ jobs:
     needs:
       - first_need
       - second_need
+    concurrency:
+      cancel-in-progress: true
+      group: the_job_concurrency_group
     steps:
       - name: Hello World
         run: echo Hello World

@@ -3,9 +3,14 @@ on: push
 jobs:
   A_Job_With_Timeout:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: "sh"
+        working-directory: "mydir"
     timeout-minutes: 42
     permissions:
       contents: read
+    concurrency: my_concurrency_job
     needs: a_single_need
     steps:
       - name: Hello World
