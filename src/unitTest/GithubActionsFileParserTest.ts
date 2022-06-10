@@ -160,6 +160,19 @@ function testStageOptions2() {
     }
 }
 
+function testStageFailFast() {
+    let pipeline = parseData("stages.failfast.yml")
+    let stage = pipeline.stages[0];
+    assertDefined(stage)
+    if (stage) {
+        assert(stage.failFast, false)
+    }
+}
+
+function testStageFailFast2() {
+    assertThrows(() => parseData("stages.failfast2.yml"), (err:Error) => err as ParsingImpossibleError)
+}
+
 function testStepsName() {
     let pipeline = parseData("stages.steps.yml");
     let steps = pipeline.stages[0].steps;
@@ -209,6 +222,8 @@ testAgent();
 testEnvironmentWithStages();
 testStageOptions()
 testStageOptions2()
+testStageFailFast()
+testStageFailFast2()
 
 // steps
 testStepsName()

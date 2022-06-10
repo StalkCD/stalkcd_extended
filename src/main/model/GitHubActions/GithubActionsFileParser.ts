@@ -1,6 +1,7 @@
 import {
     Concurrency,
-    GithubWorkflow, JobNeeds,
+    GithubWorkflow,
+    JobNeeds,
     NormalJob,
     PermissionsEvent,
     ReusableWorkflowCallJob
@@ -77,6 +78,14 @@ export class GithubActionsFileParser {
             pipelineStage.agent = GithubActionsFileParser.runsOn(job)
             pipelineStage.environment = GithubActionsFileParser.environment(job)
             pipelineStage.options = GithubActionsFileParser.options(job)
+
+            let continueOnError = job["continue-on-error"];
+            if (typeof continueOnError === "string") {
+                throw new ParsingImpossibleError("The attriubte 'continue-on-error' was a string: '" + continueOnError + "'", ParsingImpossibleReason.ContinueOnErrorIsString)
+            }
+            if (continueOnError !== undefined) {
+                pipelineStage.failFast = !continueOnError;
+            }
 
             let steps: Step[] = [];
             if (job.steps) {
@@ -156,7 +165,7 @@ export class GithubActionsFileParser {
 
         let defaults = object.defaults;
         if (defaults) {
-            let run:any = defaults.run; // ugly, this should be properly typed by I'm at this point to annoyed to care
+            let run: any = defaults.run; // ugly, this should be properly typed by I'm at this point to annoyed to care
             if (run) {
                 for (let runKey in run) {
                     options.push(toKeyValueString(runKey, run[runKey]));
@@ -192,7 +201,7 @@ export class GithubActionsFileParser {
         }
 
         // @ts-ignore
-        let needs:JobNeeds = object.needs;
+        let needs: JobNeeds = object.needs;
         if (needs) {
             if (typeof needs == "string") {
                 options.push(toKeyValueString("needs", needs));
@@ -200,7 +209,6 @@ export class GithubActionsFileParser {
                 needs.forEach(n => options.push(toKeyValueString("needs", n)))
             }
         }
-
 
         return options;
     }
@@ -221,4 +229,5 @@ export class GithubActionsFileParser {
         }
         return false;
     }
+
 }

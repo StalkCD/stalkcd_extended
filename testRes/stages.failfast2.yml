@@ -1,0 +1,9 @@
+name: Test
+on: push
+jobs:
+  Job_with_continue_on_error:
+    runs-on: ubuntu-latest
+    continue-on-error: ${{ myAttribute.whichFails }}
+    steps:
+      - name: Hello World
+        run: echo Hello World

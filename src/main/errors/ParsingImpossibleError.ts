@@ -12,5 +12,6 @@ export enum ParsingImpossibleReason {
     OnIsUnknownType,
     UnableToHandleReusableWorkflowCallJob,
     SelfHosted,
-    HasOutput
+    HasOutput,
+    ContinueOnErrorIsString,
 }
