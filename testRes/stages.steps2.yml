@@ -1,0 +1,10 @@
+name: Test
+on: push
+jobs:
+  A_Job_With_Steps:
+    runs-on: ubuntu-latest
+    if: my if condition
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+        continue-on-error: true

@@ -181,7 +181,7 @@ function testStageFailFast2() {
     assertThrows(() => parseData("stages.failfast2.yml"), (err: Error) => err as ParsingImpossibleError)
 }
 
-function testStepsName() {
+function testSteps() {
     let pipeline = parseData("stages.steps.yml");
     let steps = pipeline.stages[0].steps;
     assertDefined(steps)
@@ -191,20 +191,17 @@ function testStepsName() {
         assert(steps[1].label, "Build image locally")
         assert(steps[2].label, "Run tests in docker image")
         assert(steps[3].label, "Uses")
-    }
-}
 
-function testStepsRun() {
-    let pipeline = parseData("stages.steps.yml");
-    let steps = pipeline.stages[0].steps;
-    assertDefined(steps)
-    if (steps) {
-        assert(steps.length, 4)
         assert(steps[0].command, "actions/checkout@v3")
         assert(steps[1].command, "docker build --target stalkcd-application --tag stalkcd-application:latest --file docker/Application.dockerfile .")
         assert(steps[2].command, "bash docker run --rm -v \"/home/runner/work/stalkcd/stalkcd/res:/usr/app/res\" -v \"/home/runner/work/stalkcd/stalkcd/src:/usr/app/src\" stalkcd-application")
         assert(steps[3].command, "my-usage")
     }
+}
+
+
+function testSteps2() {
+    assertThrows(() => parseData("stages.steps2.yml"), (err:Error) => err as ParsingImpossibleError);
 }
 
 function testSimpleMainRun() {
@@ -235,8 +232,8 @@ testStageFailFast2()
 testAgent()
 
 // steps
-testStepsName()
-testStepsRun()
+testSteps()
+testSteps2()
 
 testSimpleMainRun();
 console.log("successfully tested");

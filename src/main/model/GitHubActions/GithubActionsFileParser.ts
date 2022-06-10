@@ -1,10 +1,13 @@
 import {
     Concurrency,
+    ExpressionSyntax,
     GithubWorkflow,
     JobNeeds,
     NormalJob,
     PermissionsEvent,
-    ReusableWorkflowCallJob
+    ReusableWorkflowCallJob,
+    Shell,
+    WorkingDirectory
 } from "./GeneratedTypes";
 import * as fs from "fs";
 import {PathLike} from "fs";
@@ -86,23 +89,44 @@ export class GithubActionsFileParser {
             if (continueOnError !== undefined) {
                 pipelineStage.failFast = !continueOnError;
             }
-
-            let steps: Step[] = [];
-            if (job.steps) {
-                for (let stepKey in job.steps) {
-                    let githubStep = job.steps[stepKey];
-                    let stageStep = new Step({
-                        label: githubStep.name,
-                        command: githubStep.run ? (githubStep.shell ? githubStep.shell + " " : "") + githubStep.run : githubStep.uses
-                    });
-                    steps.push(stageStep);
-                }
-            }
-            pipelineStage.steps = steps;
+            pipelineStage.steps = GithubActionsFileParser.steps(job.steps);
 
             stages.push(pipelineStage);
         }
         return stages
+    }
+
+    private static steps(steps: { id?: string; if?: string; name?: string; uses?: string; run?: string; "working-directory"?: WorkingDirectory; shell?: Shell; with?: { [p: string]: string | number | boolean } | string; env?: { [p: string]: string | number | boolean } | string; "continue-on-error"?: boolean | ExpressionSyntax; "timeout-minutes"?: number }[] | undefined) {
+        let pipelineSteps: Step[] = [];
+        if (steps) {
+            for (let stepKey in steps) {
+                let githubStep = steps[stepKey];
+                if (githubStep.id) {
+                    throw new ParsingImpossibleError("Unsupported Attribute 'id' with value '" + githubStep.id + "'", ParsingImpossibleReason.StepId)
+                }
+                if (githubStep.if) {
+                    throw new ParsingImpossibleError("Unsupported Attribute 'if' with value '" + githubStep.if + "'", ParsingImpossibleReason.StepIf)
+                }
+                if (githubStep.with) {
+                    throw new ParsingImpossibleError("Unsupported Attribute 'with' with value '" + githubStep.with + "'", ParsingImpossibleReason.StepWith)
+                }
+                if (githubStep.env) {
+                    throw new ParsingImpossibleError("Unsupported Attribute 'env' with value '" + githubStep.env + "'", ParsingImpossibleReason.StepEnvironment)
+                }
+                if (githubStep["timeout-minutes"]) {
+                    throw new ParsingImpossibleError("Unsupported Attribute 'timeout-minutes' with value '" + githubStep["timeout-minutes"] + "'", ParsingImpossibleReason.StepTimeoutMinutes)
+                }
+                if (githubStep["continue-on-error"]) {
+                    throw new ParsingImpossibleError("Unsupported Attribute 'continue-on-error' with value '" + githubStep["continue-on-error"] + "'", ParsingImpossibleReason.StepContinueOnError)
+                }
+                let stageStep = new Step({
+                    label: githubStep.name,
+                    command: githubStep.run ? (githubStep.shell ? githubStep.shell + " " : "") + githubStep.run : githubStep.uses
+                });
+                pipelineSteps.push(stageStep);
+            }
+        }
+        return pipelineSteps;
     }
 
     private static when(job: NormalJob): string {

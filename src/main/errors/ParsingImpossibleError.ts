@@ -14,4 +14,10 @@ export enum ParsingImpossibleReason {
     SelfHosted,
     HasOutput,
     ContinueOnErrorIsString,
+    StepId,
+    StepIf,
+    StepWith,
+    StepEnvironment,
+    StepTimeoutMinutes,
+    StepContinueOnError,
 }
