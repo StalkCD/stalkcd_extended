@@ -74,7 +74,7 @@ function testParameters() {
     let pipeline = parseData("parameters.yml");
     assertDefined(pipeline.parameters);
     if (pipeline.parameters) {
-        assert(pipeline.parameters.length, 3);
+        assert(pipeline.parameters.length, 4);
         assertArray(pipeline.parameters, (p:string) => {
             let keyValue = separateKeyValue(p);
             return keyValue[0] === "shell" && keyValue[1] === "sh";
@@ -87,6 +87,10 @@ function testParameters() {
             let keyValue = separateKeyValue(p);
             return keyValue[0] === "permissions" && keyValue[1] === "read-all"
         })
+        assertArray(pipeline.parameters, (p:string) => {
+            let keyValue = separateKeyValue(p);
+            return keyValue[0] === "concurrency" && keyValue[1] === "my-concurrency-test"
+        })
     }
 }
 
@@ -94,7 +98,7 @@ function testParameters2() {
     let pipeline = parseData("parameters2.yml");
     assertDefined(pipeline.parameters);
     if (pipeline.parameters) {
-        assert(pipeline.parameters.length, 2);
+        assert(pipeline.parameters.length, 3);
         assertArray(pipeline.parameters, (p:string) => {
             let keyValue = separateKeyValue(p);
             return keyValue[0] === "shell" && keyValue[1] === "sh";
@@ -102,6 +106,10 @@ function testParameters2() {
         assertArray(pipeline.parameters, (p:string) => {
             let keyValue = separateKeyValue(p);
             return keyValue[0] === "permissions" && keyValue[1] === "{\"actions\":\"write\",\"checks\":\"write\",\"contents\":\"read\",\"id-token\":\"read\"}"
+        })
+        assertArray(pipeline.parameters, (p:string) => {
+            let keyValue = separateKeyValue(p);
+            return keyValue[0] === "concurrency" && keyValue[1] === "{\"group\":\"my-concurrency-group\",\"cancel-in-progress\":false}"
         })
 
     }

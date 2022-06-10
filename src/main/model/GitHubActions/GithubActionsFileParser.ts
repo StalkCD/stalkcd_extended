@@ -1,4 +1,5 @@
 import {
+    Concurrency,
     GithubWorkflow,
     NormalJob,
     PermissionsEvent,
@@ -170,6 +171,16 @@ export class GithubActionsFileParser {
             }
             if (typeof permissions === "object") {
                 params.push(toKeyValueString("permissions", JSON.stringify(permissions)))
+            }
+        }
+
+        let concurrency: string | Concurrency | undefined = githubWorkflow.concurrency;
+        if (concurrency) {
+            if (typeof concurrency === "string") {
+                params.push(toKeyValueString("concurrency", concurrency))
+            }
+            if (typeof concurrency === "object") {
+                params.push(toKeyValueString("concurrency", JSON.stringify(concurrency)))
             }
         }
 

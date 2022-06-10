@@ -5,6 +5,7 @@ defaults:
     shell: sh
     working-directory: mydir
 permissions: read-all
+concurrency: my-concurrency-test
 jobs:
   Regression-Test-Stalkcd-Application:
     runs-on: ubuntu-latest

@@ -8,6 +8,9 @@ permissions:
   checks: write
   contents: read
   "id-token": read
+concurrency:
+  group: my-concurrency-group
+  cancel-in-progress: false
 jobs:
   Regression-Test-Stalkcd-Application:
     runs-on: ubuntu-latest
