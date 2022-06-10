@@ -4,6 +4,8 @@ jobs:
   A_Job_With_Timeout:
     runs-on: ubuntu-latest
     timeout-minutes: 42
+    permissions:
+      contents: read
     steps:
       - name: Hello World
         run: echo Hello World

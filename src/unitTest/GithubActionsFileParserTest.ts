@@ -132,12 +132,13 @@ function testAgent() {
 }
 
 function testStageOptions() {
-    let pipeline = parseData("stages.timeout.yml");
+    let pipeline = parseData("stages.options.yml");
     let options = pipeline.stages[0].options;
     assertDefined(options);
     if (options) {
-        assert(options.length, 1);
+        assert(options.length, 2);
         assertStringKeyValueArray(options, "timeout-minutes", "42");
+        assertStringKeyValueArray(options, "permissions", "{\"contents\":\"read\"}");
     }
 }
 
