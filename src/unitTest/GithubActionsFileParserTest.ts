@@ -2,8 +2,7 @@ import {GithubActionsFileParser} from "../main/model/GitHubActions/GithubActions
 import {Pipeline} from "../main/model/pipeline/Pipeline";
 import {EnvironmentVariable} from "../main/model/pipeline/EnvironmentSection";
 import {ParsingImpossibleError} from "../main/errors/ParsingImpossibleError";
-import {assert, assertArray, assertDefined, assertThrows} from "./Asserts";
-import {separateKeyValue} from "../main/util";
+import {assert, assertArray, assertDefined, assertStringKeyValueArray, assertThrows} from "./Asserts";
 import {IStage} from "../main/model/pipeline/Stage";
 
 
@@ -70,48 +69,28 @@ function testTriggers3() {
     assertThrows(() => parseData("triggers3.yml"), (err:Error) => err as ParsingImpossibleError);
 }
 
-function testParameters() {
-    let pipeline = parseData("parameters.yml");
-    assertDefined(pipeline.parameters);
-    if (pipeline.parameters) {
-        assert(pipeline.parameters.length, 4);
-        assertArray(pipeline.parameters, (p:string) => {
-            let keyValue = separateKeyValue(p);
-            return keyValue[0] === "shell" && keyValue[1] === "sh";
-        });
-        assertArray(pipeline.parameters, (p:string) => {
-            let keyValue = separateKeyValue(p);
-            return keyValue[0] === "working-directory" && keyValue[1] === "mydir";
-        });
-        assertArray(pipeline.parameters, (p:string) => {
-            let keyValue = separateKeyValue(p);
-            return keyValue[0] === "permissions" && keyValue[1] === "read-all"
-        })
-        assertArray(pipeline.parameters, (p:string) => {
-            let keyValue = separateKeyValue(p);
-            return keyValue[0] === "concurrency" && keyValue[1] === "my-concurrency-test"
-        })
+function testOptions() {
+    let pipeline = parseData("options.yml");
+    let options = pipeline.options;
+    assertDefined(options);
+    if (options) {
+        assert(options.length, 4);
+        assertStringKeyValueArray(options, "shell", "sh")
+        assertStringKeyValueArray(options, "working-directory", "mydir")
+        assertStringKeyValueArray(options, "permissions", "read-all")
+        assertStringKeyValueArray(options, "concurrency", "my-concurrency-test")
     }
 }
 
-function testParameters2() {
-    let pipeline = parseData("parameters2.yml");
-    assertDefined(pipeline.parameters);
-    if (pipeline.parameters) {
-        assert(pipeline.parameters.length, 3);
-        assertArray(pipeline.parameters, (p:string) => {
-            let keyValue = separateKeyValue(p);
-            return keyValue[0] === "shell" && keyValue[1] === "sh";
-        });
-        assertArray(pipeline.parameters, (p:string) => {
-            let keyValue = separateKeyValue(p);
-            return keyValue[0] === "permissions" && keyValue[1] === "{\"actions\":\"write\",\"checks\":\"write\",\"contents\":\"read\",\"id-token\":\"read\"}"
-        })
-        assertArray(pipeline.parameters, (p:string) => {
-            let keyValue = separateKeyValue(p);
-            return keyValue[0] === "concurrency" && keyValue[1] === "{\"group\":\"my-concurrency-group\",\"cancel-in-progress\":false}"
-        })
-
+function testOptions2() {
+    let pipeline = parseData("options2.yml");
+    let options = pipeline.options;
+    assertDefined(options);
+    if (options) {
+        assert(options.length, 3);
+        assertStringKeyValueArray(options, "shell", "sh")
+        assertStringKeyValueArray(options, "permissions", "{\"actions\":\"write\",\"checks\":\"write\",\"contents\":\"read\",\"id-token\":\"read\"}")
+        assertStringKeyValueArray(options, "concurrency", "{\"group\":\"my-concurrency-group\",\"cancel-in-progress\":false}")
     }
 }
 
@@ -152,13 +131,13 @@ function testAgent() {
     }
 }
 
-function testTimout() {
+function testStageOptions() {
     let pipeline = parseData("stages.timeout.yml");
     let options = pipeline.stages[0].options;
     assertDefined(options);
     if (options) {
         assert(options.length, 1);
-        assertArray(options, (o: string) => o === "42");
+        assertStringKeyValueArray(options, "timeout-minutes", "42");
     }
 }
 
@@ -199,8 +178,8 @@ testEnvironment();
 testTriggers1();
 testTriggers2();
 testTriggers3();
-testParameters();
-testParameters2()
+testOptions();
+testOptions2()
 testThrowsReusableWorkflowCallJob();
 
 // Stages
@@ -209,7 +188,7 @@ testThrowsStagesOutputs();
 testWhen();
 testAgent();
 testEnvironmentWithStages();
-testTimout()
+testStageOptions()
 
 // steps
 testStepsName()

@@ -1,3 +1,5 @@
+import {separateKeyValue} from "../main/util";
+
 export function assert(actual: any, expected: any) {
     if (expected === actual) {
         return;
@@ -40,6 +42,13 @@ export function assertArray(value: any[], predicate: Function) {
     if (!hasPassed) {
         throw new AssertionError("value did not pass the predicate");
     }
+}
+
+export function assertStringKeyValueArray(myArrayValue: any[], key: string, value: string) {
+    assertArray(myArrayValue, (p:string) => {
+        let keyValue = separateKeyValue(p);
+        return keyValue[0] === key && keyValue[1] === value
+    })
 }
 
 export function assertDefined(value: any) {

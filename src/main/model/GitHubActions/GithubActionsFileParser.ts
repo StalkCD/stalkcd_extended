@@ -44,7 +44,7 @@ export class GithubActionsFileParser {
         builder.setDefinitions(GithubActionsFileParser.definitions(githubWorkflow));
         builder.setEnvironment(GithubActionsFileParser.environment(githubWorkflow))
         builder.setTriggers(GithubActionsFileParser.triggers(githubWorkflow));
-        builder.setParameters(GithubActionsFileParser.parameters(githubWorkflow));
+        builder.setOptions(GithubActionsFileParser.options(githubWorkflow));
         let stages: Stage[] = GithubActionsFileParser.stages(githubWorkflow);
         for (let stage of stages) {
             builder.beginStage(stage.toSerial())
@@ -151,15 +151,15 @@ export class GithubActionsFileParser {
         return pipelineEnvironment;
     }
 
-    private static parameters(githubWorkflow: GithubWorkflow): string[] {
-        let params: string[] = [];
+    private static options(githubWorkflow: GithubWorkflow | NormalJob): string[] {
+        let options: string[] = [];
 
         let defaults = githubWorkflow.defaults;
         if (defaults) {
             let run:any = defaults.run; // ugly, this should be properly typed by I'm at this point to annoyed to care
             if (run) {
                 for (let runKey in run) {
-                    params.push(toKeyValueString(runKey, run[runKey]));
+                    options.push(toKeyValueString(runKey, run[runKey]));
                 }
             }
         }
@@ -167,24 +167,31 @@ export class GithubActionsFileParser {
         let permissions: PermissionsEvent | "read-all" | "write-all" | undefined = githubWorkflow.permissions;
         if (permissions) {
             if (typeof permissions === "string") {
-                params.push(toKeyValueString("permissions", permissions))
+                options.push(toKeyValueString("permissions", permissions))
             }
             if (typeof permissions === "object") {
-                params.push(toKeyValueString("permissions", JSON.stringify(permissions)))
+                options.push(toKeyValueString("permissions", JSON.stringify(permissions)))
             }
         }
 
         let concurrency: string | Concurrency | undefined = githubWorkflow.concurrency;
         if (concurrency) {
             if (typeof concurrency === "string") {
-                params.push(toKeyValueString("concurrency", concurrency))
+                options.push(toKeyValueString("concurrency", concurrency))
             }
             if (typeof concurrency === "object") {
-                params.push(toKeyValueString("concurrency", JSON.stringify(concurrency)))
+                options.push(toKeyValueString("concurrency", JSON.stringify(concurrency)))
             }
         }
 
-        return params;
+        // @ts-ignore
+        let timeoutMinutes = githubWorkflow["timeout-minutes"];
+        if (timeoutMinutes) {
+            options.push(toKeyValueString("timeout-minutes", timeoutMinutes))
+        }
+
+
+        return options;
     }
 
     private static runsOn(job: NormalJob): IAgentOption[] {
@@ -202,10 +209,5 @@ export class GithubActionsFileParser {
             }
         }
         return false;
-    }
-
-    private static options(job: NormalJob): string[] {
-        let timeoutMinutes = job["timeout-minutes"];
-        return timeoutMinutes ? [timeoutMinutes.toString()] : [];
     }
 }
