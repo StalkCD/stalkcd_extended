@@ -7,10 +7,14 @@ jobs:
       my-var: test
       my-number: 0
       my-boolean: true
+    strategy:
+      matrix:
+        version: [ 10, 12, 14 ]
+        os: [ ubuntu-latest, windows-latest ]
     steps:
       - name: Hello World
         run: echo Hello World
-  A_Job:
+  A_Job_With_Strategy:
     runs-on: ubuntu-latest
     steps:
       - name: Hello World

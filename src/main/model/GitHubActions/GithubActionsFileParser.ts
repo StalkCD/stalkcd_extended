@@ -31,9 +31,15 @@ export class GithubActionsFileParser {
     private jsonSchemaValidator: JsonSchemaValidator;
 
     public static readonly GITHUB_WORKFLOW_SCHEMA_PATH: PathLike = "res/schema/github-workflow.json";
+    private evaluateError: boolean;
 
-    constructor() {
+    constructor(evaluateError?: boolean) {
         this.jsonSchemaValidator = new JsonSchemaValidator(GithubActionsFileParser.GITHUB_WORKFLOW_SCHEMA_PATH);
+        if (evaluateError) {
+            this.evaluateError = evaluateError;
+        } else {
+            this.evaluateError = false;
+        }
     }
 
     /**
@@ -168,10 +174,6 @@ export class GithubActionsFileParser {
     }
 
     private static environment(entity: GithubWorkflow | NormalJob): IEnvironmentVariable[] {
-        if (!entity.env) {
-            return [];
-        }
-
         let pipelineEnvironment: IEnvironmentVariable[] = [];
         let env = entity.env;
         if (typeof env === "string") {
@@ -181,6 +183,13 @@ export class GithubActionsFileParser {
                 pipelineEnvironment.push(new EnvironmentVariable(envKey, env[envKey].toString()));
             }
         }
+
+        // Handling of special NormalJob attributes
+        if ("strategy" in entity) {
+            let strategy = entity.strategy;
+            pipelineEnvironment.push(new EnvironmentVariable("strategy", JSON.stringify(strategy)))
+        }
+
         return pipelineEnvironment;
     }
 
@@ -236,7 +245,6 @@ export class GithubActionsFileParser {
 
         return options;
     }
-
 
     private static hasOutput(jobs: { [p: string]: NormalJob | ReusableWorkflowCallJob }) {
         for (let jobsKey in jobs) {

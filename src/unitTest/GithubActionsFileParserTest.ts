@@ -39,10 +39,11 @@ function testEnvironmentWithStages() {
     let env = pipeline.stages[0].environment;
     if (pipeline.stages && env) {
         assertDefined(env)
-        assert(env.length, 3);
+        assert(env.length, 4);
         assertArray(env, (v: EnvironmentVariable) => v.name === "my-var" && v.value === "test")
         assertArray(env, (v: EnvironmentVariable) => v.name === "my-number" && v.value === "0")
         assertArray(env, (v: EnvironmentVariable) => v.name === "my-boolean" && v.value === "true")
+        assertArray(env, (v: EnvironmentVariable) => v.name === "strategy" && v.value === "{\"matrix\":{\"version\":[10,12,14],\"os\":[\"ubuntu-latest\",\"windows-latest\"]}}")
     }
 }
 
