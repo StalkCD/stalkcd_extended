@@ -28,17 +28,48 @@ import {IAgentOption} from "../pipeline/AgentSection";
 
 
 export class GithubActionsFileParser {
+    get evaluation(): any {
+        return this._evaluation;
+    }
     private jsonSchemaValidator: JsonSchemaValidator;
 
     public static readonly GITHUB_WORKFLOW_SCHEMA_PATH: PathLike = "res/schema/github-workflow.json";
-    private evaluateError: boolean;
+    private evaluateErrors: boolean;
+    private _evaluation: any = [];
+    private currentlyEvaluatedFile: string;
 
     constructor(evaluateError?: boolean) {
         this.jsonSchemaValidator = new JsonSchemaValidator(GithubActionsFileParser.GITHUB_WORKFLOW_SCHEMA_PATH);
         if (evaluateError) {
-            this.evaluateError = evaluateError;
+            this.evaluateErrors = evaluateError;
         } else {
-            this.evaluateError = false;
+            this.evaluateErrors = false;
+        }
+
+        this._evaluation.push(GithubActionsFileParser.initEvaluation("total"));
+        this.currentlyEvaluatedFile = ""
+    }
+
+    private static initEvaluation(id: string) {
+        let newVar: any = {};
+        newVar["id"] = id;
+        for (let reason in ParsingImpossibleReason) {
+            newVar[reason] = 0
+        }
+        return newVar;
+    }
+
+
+    private error(message: string, errorType: ParsingImpossibleReason) {
+        if (this.evaluateErrors) {
+            for (let key in this.evaluation) {
+                let element = this.evaluation[key];
+                if (element.id == "total" || element.id == this.currentlyEvaluatedFile.toString() ) {
+                    this.evaluation[key][errorType] = element[errorType] + 1;
+                }
+            }
+        } else {
+            throw new ParsingImpossibleError(message, errorType);
         }
     }
 
@@ -48,14 +79,16 @@ export class GithubActionsFileParser {
      * @param input
      */
     parse(input: PathLike): Pipeline {
+        this.currentlyEvaluatedFile = input.toString()
+        this._evaluation.push(GithubActionsFileParser.initEvaluation(input.toString()))
         this.jsonSchemaValidator.validate(input);
         let githubWorkflow: GithubWorkflow = <GithubWorkflow>yaml.safeLoad(fs.readFileSync(input, {encoding: 'utf8'}));
         let builder: PipelineBuilder = new PipelineBuilder();
         builder.setDefinitions(GithubActionsFileParser.definitions(githubWorkflow));
         builder.setEnvironment(GithubActionsFileParser.environment(githubWorkflow))
-        builder.setTriggers(GithubActionsFileParser.triggers(githubWorkflow));
+        builder.setTriggers(this.triggers(githubWorkflow));
         builder.setOptions(GithubActionsFileParser.options(githubWorkflow));
-        let stages: Stage[] = GithubActionsFileParser.stages(githubWorkflow);
+        let stages: Stage[] = this.stages(githubWorkflow);
         for (let stage of stages) {
             builder.beginStage(stage.toSerial())
             builder.endStage()
@@ -63,15 +96,15 @@ export class GithubActionsFileParser {
         return builder.pipeline;
     }
 
-    private static stages(githubWorkflow: GithubWorkflow): Stage[] {
+    private stages(githubWorkflow: GithubWorkflow): Stage[] {
         let stages: Stage[] = [];
         let jobs = githubWorkflow.jobs;
         // fail fast
         if (GithubActionsFileParser.hasReusableWorkflowCallJob(jobs)) {
-            throw new ParsingImpossibleError(jobs.toString(), ParsingImpossibleReason.UnableToHandleReusableWorkflowCallJob)
+            this.error(jobs.toString(), ParsingImpossibleReason.UnableToHandleReusableWorkflowCallJob)
         }
         if (GithubActionsFileParser.hasOutput(jobs)) {
-            throw new ParsingImpossibleError(jobs.toString(), ParsingImpossibleReason.HasOutput)
+            this.error(jobs.toString(), ParsingImpossibleReason.HasOutput)
         }
 
         // processing
@@ -84,46 +117,46 @@ export class GithubActionsFileParser {
                 pipelineStage.baseName = job.name;
             }
             pipelineStage.when = GithubActionsFileParser.when(job)
-            pipelineStage.agent = GithubActionsFileParser.agent(job)
+            pipelineStage.agent = this.agent(job)
             pipelineStage.environment = GithubActionsFileParser.environment(job)
             pipelineStage.options = GithubActionsFileParser.options(job)
 
             let continueOnError = job["continue-on-error"];
             if (typeof continueOnError === "string") {
-                throw new ParsingImpossibleError("The attriubte 'continue-on-error' was a string: '" + continueOnError + "'", ParsingImpossibleReason.ContinueOnErrorIsString)
+                this.error("The attriubte 'continue-on-error' was a string: '" + continueOnError + "'", ParsingImpossibleReason.ContinueOnErrorIsString)
             }
             if (continueOnError !== undefined) {
                 pipelineStage.failFast = !continueOnError;
             }
-            pipelineStage.steps = GithubActionsFileParser.steps(job.steps);
+            pipelineStage.steps = this.steps(job.steps);
 
             stages.push(pipelineStage);
         }
         return stages
     }
 
-    private static steps(steps: { id?: string; if?: string; name?: string; uses?: string; run?: string; "working-directory"?: WorkingDirectory; shell?: Shell; with?: { [p: string]: string | number | boolean } | string; env?: { [p: string]: string | number | boolean } | string; "continue-on-error"?: boolean | ExpressionSyntax; "timeout-minutes"?: number }[] | undefined) {
+    private steps(steps: { id?: string; if?: string; name?: string; uses?: string; run?: string; "working-directory"?: WorkingDirectory; shell?: Shell; with?: { [p: string]: string | number | boolean } | string; env?: { [p: string]: string | number | boolean } | string; "continue-on-error"?: boolean | ExpressionSyntax; "timeout-minutes"?: number }[] | undefined) {
         let pipelineSteps: Step[] = [];
         if (steps) {
             for (let stepKey in steps) {
                 let githubStep = steps[stepKey];
                 if (githubStep.id) {
-                    throw new ParsingImpossibleError("Unsupported Attribute 'id' with value '" + githubStep.id + "'", ParsingImpossibleReason.StepId)
+                    this.error("Unsupported Attribute 'id' with value '" + githubStep.id + "'", ParsingImpossibleReason.StepId)
                 }
                 if (githubStep.if) {
-                    throw new ParsingImpossibleError("Unsupported Attribute 'if' with value '" + githubStep.if + "'", ParsingImpossibleReason.StepIf)
+                    this.error("Unsupported Attribute 'if' with value '" + githubStep.if + "'", ParsingImpossibleReason.StepIf)
                 }
                 if (githubStep.with) {
-                    throw new ParsingImpossibleError("Unsupported Attribute 'with' with value '" + githubStep.with + "'", ParsingImpossibleReason.StepWith)
+                    this.error("Unsupported Attribute 'with' with value '" + githubStep.with + "'", ParsingImpossibleReason.StepWith)
                 }
                 if (githubStep.env) {
-                    throw new ParsingImpossibleError("Unsupported Attribute 'env' with value '" + githubStep.env + "'", ParsingImpossibleReason.StepEnvironment)
+                    this.error("Unsupported Attribute 'env' with value '" + githubStep.env + "'", ParsingImpossibleReason.StepEnvironment)
                 }
                 if (githubStep["timeout-minutes"]) {
-                    throw new ParsingImpossibleError("Unsupported Attribute 'timeout-minutes' with value '" + githubStep["timeout-minutes"] + "'", ParsingImpossibleReason.StepTimeoutMinutes)
+                    this.error("Unsupported Attribute 'timeout-minutes' with value '" + githubStep["timeout-minutes"] + "'", ParsingImpossibleReason.StepTimeoutMinutes)
                 }
                 if (githubStep["continue-on-error"]) {
-                    throw new ParsingImpossibleError("Unsupported Attribute 'continue-on-error' with value '" + githubStep["continue-on-error"] + "'", ParsingImpossibleReason.StepContinueOnError)
+                    this.error("Unsupported Attribute 'continue-on-error' with value '" + githubStep["continue-on-error"] + "'", ParsingImpossibleReason.StepContinueOnError)
                 }
                 let stageStep = new Step({
                     label: githubStep.name,
@@ -153,14 +186,14 @@ export class GithubActionsFileParser {
         return false;
     }
 
-    private static triggers(githubWorkflow: GithubWorkflow): string[] {
+    private triggers(githubWorkflow: GithubWorkflow): string[] {
         let triggers: string[] = [];
         if (githubWorkflow.on instanceof Array) { // Handling Event[]
             githubWorkflow.on.forEach(e => triggers.push(e.toString()));
         } else if ((typeof githubWorkflow.on) === "string") { // Handling Event; very ugly ts Seems Unnecessary Complicated Knowing typeS
             triggers.push(githubWorkflow.on.toString())
         } else {
-            throw new ParsingImpossibleError(githubWorkflow.on.toString(), ParsingImpossibleReason.OnIsUnknownType);
+            this.error(githubWorkflow.on.toString(), ParsingImpossibleReason.OnIsUnknownType);
         }
         return triggers;
     }
@@ -256,11 +289,11 @@ export class GithubActionsFileParser {
         return false;
     }
 
-    private static agent(job: NormalJob): IAgentOption[] {
+    private  agent(job: NormalJob): IAgentOption[] {
         let agents: IAgentOption[] = []
 
         if (job["runs-on"] instanceof Array) {
-            throw new ParsingImpossibleError("Unable to Handle the self-hosted option in 'runs-on'\n" + job["runs-on"].toString(), ParsingImpossibleReason.SelfHosted)
+            this.error("Unable to Handle the self-hosted option in 'runs-on'\n" + job["runs-on"].toString(), ParsingImpossibleReason.SelfHosted)
         }
         agents.push({
             name: "runs-on",

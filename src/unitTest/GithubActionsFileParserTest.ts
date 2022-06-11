@@ -7,7 +7,7 @@ import {IStage} from "../main/model/pipeline/Stage";
 import {IAgentOption} from "../main/model/pipeline/AgentSection";
 
 
-const githubActionsFileParser = new GithubActionsFileParser();
+const githubActionsFileParser = new GithubActionsFileParser(false);
 
 function parseData(filename: string): Pipeline {
     return githubActionsFileParser.parse("testRes/" + filename);
@@ -237,6 +237,8 @@ testSteps()
 testSteps2()
 
 testSimpleMainRun();
+console.log(githubActionsFileParser.evaluation)
 console.log("successfully tested");
+
 
 

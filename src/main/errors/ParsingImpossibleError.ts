@@ -9,15 +9,15 @@ export class ParsingImpossibleError extends Error {
 }
 
 export enum ParsingImpossibleReason {
-    OnIsUnknownType,
-    UnableToHandleReusableWorkflowCallJob,
-    SelfHosted,
-    HasOutput,
-    ContinueOnErrorIsString,
-    StepId,
-    StepIf,
-    StepWith,
-    StepEnvironment,
-    StepTimeoutMinutes,
-    StepContinueOnError,
+    OnIsUnknownType= "OnIsUnknownType",
+    UnableToHandleReusableWorkflowCallJob = "UnableToHandleReusableWorkflowCallJob",
+    SelfHosted = "SelfHosted",
+    HasOutput = "HasOutput",
+    ContinueOnErrorIsString = "ContinueOnErrorIsString",
+    StepId = "StepId",
+    StepIf = "StepIf",
+    StepWith = "StepWith",
+    StepEnvironment = "StepEnvironment",
+    StepTimeoutMinutes = "StepTimeoutMinutes",
+    StepContinueOnError = "StepContinueOnError",
 }
