@@ -15,7 +15,7 @@ export class JsonSchemaValidator {
     }
 
     public validate(dataPath: PathLike ) {
-        const data = yaml.safeLoad(fs.readFileSync(dataPath, { encoding: 'utf8' }));
+        const data = yaml.load(fs.readFileSync(dataPath, { encoding: 'utf8' }));
         const valid: boolean = this.schema(data);
         valid ? console.log(`successfully validated file ${dataPath}.`) : throws(() => new ValidationError(this.schema.errors));
     }

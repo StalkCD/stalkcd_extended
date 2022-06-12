@@ -14,14 +14,14 @@ function getObjectActions() {
 }
 
 function objectActionIteratorTest() {
-    const data = yaml.safeLoad(fs.readFileSync("testRes/object.yml", { encoding: 'utf8' }));
+    const data = yaml.load(fs.readFileSync("testRes/object.yml", { encoding: 'utf8' }));
     let objectAction: ObjectAction[] = getObjectActions();
     let resultObject: any = iterateObject(data, objectAction);
     console.log(resultObject["age_mapped"] === 8 ? "success" : "object failure")
 }
 
 function listActionIteratorTest() {
-    const data = yaml.safeLoad(fs.readFileSync("testRes/list.yml", { encoding: 'utf8' }));
+    const data:any = yaml.load(fs.readFileSync("testRes/list.yml", { encoding: 'utf8' }));
     let listAction: ListAction[] = getListActions();
     let result = iterateList(data, listAction);
     console.log(result[0] === "hello mapped" ? "success" : "list failure")
