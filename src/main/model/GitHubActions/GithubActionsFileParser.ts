@@ -35,9 +35,13 @@ export class GithubActionsFileParser {
 
     public static readonly GITHUB_WORKFLOW_SCHEMA_PATH: PathLike = "res/schema/github-workflow.json";
     private evaluateErrors: boolean;
-    private _evaluation: any = [];
+    private _evaluation: Map<string, Map<string, number>> = new Map<string, Map<string, number>>();
     private currentlyEvaluatedFile: string;
 
+    /**
+     * Initializes the schema.
+     * @param evaluateError if this flag is true the thrown ParsingImpossibleError s are counted with the appropriate type.
+     */
     constructor(evaluateError?: boolean) {
         this.jsonSchemaValidator = new JsonSchemaValidator(GithubActionsFileParser.GITHUB_WORKFLOW_SCHEMA_PATH);
         if (evaluateError) {
@@ -46,28 +50,36 @@ export class GithubActionsFileParser {
             this.evaluateErrors = false;
         }
 
-        this._evaluation.push(GithubActionsFileParser.initEvaluation("total"));
+        this._evaluation.set("total", GithubActionsFileParser.getInitializedErrorMap());
         this.currentlyEvaluatedFile = ""
     }
 
-    private static initEvaluation(id: string) {
-        let newVar: any = {};
-        newVar["id"] = id;
+    private static getInitializedErrorMap(): Map<string, number> {
+        let map = new Map<string, number>();
         for (let reason in ParsingImpossibleReason) {
-            newVar[reason] = 0
+            map.set(reason, 0);
         }
-        return newVar;
+        return map;
     }
-
 
     private error(message: string, errorType: ParsingImpossibleReason) {
         if (this.evaluateErrors) {
-            for (let key in this.evaluation) {
-                let element = this.evaluation[key];
-                if (element.id == "total" || element.id == this.currentlyEvaluatedFile.toString() ) {
-                    this.evaluation[key][errorType] = element[errorType] + 1;
-                }
+            let totalEvaluation = this._evaluation.get("total");
+            let currentFileEvaluation = this._evaluation.get(this.currentlyEvaluatedFile);
+
+            if (totalEvaluation === undefined || currentFileEvaluation === undefined) {
+                throw new Error("The file is unknown to the evaluation, please check if the initialization of the evaluation at the beginning of the parsing process is done correctly.")
             }
+            let totalNumber: number | undefined = totalEvaluation.get(errorType);
+            let currentNumber: number | undefined= currentFileEvaluation.get(errorType);
+
+            if (totalNumber === undefined || currentNumber === undefined) {
+                throw new Error("The number is undefined, this should not be happening since the list initialized with a '0' and all errorTypes should be know in the enum. Please check the received errorType and the initialization process.")
+            }
+
+            totalEvaluation.set(errorType, totalNumber + 1);
+            currentFileEvaluation.set(errorType, currentNumber + 1);
+
         } else {
             throw new ParsingImpossibleError(message, errorType);
         }
@@ -76,11 +88,15 @@ export class GithubActionsFileParser {
     /**
      * Returns an Pipeline-Object based on the given GithubActionsWorkflow-File.
      * If the file is not a valid GithubActionsWorkflow yml-File, an ValidationError is thrown.
+     * In the same object you cannot rerun the same file-parsing if the 'evaluateErrors' flag is set to true.
      * @param input
      */
     parse(input: PathLike): Pipeline {
         this.currentlyEvaluatedFile = input.toString()
-        this._evaluation.push(GithubActionsFileParser.initEvaluation(input.toString()))
+        if (this.evaluateErrors && this._evaluation.get(this.currentlyEvaluatedFile) !== undefined) {
+            throw Error(`The File '${ this.currentlyEvaluatedFile }' was already parsed. If it would be parsed again the total evaluation would break.`)
+        }
+        this._evaluation.set(this.currentlyEvaluatedFile, GithubActionsFileParser.getInitializedErrorMap());
         this.jsonSchemaValidator.validate(input);
         let githubWorkflow: GithubWorkflow = <GithubWorkflow>yaml.load(fs.readFileSync(input, {encoding: 'utf8'}));
         let builder: PipelineBuilder = new PipelineBuilder();
