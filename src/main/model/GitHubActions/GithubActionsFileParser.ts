@@ -82,7 +82,7 @@ export class GithubActionsFileParser {
         this.currentlyEvaluatedFile = input.toString()
         this._evaluation.push(GithubActionsFileParser.initEvaluation(input.toString()))
         this.jsonSchemaValidator.validate(input);
-        let githubWorkflow: GithubWorkflow = <GithubWorkflow>yaml.safeLoad(fs.readFileSync(input, {encoding: 'utf8'}));
+        let githubWorkflow: GithubWorkflow = <GithubWorkflow>yaml.load(fs.readFileSync(input, {encoding: 'utf8'}));
         let builder: PipelineBuilder = new PipelineBuilder();
         builder.setDefinitions(GithubActionsFileParser.definitions(githubWorkflow));
         builder.setEnvironment(GithubActionsFileParser.environment(githubWorkflow))
