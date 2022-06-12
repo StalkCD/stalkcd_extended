@@ -150,8 +150,10 @@ export class TestUtils {
 
         console.log(failureClassMap);
 
-       if (failure.length > 0) {
-           console.error("Something went wrong while validating input. Failed properties: " + failure);
+        //get specific failure classes
+        if (failure.length > 0) {
+
+            console.error("Something went wrong while validating input. Failed properties: " + failure);
             let message: string = "";
             for (let pos in failure) {
                 let entry = failure[pos];
@@ -206,7 +208,6 @@ export class TestUtils {
         compileFromFile(schemaPath)
             .then(ts => fs.writeFileSync(generatedPath, ts))
     }
-
 }
 
 interface Unzipper {

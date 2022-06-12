@@ -1,4 +1,3 @@
-import * as program from 'commander';
 import { Runner } from './Runner';
 import { GitHubDownloader } from './JenkinsfileDownloader';
 import { Jenkins2StalkCDEvaluation } from '../test/Jenkins2StalkCdEvaluation';
@@ -20,6 +19,8 @@ enum Mode {
 let mode: Mode = Mode.Help;
 let config: any;
 
+const { program } = require('commander');
+
 program
     .version('1.0.0');
 
@@ -27,7 +28,7 @@ program
     .command('bpmn2stalkcd')
     .option('-s, --source [file]', 'the source file [stalk-cd.bpmn]', 'stalk-cd.bpmn')
     .option('-t, --target [file]', 'the target file [stalk-cd.yml]', 'stalk-cd.yml')
-    .action((cmd) => {
+    .action((cmd:String) => {
         mode = Mode.Bpmn2StalkCd;
         config = cmd;
     });
@@ -36,7 +37,7 @@ program
     .command('stalkcd2jenkins')
     .option('-s, --source [file]', 'the source file [stalk-cd.yml]', 'stalk-cd.yml')
     .option('-t, --target [file]', 'the target file [Jenkinsfile]', 'Jenkinsfile')
-    .action((cmd) => {
+    .action((cmd:String) => {
         mode = Mode.StalkCd2Jenkins;
         config = cmd;
     });
@@ -45,7 +46,7 @@ program
     .command('jenkins2stalkcd')
     .option('-s, --source [file]', 'the source file [Jenkinsfile]', 'Jenkinsfile')
     .option('-t, --target [file]', 'the target file [stalk-cd.yml]', 'stalk-cd.yml')
-    .action((cmd) => {
+    .action((cmd:String) => {
         mode = Mode.Jenkins2StalkCd;
         config = cmd;
     });
@@ -54,7 +55,7 @@ program
     .command('bpmn2jenkins')
     .option('-s, --source [file]', 'the source file [stalk-cd.bpmn]', 'stalk-cd.bpmn')
     .option('-t, --target [file]', 'the target file [Jenkinsfile]', 'Jenkinsfile')
-    .action((cmd) => {
+    .action((cmd:String) => {
         mode = Mode.Bpmn2Jenkins;
         config = cmd;
     });
@@ -63,7 +64,7 @@ program
     .command('stalkcd2bpmn')
     .option('-s, --source [file]', 'the source file [stalk-cd.yml]', 'stalk-cd.yml')
     .option('-t, --target [file]', 'the target file [stalk-cd.bpmn]', 'stalk-cd.bpmn')
-    .action((cmd) => {
+    .action((cmd:String) => {
         mode = Mode.StalkCd2Bpmn;
         config = cmd;
     });
@@ -72,7 +73,7 @@ program
     .command('normalize-jenkinsfile')
     .option('-s, --source [file]', 'the source file')
     .option('-t, --target [file]', 'the target file')
-    .action((cmd) => {
+    .action((cmd:String) => {
         mode = Mode.NormalizeJenkinsfile;
         config = cmd;
     });
@@ -81,20 +82,20 @@ program
     .command('download-sample-jenkinsfiles')
     .option('-d, --directory [directory]', 'the target directory [res/Jenkinsfiles.source]')
     .option('-q, --query [query]', 'the search term to search for on GitHub')
-    .action((cmd) => {
+    .action((cmd:String) => {
         mode = Mode.DownloadSampleJenkinsfiles;
         config = cmd;
     });
 
 program
     .command('evaluate-jenkins2stalkcd')
-    .action((cmd) => {
+    .action((cmd:String) => {
         mode = Mode.EvaluateJ2S;
         config = cmd;
     });
 
 program.command('test')
-    .action((cmd) => {
+    .action((cmd:String) => {
         mode = Mode.Test;
         config = cmd;
     })

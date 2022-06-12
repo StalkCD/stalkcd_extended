@@ -104,6 +104,10 @@ export class jenkinsfileLexer extends Lexer {
 		"DEFAULT_MODE",
 	];
 
+	public static readonly channelNames: string[] = [
+		"DEFAULT_TOKEN_CHANNEL", "HIDDEN",
+	];
+
 	public static readonly ruleNames: string[] = [
 		"T__0", "T__1", "T__2", "T__3", "T__4", "T__5", "T__6", "T__7", "T__8", 
 		"T__9", "T__10", "T__11", "T__12", "T__13", "T__14", "T__15", "T__16", 
@@ -177,6 +181,9 @@ export class jenkinsfileLexer extends Lexer {
 
 	// @Override
 	public get modeNames(): string[] { return jenkinsfileLexer.modeNames; }
+
+	// @Override
+	public get channelNames(): string[] { return jenkinsfileLexer.channelNames; }
 
 	private static readonly _serializedATNSegments: number = 2;
 	private static readonly _serializedATNSegment0: string =

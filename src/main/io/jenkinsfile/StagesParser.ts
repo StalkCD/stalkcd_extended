@@ -1,7 +1,23 @@
 import { AbstractParseTreeVisitor, TerminalNode } from "antlr4ts/tree";
 import { jenkinsfileVisitor } from "./antlr4/jenkinsfileVisitor";
 import { Stage } from "../../model/pipeline/Stage";
-import { StagesContext, Stage_nameContext, AgentContext, EnvironmentContext, StepsContext, WhenContext, Stage_definitionContext, Method_callContext, PostContext, jenkinsfileParser, ScriptContext, Fail_fastContext, InputContext, ToolsContext } from "./antlr4/jenkinsfileParser";
+import {
+    StagesContext,
+    Stage_nameContext,
+    AgentContext,
+    EnvironmentContext,
+    StepsContext,
+    WhenContext,
+    Stage_definitionContext,
+    Method_callContext,
+    PostContext,
+    jenkinsfileParser,
+    ScriptContext,
+    Fail_fastContext,
+    InputContext,
+    ToolsContext
+
+} from "./antlr4/jenkinsfileParser";
 import { AgentParser } from "./AgentParser";
 import { EnvironmentParser } from "./EnvironmentParser";
 import { StepParser } from "./StepParser";

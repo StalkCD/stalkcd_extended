@@ -7,8 +7,14 @@
     "start": "node dist/index.js",
     "test": "nyc mocha --inline-diffs -r ts-node/register test/**/*.ts --timeout=10000",
     "prestart": "tsc",
-    "antlr4ts": "antlr4ts -o src/io/jenkinsfile/antlr4/ -visitor src/io/jenkinsfile/antlr4/jenkinsfile.g4"
+    "antlr4ts": "antlr4ts -visitor src/main/io/jenkinsfile/antlr4/jenkinsfile.g4"
   },
+
+  "comments": {
+    "On Scripts": "To generate new antlr4ts files, e.g. after changing the grammarfile, please downgrade antlr4ts to version \"0.5.0-alpha.1\", generate the antlr files and upgrade back to version \"0.5.0-alpha.4\" before compiling to JS.",
+    "On dependencies": "The generatedTypes.ts was generated with json-schema-to-typescript @6.0.0. Due to later compiling issues with @types/lodash it was reseted to version 5.0.0."
+  },
+
   "repository": {
     "type": "git",
     "url": "ssh://git@okds.de:56909/kabieror/master-thesis-generator.git"
@@ -16,40 +22,37 @@
   "author": "Oliver Kabierschke",
   "license": "ISC",
   "dependencies": {
-    "@types/dagre": "0.7.40",
-    "@types/diff": "4.0.1",
-    "@types/node": "10.12.8",
-    "ajv": "8.11.0",
-    "antlr4ts": "0.5.0-alpha.1",
-    "commander": "2.19.0",
-    "dagre": "0.8.4",
-    "deep-cleaner": "1.1.2",
-    "diff": "4.0.1",
-    "js-yaml": "3.12.0",
-    "json-schema-to-typescript": "5.0.0",
-    "jszip": "3.9.1",
-    "node": "11.1.0",
-    "node-fetch": "2.3.0",
-    "randomatic": "3.1.1",
-    "readline-sync": "1.4.9",
-    "xml2js": "0.4.19"
-  },
-  "comments": {
-    "On dependencies": "The generatedTypes.ts was generated with json-schema-to-typescript @6.0.0. Due to later compiling issues with @types/lodash it was reseted to version 5.0.0."
+    "@types/dagre": "^0.7.47",
+    "@types/diff": "^5.0.2",
+    "@types/node": "^17.0.31",
+    "ajv": "^8.11.0",
+    "antlr4ts": "0.5.0-alpha.4",
+    "commander": "^9.2.0",
+    "dagre": "^0.8.4",
+    "deep-cleaner": "^1.2.1",
+    "diff": "^5.0.0",
+    "js-yaml": "^4.1.0",
+    "json-schema-to-typescript": "^10.1.5",
+    "jszip": "^3.9.1",
+    "node": "^17.7.2",
+    "node-fetch": "^2.6.7",
+    "randomatic": "^3.1.1",
+    "readline-sync": "^1.4.10",
+    "xml2js": "^0.4.23"
   },
   "devDependencies": {
-    "@types/chai": "4.1.7",
-    "@types/js-yaml": "3.11.2",
-    "@types/mocha": "5.2.5",
-    "@types/node-fetch": "2.1.5",
-    "@types/readline-sync": "1.4.3",
-    "@types/xml2js": "0.4.3",
-    "antlr4ts-cli": "0.5.0-alpha.1",
-    "chai": "4.2.0",
-    "mocha": "5.2.0",
-    "nyc": "13.1.0",
-    "ts-node": "8.0.1",
-    "typescript": "2.9.2"
+    "@types/chai": "^4.3.1",
+    "@types/js-yaml": "^4.0.5",
+    "@types/mocha": "^9.1.1",
+    "@types/node-fetch": "^2.6.1",
+    "@types/readline-sync": "^1.4.4",
+    "@types/xml2js": "^0.4.11",
+    "antlr4ts-cli": "0.5.0-alpha.4",
+    "chai": "^4.3.6",
+    "mocha": "^10.0.0",
+    "nyc": "^15.1.0",
+    "ts-node": "^10.7.0",
+    "typescript": "^4.6.4"
   },
   "nyc": {
     "extension": [

@@ -1,5 +1,16 @@
 import { AbstractParseTreeVisitor } from 'antlr4ts/tree';
-import { EnvironmentContext, AgentContext, Pipeline_optionsContext, TriggersContext, StagesContext, PostContext, DefinitionContext, ParametersContext, ToolsContext } from "./antlr4/jenkinsfileParser";
+import {
+    EnvironmentContext,
+    AgentContext,
+    Pipeline_optionsContext,
+    TriggersContext,
+    StagesContext,
+    PostContext,
+    DefinitionContext,
+    ParametersContext,
+    ToolsContext
+
+} from "./antlr4/jenkinsfileParser";
 import { jenkinsfileVisitor } from "./antlr4/jenkinsfileVisitor";
 import { Pipeline } from "../../model/pipeline/Pipeline";
 import { EnvironmentParser } from './EnvironmentParser';
