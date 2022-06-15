@@ -176,7 +176,7 @@ export class GithubActionsFileParser {
                 }
                 let stageStep = new Step({
                     label: githubStep.name,
-                    command: githubStep.run ? (githubStep.shell ? githubStep.shell + " " : "") + githubStep.run : githubStep.uses
+                    command: githubStep.run ? (githubStep.shell ? githubStep.shell + " " : " ") + githubStep.run : githubStep.uses //
                 });
                 pipelineSteps.push(stageStep);
             }
@@ -236,7 +236,7 @@ export class GithubActionsFileParser {
         // Handling of special NormalJob attributes
         if ("strategy" in entity) {
             let strategy = entity.strategy;
-            pipelineEnvironment.push(new EnvironmentVariable("strategy", JSON.stringify(strategy)))
+            pipelineEnvironment.push(new EnvironmentVariable("strategyJSON", JSON.stringify(strategy)))
         }
 
         return pipelineEnvironment;
@@ -250,7 +250,7 @@ export class GithubActionsFileParser {
             let run: any = defaults.run; // ugly, this should be properly typed by I'm at this point to annoyed to care
             if (run) {
                 for (let runKey in run) {
-                    options.push(toKeyValueString(runKey, run[runKey]));
+                    options.push(toKeyValueString("defaults.run_" + runKey, run[runKey]));
                 }
             }
         }
@@ -261,7 +261,7 @@ export class GithubActionsFileParser {
                 options.push(toKeyValueString("permissions", permissions))
             }
             if (typeof permissions === "object") {
-                options.push(toKeyValueString("permissions", JSON.stringify(permissions)))
+                options.push(toKeyValueString("permissionsJSON", JSON.stringify(permissions)))
             }
         }
 
@@ -271,7 +271,7 @@ export class GithubActionsFileParser {
                 options.push(toKeyValueString("concurrency", concurrency))
             }
             if (typeof concurrency === "object") {
-                options.push(toKeyValueString("concurrency", JSON.stringify(concurrency)))
+                options.push(toKeyValueString("concurrencyJSON", JSON.stringify(concurrency)))
             }
         }
 

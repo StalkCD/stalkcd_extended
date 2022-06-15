@@ -25,10 +25,9 @@ export interface IStage {
     input?: string[];
     when?: string; // TODO: corresponding to the meta-model this should be string[]
     parallel?: boolean;
-    steps?: IStep[] ;
+    steps?: IStep[];
     stages?: IStage[];
     post?: IPostSection;
-    
 }
 
 export class Stage extends PositionAwareObject<IStage> {

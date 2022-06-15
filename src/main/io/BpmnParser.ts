@@ -6,7 +6,6 @@ import { findInMap } from "../util";
 import { PostCondition } from "../model/pipeline/PostSection";
 import { Step } from "../model/pipeline/Step";
 import { IAgentOption, AgentOption } from "../model/pipeline/AgentSection";
-import { IOptionsSection } from "../model/pipeline/OptionsSection";
 
 export class BpmnParser {
 
@@ -102,7 +101,6 @@ class ProcessTranslator {
     /**
      * Builds a Stalk-CD Pipeline from a BPMN process
      * @param src The BPMN process to translate
-     * @param builder The BPMN builder to use
      */
     public translate(src: Process): Pipeline {
         if (!src || !src.$) {

@@ -1,6 +1,5 @@
 import { AbstractParseTreeVisitor } from "antlr4ts/tree";
-import { jenkinsfileParser, Method_callContext } from "./antlr4/jenkinsfileParser";
-import { IOptionsSection } from "../../model/pipeline/OptionsSection";
+import { Method_callContext } from "./antlr4/jenkinsfileParser";
 import { MethodCallParser as MethodCallParser } from "./MethodCallParser";
 import { jenkinsfileVisitor } from "./antlr4/jenkinsfileVisitor";
 

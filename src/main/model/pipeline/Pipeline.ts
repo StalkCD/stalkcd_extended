@@ -16,8 +16,8 @@ export interface IPipeline {
     post?: IPostSection;
 }
 
-export class Pipeline extends PositionAwareObject<IPipeline> implements IPipeline{
-    
+export class Pipeline extends PositionAwareObject<IPipeline> implements IPipeline {
+
     constructor(
         init: IPipeline = {
             stages: [],
