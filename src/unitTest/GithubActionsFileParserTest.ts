@@ -1,16 +1,16 @@
 import {GithubActionsFileParser} from "../main/model/GitHubActions/GithubActionsFileParser";
-import {Pipeline} from "../main/model/pipeline/Pipeline";
 import {EnvironmentVariable} from "../main/model/pipeline/EnvironmentSection";
 import {ParsingImpossibleError} from "../main/errors/ParsingImpossibleError";
 import {assert, assertArray, assertDefined, assertStringKeyValueArray, assertThrows} from "./Asserts";
 import {IStage} from "../main/model/pipeline/Stage";
 import {IAgentOption} from "../main/model/pipeline/AgentSection";
+import {Pipeline} from "../main/model/pipeline/Pipeline";
 
 
 const githubActionsFileParser = new GithubActionsFileParser(false);
 
 function parseData(filename: string): Pipeline {
-    return githubActionsFileParser.parse("testRes/" + filename);
+    return githubActionsFileParser.parse("testRes/GitHubToStalkCd/" + filename);
 }
 
 function testDefinitions() {
@@ -43,7 +43,7 @@ function testEnvironmentWithStages() {
         assertArray(env, (v: EnvironmentVariable) => v.name === "my-var" && v.value === "test")
         assertArray(env, (v: EnvironmentVariable) => v.name === "my-number" && v.value === "0")
         assertArray(env, (v: EnvironmentVariable) => v.name === "my-boolean" && v.value === "true")
-        assertArray(env, (v: EnvironmentVariable) => v.name === "strategy" && v.value === "{\"matrix\":{\"version\":[10,12,14],\"os\":[\"ubuntu-latest\",\"windows-latest\"]}}")
+        assertArray(env, (v: EnvironmentVariable) => v.name === "strategyJSON" && v.value === "{\"matrix\":{\"version\":[10,12,14],\"os\":[\"ubuntu-latest\",\"windows-latest\"]}}")
     }
 }
 
@@ -77,8 +77,8 @@ function testOptions() {
     assertDefined(options);
     if (options) {
         assert(options.length, 4);
-        assertStringKeyValueArray(options, "shell", "sh")
-        assertStringKeyValueArray(options, "working-directory", "mydir")
+        assertStringKeyValueArray(options, "defaults.run_shell", "sh")
+        assertStringKeyValueArray(options, "defaults.run_working-directory", "mydir")
         assertStringKeyValueArray(options, "permissions", "read-all")
         assertStringKeyValueArray(options, "concurrency", "my-concurrency-test")
     }
@@ -90,9 +90,9 @@ function testOptions2() {
     assertDefined(options);
     if (options) {
         assert(options.length, 3);
-        assertStringKeyValueArray(options, "shell", "sh")
-        assertStringKeyValueArray(options, "permissions", "{\"actions\":\"write\",\"checks\":\"write\",\"contents\":\"read\",\"id-token\":\"read\"}")
-        assertStringKeyValueArray(options, "concurrency", "{\"group\":\"my-concurrency-group\",\"cancel-in-progress\":false}")
+        assertStringKeyValueArray(options, "defaults.run_shell", "sh")
+        assertStringKeyValueArray(options, "permissionsJSON", "{\"actions\":\"write\",\"checks\":\"write\",\"contents\":\"read\",\"id-token\":\"read\"}")
+        assertStringKeyValueArray(options, "concurrencyJSON", "{\"group\":\"my-concurrency-group\",\"cancel-in-progress\":false}")
     }
 }
 
@@ -147,12 +147,12 @@ function testStageOptions() {
     if (options) {
         assert(options.length, 6);
         assertStringKeyValueArray(options, "timeout-minutes", "42");
-        assertStringKeyValueArray(options, "permissions", "{\"contents\":\"read\"}");
+        assertStringKeyValueArray(options, "permissionsJSON", "{\"contents\":\"read\"}");
         assertStringKeyValueArray(options, "needs", "a_single_need");
         assertStringKeyValueArray(options, "concurrency", "my_concurrency_job");
         assertStringKeyValueArray(options, "concurrency", "my_concurrency_job");
-        assertStringKeyValueArray(options, "shell", "sh")
-        assertStringKeyValueArray(options, "working-directory", "mydir")
+        assertStringKeyValueArray(options, "defaults.run_shell", "sh")
+        assertStringKeyValueArray(options, "defaults.run_working-directory", "mydir")
     }
 }
 
@@ -164,8 +164,8 @@ function testStageOptions2() {
         assert(options.length, 3);
         assertStringKeyValueArray(options, "needs", "first_need");
         assertStringKeyValueArray(options, "needs", "second_need");
-        assertStringKeyValueArray(options, "concurrency", "{\"cancel-in-progress\":true,\"group\":\"the_job_concurrency_group\"}");
-        assertStringKeyValueArray(options, "concurrency", "{\"cancel-in-progress\":true,\"group\":\"the_job_concurrency_group\"}");
+        assertStringKeyValueArray(options, "concurrencyJSON", "{\"cancel-in-progress\":true,\"group\":\"the_job_concurrency_group\"}");
+        assertStringKeyValueArray(options, "concurrencyJSON", "{\"cancel-in-progress\":true,\"group\":\"the_job_concurrency_group\"}");
     }
 }
 
@@ -194,7 +194,7 @@ function testSteps() {
         assert(steps[3].label, "Uses")
 
         assert(steps[0].command, "actions/checkout@v3")
-        assert(steps[1].command, "docker build --target stalkcd-application --tag stalkcd-application:latest --file docker/Application.dockerfile .")
+        assert(steps[1].command, " docker build --target stalkcd-application --tag stalkcd-application:latest --file docker/Application.dockerfile .")
         assert(steps[2].command, "bash docker run --rm -v \"/home/runner/work/stalkcd/stalkcd/res:/usr/app/res\" -v \"/home/runner/work/stalkcd/stalkcd/src:/usr/app/src\" stalkcd-application")
         assert(steps[3].command, "my-usage")
     }

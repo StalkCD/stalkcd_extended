@@ -1,4 +1,3 @@
-import { Step } from "./Step";
 import { Segment } from "../../io/jenkinsfile/jenkinsfile-writer";
 
 export interface IWhenSection {

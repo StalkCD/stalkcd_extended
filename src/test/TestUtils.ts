@@ -196,9 +196,10 @@ export class TestUtils {
     static validateJsonSchema(schemaPath: PathLike, dataPath: PathLike ) {
         let ajv = new Ajv();
         const schema = JSON.parse(fs.readFileSync(schemaPath).toString("utf8"));
-        const data = yaml.safeLoad(fs.readFileSync(dataPath, { encoding: 'utf8' }));
+        const data = yaml.load(fs.readFileSync(dataPath, { encoding: 'utf8' }));
         const validate = ajv.compile(schema);
         const valid = validate(data);
+        // @ts-ignore
         valid ? console.log(`successfully validated file ${dataPath}.`) : throws(() => new ValidationError(validate.errors));
     }
 
