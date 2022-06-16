@@ -96,14 +96,21 @@ export class GithubActionsFileParser {
         if (this.evaluateErrors && this._evaluation.get(this.currentlyEvaluatedFile) !== undefined) {
             throw Error(`The File '${ this.currentlyEvaluatedFile }' was already parsed. If it would be parsed again the total evaluation would break.`)
         }
+
         this._evaluation.set(this.currentlyEvaluatedFile, GithubActionsFileParser.getInitializedErrorMap());
+
         this.jsonSchemaValidator.validate(input);
+
         let githubWorkflow: GithubWorkflow = <GithubWorkflow>yaml.load(fs.readFileSync(input, {encoding: 'utf8'}));
         let builder: PipelineBuilder = new PipelineBuilder();
+
+        // Workflow
         builder.setDefinitions(GithubActionsFileParser.definitions(githubWorkflow));
         builder.setEnvironment(GithubActionsFileParser.environment(githubWorkflow))
         builder.setTriggers(this.triggers(githubWorkflow));
         builder.setOptions(GithubActionsFileParser.options(githubWorkflow));
+
+        // Stages
         let stages: Stage[] = this.stages(githubWorkflow);
         for (let stage of stages) {
             builder.beginStage(stage.toSerial())
