@@ -9,12 +9,10 @@
     "prestart": "tsc",
     "antlr4ts": "antlr4ts -visitor src/main/io/jenkinsfile/antlr4/jenkinsfile.g4"
   },
-
   "comments": {
     "On Scripts": "To generate new antlr4ts files, e.g. after changing the grammarfile, please downgrade antlr4ts to version \"0.5.0-alpha.1\", generate the antlr files and upgrade back to version \"0.5.0-alpha.4\" before compiling to JS.",
     "On dependencies": "The generatedTypes.ts was generated with json-schema-to-typescript @6.0.0. Due to later compiling issues with @types/lodash it was reseted to version 5.0.0."
   },
-
   "repository": {
     "type": "git",
     "url": "ssh://git@okds.de:56909/kabieror/master-thesis-generator.git"
@@ -36,6 +34,7 @@
     "jszip": "^3.9.1",
     "node": "^17.7.2",
     "node-fetch": "^2.6.7",
+    "npm": "^8.12.1",
     "randomatic": "^3.1.1",
     "readline-sync": "^1.4.10",
     "xml2js": "^0.4.23"

@@ -3,6 +3,8 @@ import {IStage} from "../pipeline/Stage";
 import {IStep} from "../pipeline/Step";
 import {WorkflowBuilder} from "./GithubWorkflowBuilder";
 import {separateKeyValue} from "../../util";
+import {EnvironmentVariable} from "../pipeline/EnvironmentSection";
+import {IAgentOption} from "../pipeline/AgentSection";
 
 
 export class GithubWorkflowGenerator {
@@ -46,6 +48,11 @@ export class GithubWorkflowGenerator {
         if (options) {
             options.forEach(s => this.doOptionForWorkflow(s))
         }
+
+        let env: EnvironmentVariable[] | undefined = pipeline.environment;
+        if (env) {
+            env.forEach(e => this.builder.env(e.name, e.value))
+        }
     }
 
     private doStage(stage: IStage): void {
@@ -55,9 +62,33 @@ export class GithubWorkflowGenerator {
         }
 
         this.builder.job(id);
+        let agent = stage.agent;
+        if (agent) {
+            agent.forEach(keyValue => this.doAgent(keyValue))
+        }
         let options: string[] | undefined = stage.options;
         if (options) {
             options.forEach(s => this.doOptionForJob(s))
+        }
+
+        let env: EnvironmentVariable[] | undefined = stage.environment
+        if (env) {
+            for (let environmentVariable of env) {
+                // special case(s)
+                if ("strategyJSON" === environmentVariable.name) {
+                    this.builder.currentJob().strategy(JSON.parse(environmentVariable.value))
+                    continue;
+                }
+
+                // normal env processing
+                this.builder.currentJob().env(environmentVariable.name, environmentVariable.value);
+            }
+        }
+    }
+
+    private doAgent(keyValue: IAgentOption) {
+        if (keyValue.name === "runs-on") {
+            this.builder.currentJob().runsOn(keyValue.value)
         }
     }
 
