@@ -120,6 +120,8 @@ class JobBuilder {
     private _concurrency: string | object | undefined
     private _permissions: string | object | undefined;
     private _needs: string | object | undefined;
+    private _strategy: object | undefined;
+    private _runsOn: string | undefined;
 
     constructor(parent: WorkflowBuilder, id: string, jobs: { [p: string]: any }) {
         this._id = id
@@ -194,6 +196,16 @@ class JobBuilder {
         return this;
     }
 
+    strategy(value: object | undefined): JobBuilder {
+        this._strategy = value;
+        return this
+    }
+
+    runsOn(value: string | undefined): JobBuilder {
+        this._runsOn = value;
+        return this;
+    }
+
     end(): WorkflowBuilder {
         if (this.isEnd) { // never add the save job twice
             return this._parent;
@@ -204,7 +216,17 @@ class JobBuilder {
     }
 
     private build(): any {
-        return {steps: this._steps}
+        return {
+            "runs-on": this._runsOn,
+            defaults: {
+                run: this._defaultsRun
+            },
+            concurrency: this._concurrency,
+            env: this._env,
+            strategy: this._strategy,
+            "timeout-minutes": this._timeoutMinutes,
+            steps: this._steps
+        }
     }
 }
 
