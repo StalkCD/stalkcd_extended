@@ -138,7 +138,26 @@ export class GithubWorkflowGeneratorFromJenkinsPipeline {
 
     private getShell(command: string | undefined): string | undefined {
         let split: any = command?.split(" ");
-        return split[0];
+        if(split[0] == "bash" || split[0] == "pwsh" || split[0] == "python" || split[0] == "sh" || split[0] == "cmd" || split[0] == "powershell"){
+            return split[0]
+        }
+        else {
+            return undefined;
+        }
+
+    }
+
+    private getRun(command: string | undefined): string | undefined {
+        if (command) {
+            let shell: string | undefined = this.getShell(command);
+            if (shell != undefined) {
+                return command.replace(shell + " ", "");
+            }
+            else {
+                return command
+            }
+        }
+        return command;
     }
 
     private doOptionForWorkflow(optionString: string): void {
@@ -199,15 +218,5 @@ export class GithubWorkflowGeneratorFromJenkinsPipeline {
         }
     }
 
-    private getRun(command: string | undefined): string | undefined {
-        if (command) {
-            let shell: string | undefined = this.getShell(command);
-            if (shell) {
-                return command.replace(shell + " ", "");
-            } else {
-                return command.slice(1)
-            }
-        }
-        return command;
-    }
+
 }
