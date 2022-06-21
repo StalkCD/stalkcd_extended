@@ -19,7 +19,7 @@ export class GithubWorkflowGeneratorFromJenkinsPipeline {
         this.doPipeline(pipeline);
         let stages = pipeline.stages;
         for (let stage of stages) {
-            this.doStage(stage);
+            this.doStage(stage, pipeline);
             let steps = stage.steps;
             if (steps !== undefined) {
                 for (let step of steps) {
@@ -48,7 +48,7 @@ export class GithubWorkflowGeneratorFromJenkinsPipeline {
         //vielleicht auch noch in eine Error Map schreiben, sodass am Ende in Konsole Uebersicht gegeben werden kann, was alles fehlt im GHA File
         if (triggers.length == 0)
         {
-            triggers.push("# Please add one or multiple trigger events here to get a valid GitHub Actions File.")
+            triggers.push(" # Please add one or multiple trigger events here to get a valid GitHub Actions File.")
         }
 
         this.builder
@@ -66,7 +66,7 @@ export class GithubWorkflowGeneratorFromJenkinsPipeline {
         }
     }
 
-    private doStage(stage: IStage): void {
+    private doStage(stage: IStage, pipeline: IPipeline): void {
         let id: string | undefined = stage.name;
 
         //in jenkinsfiles a name for stages is also mandatory
@@ -82,6 +82,20 @@ export class GithubWorkflowGeneratorFromJenkinsPipeline {
         if (agent) {
             agent.forEach(keyValue => this.doAgent(keyValue))
         }
+        else{
+            agent = pipeline.agent
+            if (agent) {
+                agent.forEach(keyValue => this.doAgent(keyValue))
+            }
+            else{   //Jenkinsfiles without Agent are invalid because Agent is mandatory in jeknkins
+                throw new Error("There was no Agent declared in the Jenkinsfile. ")
+            }
+
+
+        }
+
+
+
         let options: string[] | undefined = stage.options;
         if (options) {
             options.forEach(s => this.doOptionForJob(s))
@@ -106,6 +120,12 @@ export class GithubWorkflowGeneratorFromJenkinsPipeline {
         if (keyValue.name === "runs-on") {
             this.builder.currentJob().runsOn(keyValue.value)
         }
+
+        else{
+            keyValue.value = " # Please replace former jenkins file entry '" + keyValue.name + "' with corresponding GHA run environment."
+            this.builder.currentJob().runsOn(keyValue.value)
+        }
+
     }
 
     private doStep(step: IStep): void {
