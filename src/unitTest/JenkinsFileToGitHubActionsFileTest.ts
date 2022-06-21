@@ -3,13 +3,16 @@ import * as fs from 'fs';
 import {GithubWorkflowGenerator} from "../main/model/GitHubActions/GitHubWorkflowGenerator";
 import {JsonSchemaValidator} from "../main/JsonSchemaValidator";
 import {GithubActionsFileParser} from "../main/model/GitHubActions/GithubActionsFileParser";
+import {
+    GithubWorkflowGeneratorFromJenkinsPipeline
+} from "../main/model/GitHubActions/GHWorkflowGeneratorFromJenkinsPipeline";
 
 //parse jenkinsfile to pipeline
 const parser = new JenkinsfileParser();
 const pipeline = parser.parse(fs.readFileSync("testRes/jenkinsToGHA/Andriantomanga_trocmedoc.Jenkinsfile").toString());
 
 //generate GHA file from pipeline
-let generator: GithubWorkflowGenerator = new GithubWorkflowGenerator();
+let generator: GithubWorkflowGeneratorFromJenkinsPipeline = new GithubWorkflowGeneratorFromJenkinsPipeline();
 let run: string = JSON.stringify(generator.run(pipeline));
 console.log("-----------------")
 console.log(run)
