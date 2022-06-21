@@ -122,7 +122,7 @@ export class GithubWorkflowGeneratorFromJenkinsPipeline {
         }
 
         else{
-            keyValue.value = " # Please replace former jenkins file entry '" + keyValue.name + "' with corresponding GHA run environment."
+            keyValue.value = " # Please replace former jenkins file entry for agent '" + keyValue.name + "' with corresponding GHA run environment."
             this.builder.currentJob().runsOn(keyValue.value)
         }
 
