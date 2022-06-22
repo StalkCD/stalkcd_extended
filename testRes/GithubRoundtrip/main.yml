@@ -20,6 +20,7 @@ jobs:
       - that
       - are
       - required
+    if: my if expression = an if expression
     defaults:
       run:
         shell: sh

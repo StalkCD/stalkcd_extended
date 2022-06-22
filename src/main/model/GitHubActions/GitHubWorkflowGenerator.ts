@@ -89,6 +89,12 @@ export class GithubWorkflowGenerator {
         if (name) {
             this.builder.currentJob().name(name)
         }
+
+        let ifExpression: string | undefined = stage.when;
+        if (ifExpression) {
+            this.builder.currentJob().ifExpression(ifExpression)
+        }
+
     }
 
     private doAgent(keyValue: IAgentOption) {

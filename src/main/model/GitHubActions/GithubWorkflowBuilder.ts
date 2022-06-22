@@ -129,6 +129,7 @@ class JobBuilder {
     private _strategy: object | undefined;
     private _runsOn: string | undefined;
     private _name: string | undefined;
+    private _if: string | undefined;
 
     constructor(parent: WorkflowBuilder, id: string, jobs: { [p: string]: any }) {
         this._id = id
@@ -247,8 +248,14 @@ class JobBuilder {
             env: this._env,
             strategy: this._strategy,
             "timeout-minutes": this._timeoutMinutes,
+            if: this._if,
             steps: this._steps
         }
+    }
+
+    ifExpression(ifExpression: string | undefined): JobBuilder {
+        this._if = ifExpression;
+        return this
     }
 }
 
