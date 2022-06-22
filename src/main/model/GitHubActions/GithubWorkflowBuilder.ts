@@ -57,8 +57,6 @@ export class WorkflowBuilder {
         // multi-element
         if (this._defaultsRun === undefined) {
             this._defaultsRun = {};
-            //TODO warum 2 mal?
-            this._defaultsRun = {};
         }
         if (typeof this._defaultsRun === "object") {
             this._defaultsRun[key] = value;
@@ -87,16 +85,9 @@ export class WorkflowBuilder {
     }
 
     workflowDefaulthelper(): Object | undefined {
-
        if(this._defaultsRun != undefined) {
-          let defaultObject = {run: this._defaultsRun}
-          return defaultObject
+           return {run: this._defaultsRun}
        }
-       else
-       {
-           return
-       }
-
     }
 
 
@@ -232,14 +223,8 @@ class JobBuilder {
 
     jobDefaulthelper(): Object | undefined {
         if(this._defaultsRun != undefined) {
-            let defaultObject = {run: this._defaultsRun}
-            return defaultObject
+            return {run: this._defaultsRun}
         }
-        else
-        {
-            return
-        }
-
     }
 
 
