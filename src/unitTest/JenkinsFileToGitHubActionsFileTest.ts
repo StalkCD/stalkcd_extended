@@ -17,7 +17,7 @@ const pipeline = parser.parse(fs.readFileSync("testRes/jenkinsToGHA/azerbadjani_
 //generate GHA file from pipeline
 let generator: GitHubWorkflowGeneratorFromJenkinsPipeline = new GitHubWorkflowGeneratorFromJenkinsPipeline();
 let result = generator.run(pipeline)
-let resultString: string = JSON.stringify(generator.run(pipeline));
+let resultString: string = JSON.stringify(result);
 console.log("-----------------")
 console.log(resultString)
 console.log("-----------------")
