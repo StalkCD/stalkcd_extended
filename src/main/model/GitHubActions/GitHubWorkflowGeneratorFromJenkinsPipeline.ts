@@ -1,25 +1,21 @@
-import {IPipeline, Pipeline} from "../pipeline/Pipeline";
-import {IStage} from "../pipeline/Stage";
-import {IStep} from "../pipeline/Step";
+import {GithubWorkflowGenerator} from "./GitHubWorkflowGenerator";
 import {WorkflowBuilder} from "./GithubWorkflowBuilder";
-import {separateKeyValue} from "../../util";
+import {IPipeline, Pipeline} from "../pipeline/Pipeline";
 import {EnvironmentVariable} from "../pipeline/EnvironmentSection";
+import {IStage} from "../pipeline/Stage";
 import {IAgentOption} from "../pipeline/AgentSection";
 
+export class GitHubWorkflowGeneratorFromJenkinsPipeline extends GithubWorkflowGenerator{
 
-export class GithubWorkflowGeneratorFromJenkinsPipeline {
-
-    private builder: WorkflowBuilder;
-
-    constructor() {
-        this.builder = new WorkflowBuilder()
-    }
+constructor() {
+   super()
+}
 
     run(pipeline: Pipeline) {
         this.doPipeline(pipeline);
         let stages = pipeline.stages;
         for (let stage of stages) {
-            this.doStage(stage, pipeline);
+            this.doStageWPipeline(stage, pipeline);
             let steps = stage.steps;
             if (steps !== undefined) {
                 for (let step of steps) {
@@ -32,7 +28,8 @@ export class GithubWorkflowGeneratorFromJenkinsPipeline {
         return this.builder.build();
     }
 
-    private doPipeline(pipeline: IPipeline) {
+
+    protected doPipeline(pipeline: IPipeline) {
         let triggers
         if (pipeline.triggers == undefined)
         {
@@ -66,7 +63,8 @@ export class GithubWorkflowGeneratorFromJenkinsPipeline {
         }
     }
 
-    private doStage(stage: IStage, pipeline: IPipeline): void {
+
+    protected doStageWPipeline (stage: IStage, pipeline: IPipeline): void {
         let id: string | undefined = stage.name;
 
         //in jenkinsfiles a name for stages is also mandatory
@@ -116,7 +114,8 @@ export class GithubWorkflowGeneratorFromJenkinsPipeline {
         }
     }
 
-    private doAgent(keyValue: IAgentOption) {
+
+    protected doAgent(keyValue: IAgentOption) {
         if (keyValue.name === "runs-on") {
             this.builder.currentJob().runsOn(keyValue.value)
         }
@@ -128,15 +127,7 @@ export class GithubWorkflowGeneratorFromJenkinsPipeline {
 
     }
 
-    private doStep(step: IStep): void {
-        this.builder.currentJob().step()
-            .name(step.label)
-            .shell(this.getShell(step.command))
-            .run(this.getRun(step.command))
-            .end()
-    }
-
-    private getShell(command: string | undefined): string | undefined {
+    protected getShell(command: string | undefined): string | undefined {
         let split: any = command?.split(" ");
         if(split[0] == "bash" || split[0] == "pwsh" || split[0] == "python" || split[0] == "sh" || split[0] == "cmd" || split[0] == "powershell"){
             return split[0]
@@ -147,7 +138,7 @@ export class GithubWorkflowGeneratorFromJenkinsPipeline {
 
     }
 
-    private getRun(command: string | undefined): string | undefined {
+    protected getRun(command: string | undefined): string | undefined {
         if (command) {
             let shell: string | undefined = this.getShell(command);
             if (shell != undefined) {
@@ -160,63 +151,13 @@ export class GithubWorkflowGeneratorFromJenkinsPipeline {
         return command;
     }
 
-    private doOptionForWorkflow(optionString: string): void {
-        let strings: string[] = separateKeyValue(optionString);
-        let key: string = strings[0];
-        let value: string = strings[1];
 
-        if (key.startsWith("defaults.run_")) {
-            let defaultRunKey: string = key.split("_")[1];
-            this.builder.defaultsRun(defaultRunKey, value);
-        }
 
-        if (key.startsWith("concurrency")) {
-            this.builder.concurrency(value);
-        }
-        if (key.startsWith("concurrencyJSON")) {
-            this.builder.concurrency(JSON.parse(value));
-        }
 
-        if (key.startsWith("permissions")) {
-            this.builder.permissions(value);
-        }
-        if (key.startsWith("permissionsJSON")) {
-            this.builder.permissions(JSON.parse(value));
-        }
-    }
 
-    private doOptionForJob(optionString: string): void {
-        let strings: string[] = separateKeyValue(optionString);
-        let key: string = strings[0];
-        let value: string = strings[1];
 
-        if (key.startsWith("defaults.run_")) {
-            let defaultRunKey: string = key.split("_")[1];
-            this.builder.currentJob().defaultsRun(defaultRunKey, value);
-        }
 
-        if (key.startsWith("concurrency")) {
-            this.builder.currentJob().concurrency(value);
-        }
-        if (key.startsWith("concurrencyJSON")) {
-            this.builder.currentJob().concurrency(JSON.parse(value));
-        }
 
-        if (key.startsWith("permissions")) {
-            this.builder.currentJob().permissions(value);
-        }
-        if (key.startsWith("permissionsJSON")) {
-            this.builder.currentJob().permissions(JSON.parse(value));
-        }
-
-        if (key.startsWith("timeout-minutes")) {
-            this.builder.currentJob().timeoutMinutes(Number.parseInt(value))
-        }
-
-        if (key.startsWith("needs")) {
-            this.builder.currentJob().needs(value)
-        }
-    }
 
 
 }

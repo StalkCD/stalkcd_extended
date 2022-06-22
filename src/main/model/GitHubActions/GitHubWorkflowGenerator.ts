@@ -9,7 +9,7 @@ import {IAgentOption} from "../pipeline/AgentSection";
 
 export class GithubWorkflowGenerator {
 
-    private builder: WorkflowBuilder;
+    protected builder: WorkflowBuilder;
 
     constructor() {
         this.builder = new WorkflowBuilder()
@@ -19,7 +19,7 @@ export class GithubWorkflowGenerator {
         this.doPipeline(pipeline);
         let stages = pipeline.stages;
         for (let stage of stages) {
-            this.doStage(stage);
+            this.doStageWithPipeline(stage);
             let steps = stage.steps;
             if (steps !== undefined) {
                 for (let step of steps) {
@@ -32,7 +32,7 @@ export class GithubWorkflowGenerator {
         return this.builder.build();
     }
 
-    private doPipeline(pipeline: IPipeline) {
+    protected doPipeline(pipeline: IPipeline) {
         let triggers = pipeline.triggers;
         let name: string[] = pipeline.definitions ? pipeline.definitions : [];
         if (!triggers) {
@@ -55,7 +55,7 @@ export class GithubWorkflowGenerator {
         }
     }
 
-    private doStage(stage: IStage): void {
+    protected doStageWithPipeline(stage: IStage): void {
         let id: string | undefined = stage.name;
         if (id === undefined) {
             throw new Error("name of Stage is required.")
@@ -86,13 +86,13 @@ export class GithubWorkflowGenerator {
         }
     }
 
-    private doAgent(keyValue: IAgentOption) {
+    protected doAgent(keyValue: IAgentOption) {
         if (keyValue.name === "runs-on") {
             this.builder.currentJob().runsOn(keyValue.value)
         }
     }
 
-    private doStep(step: IStep): void {
+    protected doStep(step: IStep): void {
         this.builder.currentJob().step()
             .name(step.label)
             .shell(this.getShell(step.command))
@@ -100,12 +100,12 @@ export class GithubWorkflowGenerator {
             .end()
     }
 
-    private getShell(command: string | undefined): string | undefined {
+    protected getShell(command: string | undefined): string | undefined {
         let split: any = command?.split(" ");
         return split[0];
     }
 
-    private doOptionForWorkflow(optionString: string): void {
+    protected doOptionForWorkflow(optionString: string): void {
         let strings: string[] = separateKeyValue(optionString);
         let key: string = strings[0];
         let value: string = strings[1];
@@ -130,7 +130,7 @@ export class GithubWorkflowGenerator {
         }
     }
 
-    private doOptionForJob(optionString: string): void {
+    protected doOptionForJob(optionString: string): void {
         let strings: string[] = separateKeyValue(optionString);
         let key: string = strings[0];
         let value: string = strings[1];
@@ -163,7 +163,7 @@ export class GithubWorkflowGenerator {
         }
     }
 
-    private getRun(command: string | undefined): string | undefined {
+    protected getRun(command: string | undefined): string | undefined {
         if (command) {
             let shell: string | undefined = this.getShell(command);
             if (shell) {
