@@ -84,6 +84,11 @@ export class GithubWorkflowGenerator {
                 this.builder.currentJob().env(environmentVariable.name, environmentVariable.value);
             }
         }
+
+        let name: string | undefined = stage.baseName
+        if (name) {
+            this.builder.currentJob().name(name)
+        }
     }
 
     private doAgent(keyValue: IAgentOption) {

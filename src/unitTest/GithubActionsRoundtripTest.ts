@@ -12,8 +12,6 @@ export function parseData(filename: string): Pipeline {
 
 let pipeline: Pipeline = parseData("main.yml");
 
-//TODO writing to stalkcd file tested?
-
 let generator: GithubWorkflowGenerator = new GithubWorkflowGenerator();
 let run: string = JSON.stringify(generator.run(pipeline));
 console.log("-----------------")

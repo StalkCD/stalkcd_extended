@@ -12,11 +12,15 @@ env:
   my-boolean: true
 jobs:
   Regression-Test-Stalkcd-Application:
+    name: myJobName
     runs-on: ubuntu-latest
     defaults:
       run:
         shell: sh
         working-directory: mydir
+    permissions:
+      contents: read
+    timeout-minutes: 360
     concurrency: my-concurrency-test
     env:
       my-var: test
@@ -26,6 +30,8 @@ jobs:
       matrix:
         version: [ 10, 12, 14 ]
         os: [ ubuntu-latest, windows-latest ]
+      fail-fast: true
+      max-parallel: 100
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3

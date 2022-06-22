@@ -128,6 +128,7 @@ class JobBuilder {
     private _needs: string | object | undefined;
     private _strategy: object | undefined;
     private _runsOn: string | undefined;
+    private _name: string | undefined;
 
     constructor(parent: WorkflowBuilder, id: string, jobs: { [p: string]: any }) {
         this._id = id
@@ -228,10 +229,17 @@ class JobBuilder {
     }
 
 
+    name(name: string): JobBuilder {
+        this._name = name
+        return this
+    }
+
     private build(): any {
         return {
+            name: this._name,
             "runs-on": this._runsOn,
             defaults: this.jobDefaulthelper(),
+            permissions: this._permissions,
             concurrency: this._concurrency,
             env: this._env,
             strategy: this._strategy,
@@ -243,6 +251,7 @@ class JobBuilder {
 
 class StepBuilder {
     private _parent: JobBuilder;
+    // noinspection JSMismatchedCollectionQueryUpdate
     private _steps: any[];
     private _isEnd = false;
     private _name: string | undefined;
