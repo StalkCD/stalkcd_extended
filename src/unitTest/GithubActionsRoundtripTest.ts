@@ -7,10 +7,12 @@ import * as fs from "fs";
 const githubActionsFileParser = new GithubActionsFileParser(false);
 
 export function parseData(filename: string): Pipeline {
-    return githubActionsFileParser.parse("testRes/GitHubRoundtrip/" + filename);
+    return githubActionsFileParser.parse("testRes/GithubRoundtrip/" + filename);
 }
 
 let pipeline: Pipeline = parseData("main.yml");
+
+//TODO writing to stalkcd file tested?
 
 let generator: GithubWorkflowGenerator = new GithubWorkflowGenerator();
 let run: string = JSON.stringify(generator.run(pipeline));

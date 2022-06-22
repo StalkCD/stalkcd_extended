@@ -57,6 +57,7 @@ export class WorkflowBuilder {
         // multi-element
         if (this._defaultsRun === undefined) {
             this._defaultsRun = {};
+            //TODO warum 2 mal?
             this._defaultsRun = {};
         }
         if (typeof this._defaultsRun === "object") {
@@ -85,16 +86,30 @@ export class WorkflowBuilder {
         return this._currentJob;
     }
 
+    workflowDefaulthelper(): Object | undefined {
+
+       if(this._defaultsRun != undefined) {
+          let defaultObject = {run: this._defaultsRun}
+          return defaultObject
+       }
+       else
+       {
+           return
+       }
+
+    }
+
+
     build(): any {
         // TODO: "timeout-minutes": this._timeoutMinutes,
         // TODO: options for Job(s),
+
+
         return {
             name: this._name,
             on: this._on,
             env: this._env,
-            defaults: {
-                run: this._defaultsRun
-            },
+            defaults: this.workflowDefaulthelper(),
             concurrency: this._concurrency,
             permissions: this._permissions,
             jobs: this._jobs
@@ -215,12 +230,23 @@ class JobBuilder {
         return this._parent
     }
 
+    jobDefaulthelper(): Object | undefined {
+        if(this._defaultsRun != undefined) {
+            let defaultObject = {run: this._defaultsRun}
+            return defaultObject
+        }
+        else
+        {
+            return
+        }
+
+    }
+
+
     private build(): any {
         return {
             "runs-on": this._runsOn,
-            defaults: {
-                run: this._defaultsRun
-            },
+            defaults: this.jobDefaulthelper(),
             concurrency: this._concurrency,
             env: this._env,
             strategy: this._strategy,
