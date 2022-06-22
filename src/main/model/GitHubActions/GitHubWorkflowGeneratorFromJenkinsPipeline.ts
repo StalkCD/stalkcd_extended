@@ -4,6 +4,7 @@ import {IPipeline, Pipeline} from "../pipeline/Pipeline";
 import {EnvironmentVariable} from "../pipeline/EnvironmentSection";
 import {IStage} from "../pipeline/Stage";
 import {IAgentOption} from "../pipeline/AgentSection";
+import {separateKeyValue} from "../../util";
 
 export class GitHubWorkflowGeneratorFromJenkinsPipeline extends GithubWorkflowGenerator{
 
@@ -138,6 +139,8 @@ constructor() {
 
     }
 
+
+
     protected getRun(command: string | undefined): string | undefined {
         if (command) {
             let shell: string | undefined = this.getShell(command);
@@ -151,7 +154,50 @@ constructor() {
         return command;
     }
 
+    protected doOptionForWorkflow(optionString: string): void {
+        let strings: string[] = separateKeyValue(optionString);
+        let key: string = strings[0];
+        let value: string = strings[1];
 
+        if (key.startsWith("defaults.run_")) {
+            let defaultRunKey: string = key.split("_")[1];
+            this.builder.defaultsRun(defaultRunKey, value);
+        }
+
+        if (key.startsWith("concurrency")) {
+            this.builder.concurrency(value);
+        }
+        if (key.startsWith("concurrencyJSON")) {
+            this.builder.concurrency(JSON.parse(value));
+        }
+
+        if (key.startsWith("permissions")) {
+            this.builder.permissions(value);
+        }
+        if (key.startsWith("permissionsJSON")) {
+            this.builder.permissions(JSON.parse(value));
+        }
+
+        else if (key != undefined)
+        {
+            if(value != undefined) {
+                this.builder.unknownOptionsObjects(key + " " + value)
+            }
+            else{
+                this.builder.unknownOptionsObjects(key)
+            }
+
+        }
+
+        else {
+            if (value == undefined) {
+                return}
+            else {
+                this.builder.unknownOptionsObjects(value);
+            }
+
+        }
+    }
 
 
 

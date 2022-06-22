@@ -12,7 +12,7 @@ import {
 
 //parse jenkinsfile to pipeline
 const parser = new JenkinsfileParser();
-const pipeline = parser.parse(fs.readFileSync("testRes/jenkinsToGHA/azerbadjani_jenkins.Jenkinsfile").toString());
+const pipeline = parser.parse(fs.readFileSync("testRes/jenkinsToGHA/teknofile_maven-test.Jenkinsfile").toString());
 
 //generate GHA file from pipeline
 let generator: GitHubWorkflowGeneratorFromJenkinsPipeline = new GitHubWorkflowGeneratorFromJenkinsPipeline();
