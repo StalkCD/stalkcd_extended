@@ -130,6 +130,9 @@ class JobBuilder {
     private _runsOn: string | undefined;
     private _name: string | undefined;
     private _if: string | undefined;
+    private _continueOnError: boolean | undefined;
+    private _container: object | undefined;
+    private _services: object | undefined;
 
     constructor(parent: WorkflowBuilder, id: string, jobs: { [p: string]: any }) {
         this._id = id
@@ -237,6 +240,26 @@ class JobBuilder {
         return this
     }
 
+    ifExpression(ifExpression: string | undefined): JobBuilder {
+        this._if = ifExpression;
+        return this
+    }
+
+    continueOnError(continueOnError: boolean | undefined): JobBuilder {
+        this._continueOnError = continueOnError
+        return this
+    }
+
+    container(container: object): JobBuilder {
+        this._container = container
+        return this
+    }
+
+    service(service: object): JobBuilder {
+        this._services = service
+        return this
+    }
+
     private build(): any {
         return {
             name: this._name,
@@ -245,17 +268,15 @@ class JobBuilder {
             defaults: this.jobDefaulthelper(),
             permissions: this._permissions,
             concurrency: this._concurrency,
+            services: this._services,
+            container: this._container,
             env: this._env,
             strategy: this._strategy,
             "timeout-minutes": this._timeoutMinutes,
             if: this._if,
-            steps: this._steps
+            steps: this._steps,
+            "continue-on-error": this._continueOnError
         }
-    }
-
-    ifExpression(ifExpression: string | undefined): JobBuilder {
-        this._if = ifExpression;
-        return this
     }
 }
 

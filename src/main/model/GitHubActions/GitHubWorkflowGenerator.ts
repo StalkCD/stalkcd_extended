@@ -95,11 +95,24 @@ export class GithubWorkflowGenerator {
             this.builder.currentJob().ifExpression(ifExpression)
         }
 
+        let continueOnError: boolean | undefined = stage.failFast
+        if (!(continueOnError === undefined)) {
+            // failFast is the opposite to continue-on-error
+            this.builder.currentJob().continueOnError(!continueOnError);
+        }
     }
 
     private doAgent(keyValue: IAgentOption) {
         if (keyValue.name === "runs-on") {
             this.builder.currentJob().runsOn(keyValue.value)
+        }
+        if (keyValue.name === "container") {
+            // @ts-ignore
+            this.builder.currentJob().container(JSON.parse(keyValue.value))
+        }
+        if (keyValue.name === "services") {
+            // @ts-ignore
+            this.builder.currentJob().service(JSON.parse(keyValue.value))
         }
     }
 

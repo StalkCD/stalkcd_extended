@@ -21,6 +21,7 @@ jobs:
       - are
       - required
     if: my if expression = an if expression
+    continue-on-error: true
     defaults:
       run:
         shell: sh
@@ -29,6 +30,19 @@ jobs:
       contents: read
     timeout-minutes: 360
     concurrency: my-concurrency-test
+    services:
+      myservice:
+        image: myImage
+        volumes:
+          - volume1:volume
+    container:
+      image: myImage
+      volumes:
+        - volumeone:myVolume
+        - volumetwo:thatvolume
+      credentials:
+        thatcredentail: thatvalue
+        anothercredential: credential2
     env:
       my-var: test
       my-number: 0
