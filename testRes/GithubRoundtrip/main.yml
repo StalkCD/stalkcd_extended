@@ -14,6 +14,12 @@ jobs:
   Regression-Test-Stalkcd-Application:
     name: myJobName
     runs-on: ubuntu-latest
+    needs:
+      - some
+      - parameters
+      - that
+      - are
+      - required
     defaults:
       run:
         shell: sh

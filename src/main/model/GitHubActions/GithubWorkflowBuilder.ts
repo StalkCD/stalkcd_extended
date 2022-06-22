@@ -125,7 +125,7 @@ class JobBuilder {
     } | undefined;
     private _concurrency: string | object | undefined
     private _permissions: string | object | undefined;
-    private _needs: string | object | undefined;
+    private _needs:  string[] = [];
     private _strategy: object | undefined;
     private _runsOn: string | undefined;
     private _name: string | undefined;
@@ -193,8 +193,10 @@ class JobBuilder {
     }
 
 
-    needs(value: string | object | undefined): JobBuilder {
-        this._needs = value;
+    needs(value: string | undefined): JobBuilder {
+        if (value) {
+            this._needs.push(value);
+        }
         return this;
     }
 
@@ -238,6 +240,7 @@ class JobBuilder {
         return {
             name: this._name,
             "runs-on": this._runsOn,
+            needs: this._needs, // TODO: if only one element is present just put a string, ignore if empty
             defaults: this.jobDefaulthelper(),
             permissions: this._permissions,
             concurrency: this._concurrency,
