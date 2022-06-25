@@ -18,6 +18,7 @@ export class WorkflowBuilder {
     //used to store information from jenkinsfile which could not mapped to a valid GitHub Workflow object
     private _unknownWorkflowOptions : string = " # The following options could not be mapped to GitHub Actions: " ;
 
+    // used to store the post section from a jenkinsfile workflow
     private _postsection : string | object | undefined;
 
     on(value: string[]): WorkflowBuilder {
