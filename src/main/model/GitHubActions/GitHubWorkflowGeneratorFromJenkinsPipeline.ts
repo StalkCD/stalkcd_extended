@@ -7,6 +7,7 @@ import {IAgentOption} from "../pipeline/AgentSection";
 import {separateKeyValue} from "../../util";
 import {IPostSection} from "../pipeline/PostSection";
 import {IStep} from "../pipeline/Step";
+import * as YAML from "json-to-pretty-yaml";
 
 export class GitHubWorkflowGeneratorFromJenkinsPipeline extends GithubWorkflowGenerator{
 
@@ -129,8 +130,8 @@ constructor() {
         }
 
         else{
-            keyValue.value = " # Please replace former jenkins file entry for agent '" + keyValue.name + "' with corresponding GHA run environment."
-            this.builder.currentJob().runsOn(keyValue.value)
+            let jobAgent = " # Please replace former jenkins file entry for agent '" + JSON.stringify(keyValue)+ "' with corresponding GHA run environment."
+            this.builder.currentJob().runsOn(jobAgent)
         }
 
     }
