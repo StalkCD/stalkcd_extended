@@ -18,6 +18,8 @@ export class WorkflowBuilder {
     //used to store information from jenkinsfile which could not mapped to a valid GitHub Workflow object
     private _unknownWorkflowOptions : string = " # The following options could not be mapped to GitHub Actions: " ;
 
+    private _postsection : string | object | undefined;
+
     on(value: string[]): WorkflowBuilder {
         if (value.length === 1) {
             this._on = value[0];
@@ -85,6 +87,11 @@ export class WorkflowBuilder {
         return this;
     }
 
+    postSection(value: string | object | undefined): WorkflowBuilder {
+        this._postsection = " #The following steps were part of the post section in the jenkinsfile. Please transform these to steps with the corresponding GHA condition: " + value
+        return this;
+    }
+
     job(id: string): JobBuilder {
         this._currentJob = new JobBuilder(this, id, this._jobs);
         return this._currentJob;
@@ -110,7 +117,7 @@ export class WorkflowBuilder {
 
     build(): any {
         // TODO: "timeout-minutes": this._timeoutMinutes,
-        // TODO: options for Job(s),
+        // TODO: options for Job(s), Henning: Die werden aus meiner Sicht nicht geparst von StalkCD?!
 
 
         return {
@@ -121,7 +128,8 @@ export class WorkflowBuilder {
             concurrency: this._concurrency,
             permissions: this._permissions,
             jobs: this._jobs,
-            unknownWorkflowOptions: this._unknownWorkflowOptions
+            unknownWorkflowOptions: this._unknownWorkflowOptions,
+            jenkins_post_steps: this._postsection
         };
     }
 

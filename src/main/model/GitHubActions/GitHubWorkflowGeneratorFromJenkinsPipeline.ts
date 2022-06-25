@@ -5,6 +5,8 @@ import {EnvironmentVariable} from "../pipeline/EnvironmentSection";
 import {IStage} from "../pipeline/Stage";
 import {IAgentOption} from "../pipeline/AgentSection";
 import {separateKeyValue} from "../../util";
+import {IPostSection} from "../pipeline/PostSection";
+import {IStep} from "../pipeline/Step";
 
 export class GitHubWorkflowGeneratorFromJenkinsPipeline extends GithubWorkflowGenerator{
 
@@ -61,6 +63,11 @@ constructor() {
         let env: EnvironmentVariable[] | undefined = pipeline.environment;
         if (env) {
             env.forEach(e => this.builder.env(e.name, e.value))
+        }
+
+        let post: IPostSection | undefined = pipeline.post;
+        if (post) {
+            this.doPostSection(post);
         }
     }
 
@@ -127,6 +134,21 @@ constructor() {
         }
 
     }
+
+
+    protected doPostSection(postSection: IPostSection) {
+
+        var postString = ""
+        Object.entries(postSection).forEach(prop => {
+            if (prop[1].length > 0 && prop[0] != "propertiesOrder") {
+                 postString = postString + JSON.stringify(prop)
+            }
+        })
+        if (postString.length > 0)
+        {this.builder.postSection(postString)}
+    }
+
+
 
     protected getShell(command: string | undefined): string | undefined {
         let split: any = command?.split(" ");
@@ -197,13 +219,10 @@ constructor() {
             }
 
         }
+        //TODO Add mapping for jenkinsfile options to GHA, see https://www.jenkins.io/doc/book/pipeline/syntax/#options
+
+        //Options for jobs in a pipeline are not parsed with StalkCD yet, so there is no corresponding implementation for workflow options
     }
-
-
-
-
-
-
 
 
 }
