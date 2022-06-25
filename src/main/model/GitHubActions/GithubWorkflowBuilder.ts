@@ -155,6 +155,8 @@ class JobBuilder {
     private _needs: string | object | undefined;
     private _strategy: object | undefined;
     private _runsOn: string | undefined;
+    // used to store the post section from a jenkinsfile job
+    private _postsection : string | object | undefined;
 
     constructor(parent: WorkflowBuilder, id: string, jobs: { [p: string]: any }) {
         this._id = id
@@ -239,6 +241,11 @@ class JobBuilder {
         return this;
     }
 
+    postSection(value: string | object | undefined): JobBuilder {
+        this._postsection = " #The following steps were part of the post section in the jenkinsfile. Please transform these to steps with the corresponding GHA condition: " + value
+        return this;
+    }
+
     end(): WorkflowBuilder {
         if (this.isEnd) { // never add the save job twice
             return this._parent;
@@ -269,7 +276,8 @@ class JobBuilder {
             env: this._env,
             strategy: this._strategy,
             "timeout-minutes": this._timeoutMinutes,
-            steps: this._steps
+            steps: this._steps,
+            jenkins_post_steps: this._postsection
         }
     }
 }

@@ -68,7 +68,7 @@ constructor() {
 
         let post: IPostSection | undefined = pipeline.post;
         if (post) {
-            this.doPostSection(post);
+            this.doPostSection(post, false);
         }
     }
 
@@ -94,13 +94,11 @@ constructor() {
             if (agent) {
                 agent.forEach(keyValue => this.doAgent(keyValue))
             }
-            else{   //Jenkinsfiles without Agent are invalid because Agent is mandatory in jeknkins
+            else{   //Jenkinsfiles without Agent are invalid because Agent is mandatory in jenkins
                 throw new Error("There was no Agent declared in the Jenkinsfile. ")
             }
 
-
         }
-
 
 
         let options: string[] | undefined = stage.options;
@@ -121,6 +119,14 @@ constructor() {
                 this.builder.currentJob().env(environmentVariable.name, environmentVariable.value);
             }
         }
+
+
+        let post: IPostSection | undefined = stage.post
+        if (post) {
+            this.doPostSection(post, true)
+        }
+
+
     }
 
 
@@ -137,7 +143,7 @@ constructor() {
     }
 
 
-    protected doPostSection(postSection: IPostSection) {
+    protected doPostSection(postSection: IPostSection, postOnJobLayer : Boolean) {
 
         var postString = ""
         Object.entries(postSection).forEach(prop => {
@@ -145,8 +151,10 @@ constructor() {
                  postString = postString + JSON.stringify(prop)
             }
         })
-        if (postString.length > 0)
+        if (postString.length > 0 && postOnJobLayer == false)
         {this.builder.postSection(postString)}
+        else if (postString.length > 0 && postOnJobLayer == true)
+        {this.builder.currentJob().postSection(postString)}
     }
 
 
