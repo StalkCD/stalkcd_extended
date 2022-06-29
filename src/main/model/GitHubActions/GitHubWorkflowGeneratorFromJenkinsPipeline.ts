@@ -56,9 +56,12 @@ constructor() {
             .on(triggers)
             .name(name[0])
 
+
+        //TODO Add mapping for jenkinsfile options to GHA, see https://www.jenkins.io/doc/book/pipeline/syntax/#options
+        //Options for jobs in a pipeline are not parsed with StalkCD yet, so there is no corresponding implementation for workflow options
         let options: string[] | undefined = pipeline.options;
         if (options) {
-            options.forEach(s => this.doOptionForWorkflow(s))
+            this.builder.unknownOptionsObjects(options)
         }
 
         let env: EnvironmentVariable[] | undefined = pipeline.environment;
@@ -185,53 +188,6 @@ constructor() {
         return command;
     }
 
-    protected doOptionForWorkflow(optionString: string): void {
-        let strings: string[] = separateKeyValue(optionString);
-        let key: string = strings[0];
-        let value: string = strings[1];
-
-        if (key.startsWith("defaults.run_")) {
-            let defaultRunKey: string = key.split("_")[1];
-            this.builder.defaultsRun(defaultRunKey, value);
-        }
-
-        if (key.startsWith("concurrency")) {
-            this.builder.concurrency(value);
-        }
-        if (key.startsWith("concurrencyJSON")) {
-            this.builder.concurrency(JSON.parse(value));
-        }
-
-        if (key.startsWith("permissions")) {
-            this.builder.permissions(value);
-        }
-        if (key.startsWith("permissionsJSON")) {
-            this.builder.permissions(JSON.parse(value));
-        }
-
-        else if (key != undefined)
-        {
-            if(value != undefined) {
-                this.builder.unknownOptionsObjects(key + " " + value)
-            }
-            else{
-                this.builder.unknownOptionsObjects(key)
-            }
-
-        }
-
-        else {
-            if (value == undefined) {
-                return}
-            else {
-                this.builder.unknownOptionsObjects(value);
-            }
-
-        }
-        //TODO Add mapping for jenkinsfile options to GHA, see https://www.jenkins.io/doc/book/pipeline/syntax/#options
-
-        //Options for jobs in a pipeline are not parsed with StalkCD yet, so there is no corresponding implementation for workflow options
-    }
 
 
 }

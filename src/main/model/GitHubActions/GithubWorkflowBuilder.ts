@@ -16,7 +16,7 @@ export class WorkflowBuilder {
     private _currentJob: JobBuilder = new JobBuilder(this, "", this._jobs);
 
     //used to store information from jenkinsfile which could not mapped to a valid GitHub Workflow object
-    private _unknownWorkflowOptions : string = " # The following options could not be mapped to GitHub Actions: " ;
+    private _unknownWorkflowOptions : string | object | undefined;
 
     // used to store the post section from a jenkinsfile workflow
     private _postsection : string | object | undefined;
@@ -84,7 +84,7 @@ export class WorkflowBuilder {
     }
 
     unknownOptionsObjects(value: string | object | undefined): WorkflowBuilder {
-        this._unknownWorkflowOptions =   this._unknownWorkflowOptions + value + " "
+        this._unknownWorkflowOptions = " # The following options could not be mapped to GitHub Actions: " + value
         return this;
     }
 
