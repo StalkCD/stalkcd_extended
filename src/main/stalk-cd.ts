@@ -13,7 +13,8 @@ enum Mode {
     NormalizeJenkinsfile,
     DownloadSampleJenkinsfiles,
     EvaluateJ2S,
-    Test
+    Test,
+    DownloadSampleGithhubActionFiles,
 }
 
 let mode: Mode = Mode.Help;
@@ -88,6 +89,15 @@ program
     });
 
 program
+    .command('download-sample-githubaction-files')
+    .option('-d, --directory [directory]', 'the target directory [res/GithubActionFiles.source]')
+    .option('-q, --query [query]', 'the search term to search for on GitHub')
+    .action((cmd:String) => {
+        mode = Mode.DownloadSampleGithhubActionFiles;
+        config = cmd;
+    });
+
+program
     .command('evaluate-jenkins2stalkcd')
     .action((cmd:String) => {
         mode = Mode.EvaluateJ2S;
@@ -135,15 +145,26 @@ switch (+mode) {
         new Runner().normalizeJenkinsfile(config);
         break;
     case Mode.DownloadSampleJenkinsfiles:
-        let query = 'pipeline agent filename:Jenkinsfile in:file';
+        let jenkinsQuery = 'pipeline agent filename:Jenkinsfile in:file';
         if (config.query) {
-            query = config.query;
+            jenkinsQuery = config.query;
         }
-        let dir = 'res/Jenkinsfiles.source';
+        let jenkinsDir = 'res/Jenkinsfiles.source';
         if (config.directory) {
-            dir = config.directory;
+            jenkinsDir = config.directory;
         }
-        new GitHubDownloader(dir).download(query);
+        new GitHubDownloader(jenkinsDir).download(jenkinsQuery);
+        break;
+    case Mode.DownloadSampleGithhubActionFiles:
+        let githubQuery = 'path:/.github/workflows';
+        if (config.query) {
+            githubQuery = config.query;
+        }
+        let githubDir = 'res/GithubActions.source';
+        if (config.directory) {
+            githubDir = config.directory;
+        }
+        new GitHubDownloader(githubDir).download(githubQuery);
         break;
     case Mode.EvaluateJ2S:
         new Jenkins2StalkCDEvaluation().evaluate();

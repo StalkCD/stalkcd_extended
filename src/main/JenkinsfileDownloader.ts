@@ -3,7 +3,6 @@ import * as fs from 'fs';
 import {URLSearchParams} from 'url';
 import fetch from 'node-fetch';
 import {RequestInit, Response} from 'node-fetch';
-import {symlink} from "fs";
 
 
 const GITHUB_API_VERSION = 'application/vnd.github.v3+json'; // https://docs.github.com/en/rest/overview/resources-in-the-rest-api
@@ -254,6 +253,7 @@ export class GitHubDownloader {
             });
         }
 
+        console.log("request successful: " + url)
         return res;
     }
 
