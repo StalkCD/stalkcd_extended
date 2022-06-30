@@ -14,68 +14,65 @@ export class Comparator {
      * @param expected - expected object, this is the truth so to say.
      * @param actual - the actual object, it is the object which has to hold true to the expected.
      */
-    public static compareObjects(expected: object, actual: object) {
+    public static compareObjects(expected: object, actual: object): Map<string, string[]> {
         let map = new Map<string, string[]>();
         for (let reason in FailedComparisonReason) {
             map.set(reason, []);
         }
-        this.compareObjectsInternal(expected, actual, "expected", map);
+        return this.internalCompareObjects(expected, actual, "obj", map);
     }
 
-    private static compareObjectsInternal(expected: any, actual: any, context: string, errors: Map<string, string[]>) {
+    private static internalCompareObjects(expected: any, actual: any, context: string, errors: Map<string, string[]>): Map<string, string[]> {
         let expectedKeys: string[] = Object.keys(expected);
         if (expectedKeys.length !== Object.keys(actual).length) {
-            this.error(FailedComparisonReason.UNEQUAL_AMOUNT_OF_KEYS, context);
+            this.error(errors, FailedComparisonReason.UNEQUAL_AMOUNT_OF_KEYS, context);
         }
         for (let key of expectedKeys) {
             let expectedElement: any = expected[key];
             let actualElement: any = actual[key];
+            let current_context: string = context + "[" + key + "]";
             if (typeof expectedElement !== typeof actualElement) {
-                this.error(FailedComparisonReason.NOT_SAME_ELEMENT_TYPE, Comparator.key(context, key));
+                this.error(errors, FailedComparisonReason.NOT_SAME_ELEMENT_TYPE, current_context + " type: " + typeof expectedElement + " --> actual: " + typeof actualElement);
                 continue;
             }
-            console.log("Expected: " + Comparator.key(context, key) + " = " + expectedElement);
-            console.log("Actual: " + Comparator.key(context, key) + " = " + actualElement);
-            console.log();
+            // console.log("Expected: " + current_context + " = " + expectedElement);
+            // console.log("Actual: " + current_context + " = " + actualElement);
+            // console.log();
+            let contextErrorString: string = current_context + " = " + expectedElement + " --> actual = " + actualElement
             switch (typeof expectedElement) {
                 case "string":
-                    expectedElement === actualElement ? "" : this.error(FailedComparisonReason.UNEQUAL_STRING, Comparator.key(context, key));
+                    expectedElement === actualElement ? "" : this.error(errors, FailedComparisonReason.UNEQUAL_STRING, contextErrorString);
                     break;
                 case "boolean":
-                    expectedElement === actualElement ? "" : this.error(FailedComparisonReason.UNEQUAL_BOOLEAN, Comparator.key(context, key));
+                    expectedElement === actualElement ? "" : this.error(errors, FailedComparisonReason.UNEQUAL_BOOLEAN, contextErrorString);
                     break;
                 case "number":
-                    expectedElement === actualElement ? "" : this.error(FailedComparisonReason.UNEQUAL_NUMBER, Comparator.key(context, key));
+                    expectedElement === actualElement ? "" : this.error(errors, FailedComparisonReason.UNEQUAL_NUMBER, contextErrorString);
                     break;
                 case "object":
-                    this.compareObjectsInternal(expectedElement, actualElement, Comparator.key(context, key));
+                    this.internalCompareObjects(expectedElement, actualElement, current_context, errors);
                     break;
                 case "function":
                     // funtions are intetionally ignored
                     break;
                 default:
-                    expectedElement === actualElement ? "" : this.error(FailedComparisonReason.UNEQUAL_UNKNOWN_TYPE, Comparator.key(context, key));
+                    expectedElement === actualElement ? "" : this.error(errors, FailedComparisonReason.UNEQUAL_UNKNOWN_TYPE, contextErrorString);
             }
         }
-        return
+        return errors
     }
 
     /**
      * only give reasons which are given in the Enum FailedComparisonReason
+     * @param errors the list of errors given my the enum and their respective reasons why they failed.
      * @param reason an enum FailedComparisonReason
      * @param context current context of the error
-     * @param errors the list of errors given my the enum and their respective reasons why they failed.
      * @private
      */
-    private static error(reason: string, context: string, errors: Map<string, string[]>): void {
+    private static error(errors: Map<string, string[]>, reason: string, context: string): void {
         // @ts-ignore --> only an enum type shall be given, these are initialized in the constructor
         errors.get(reason).push(context);
     }
-
-    private static key(context: string, key: string): string {
-        return context + "[" + key + "]";
-    }
-
 }
 
 

@@ -1,34 +1,82 @@
-import {Comparator, FailedComparisonReason} from "../main/Comparator";
+import {Comparator} from "../main/Comparator";
 
-let comparator: Comparator = new Comparator();
+let actualFull: object = {
+    myString: "myValue",
+    list: [1, 2, 3],
+    myNumber: 5,
+    myBoolean: true,
+    myBoolean2: false,
+    myObject: {key: "myValue", list: [1, 2, 3], myNumber: 5, myBoolean: true, myBoolean2: false}
+};
+let expectedFull: object = {
+    myString: "myValue",
+    list: [1, 2, 3],
+    myNumber: 5,
+    myBoolean: true,
+    myBoolean2: false,
+    myObject: {key: "myValue", list: [1, 2, 3], myNumber: 5, myBoolean: true, myBoolean2: false}
+};
 
-let actual: object = {key: "myValue", list: [1,2,3], myNumber: 5, myBoolean: true, myBoolean2: false, myObject: {key: "myValue", list: [1,2,3], myNumber: 5, myBoolean: true, myBoolean2: false}};
-let expected: object = {myString: "myValue", list: [1,2,3], myNumber: 5, myBoolean: true, myBoolean2: false, myObject: {key: "myValue", list: [1,2,3], myNumber: 5, myBoolean: true, myBoolean2: false}};
-comparator.compareObjects(expected, actual)
-
-if (!errorLength(fullErrorMap(), comparator.errors)) {
-    console.log("errors are not as expected");
-} else {
-    console.log("success")
+function doPositiveComparison(expected: object, actual: object) {
+    let map: Map<string, string[]> = Comparator.compareObjects(expected, actual);
+    let errors: string[] = errorsDetected(map);
+    if (errors.length > 0) {
+        console.log(map)
+        console.log(errors);
+        console.log("errors are not as expected");
+    } else {
+        console.log("success")
+    }
 }
 
-function errorLength(expected: Map<string, number>, errors: Map<string, string[]>) {
-    for (let expectedKey in expected) {
-        // @ts-ignore
-        let expectedAmount: number = expected.get(expectedKey);
-        // @ts-ignore
-        let actualAmount : number = errors.get(expectedKey).length
-        if (expectedAmount !== actualAmount) {
+function doNegativeComparison(expectedErros: string[], expected: object, actual: object) {
+    let map: Map<string, string[]> = Comparator.compareObjects(expected, actual);
+    let actualErrors: string[] = errorsDetected(map);
+
+
+    if (!areErrorsSame(expectedErros, actualErrors)) {
+        console.log(map)
+        console.log("errors are not as expected");
+    } else {
+        console.log("success");
+    }
+}
+
+function areErrorsSame(expectedErros: string[], actual: string[]): Boolean {
+    for (let i = 0; i < expectedErros.length; i++) {
+        let expectedValue: string = expectedErros[i];
+        let actualContainsValue: boolean = false;
+        for (let j = 0; j < actual.length; j++) {
+            let actualValue = actual[j];
+            if (actualValue === expectedValue) {
+                actualContainsValue = true;
+                break;
+            }
+        }
+        if (!actualContainsValue) {
             return false;
         }
     }
     return true;
 }
 
-function fullErrorMap(): Map<string, number> {
-    let map = new Map<string, number>();
-    for (let reason in FailedComparisonReason) {
-        map.set(reason, 0);
+
+function errorsDetected(errors: Map<string, string[]>): string[] {
+    let errorList: string[] = []
+    errors.forEach((value,_) => {
+        if (value) {
+            value.forEach(s => errorList.push(s));
+        }
+    } )
+    for (let key in errors) {
     }
-    return map;
+    return errorList;
 }
+
+doPositiveComparison(expectedFull, actualFull)
+doNegativeComparison([ 'obj[wrongValue] = that --> actual = this' ], {wrongValue: "that"}, {wrongValue: "this"})
+doNegativeComparison(['obj[wrongKey] type: string --> actual: undefined'], {wrongKey: "that"}, {reallyWronKey: "that"})
+doNegativeComparison(['obj[myBoolean] = true --> actual = false'], {myBoolean: true}, {myBoolean: false})
+doNegativeComparison(['obj[myNumber] = 1 --> actual = 5'], {myNumber: 1}, {myNumber: 5})
+doNegativeComparison(['obj[myObject][1] type: string --> actual: undefined'], {myObject: {1: "val"}}, {myObject: ["val"]})
+doNegativeComparison(['obj[myObject][1] type: string --> actual: undefined'], {myObject: {1: "val"}}, {myObject: ["val"]})
