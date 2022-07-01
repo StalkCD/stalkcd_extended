@@ -1,6 +1,13 @@
 # StalkCD
 This application has been developed as part of the master's thesis "Resilient Continuous Delivery Pipelines Based on BPMN" by Oliver Kabierschke.
 
+More features where added by the study "Analysis and Integration of GitHub Actions into the StalkCD Ecosystem for Model-Based CI/CD Quality Assessment" by Clemens Kurz and Henning Möllers at the University of Hamburg.
+
+# Notice
+This document contains links to external sources.
+We do and can not take responsibility for the content shown at external links.
+The reader is advised to only click on links by their own judgement or not open a link at all.
+
 ## Prerequisites
 To run the software, [Node.js](https://nodejs.org) is required as run-time environment. 
 
@@ -79,3 +86,30 @@ The test can be run with the following command:
 docker run --rm -v "/absolute/path/to/folder/res:/usr/app/res" -v "/absolute/path/to/folder/src:/usr/app/src" stalkcd-application
 ```
 Please provide the correct paths for the volumes on your local machine.
+
+# Github-API-Token
+If it becomes necessary to download a further bulk of files than already exist in the project, 
+with Github-API-V3 it is necessary to get an Github-API-Token
+
+It is possible to generate a token when logged in to Github: 
+```
+Settings > Developer Settings > Personal access tokens > Generate new token
+```
+When creating the token no scope is required.
+After the token is created, it is only shown once.
+It is therefore required to save it separately.
+
+![Github generate token page](images/github_tokenPage.png)
+
+[//]: # (![Github token scope]&#40;images/github_scopePage.png&#41;)
+
+The documentation about tokens is [here](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token)
+and about the rate limit [here](https://docs.github.com/en/rest/rate-limit).
+
+After generating the Token it might be needed to test if the token actually works how expected.
+There are some tools available which support making REST-Requests, notably is [curl](https://curl.se/download.html) and [Postman](https://www.postman.com/downloads/).
+
+The following Screenshots are taken in Postman.
+The first shows how the request is structured and the second how to do the authentication with the Github-API.
+![Get-Request-Parameters](images/postman_query.png)
+![Authorization Github-API](images/postman_authorization.png)
