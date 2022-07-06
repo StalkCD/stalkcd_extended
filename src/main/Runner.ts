@@ -7,6 +7,10 @@ import { BpmnWriter } from './io/BpmnWriter';
 import { JenkinsfileParser } from './io/jenkinsfile/jenkinsfile-parser';
 import { JenkinsfileCollector } from '../test/JenkinsfileCollector';
 import { TestUtils } from '../test/TestUtils';
+import {
+    GitHubWorkflowGeneratorFromJenkinsPipeline
+} from "./model/GitHubActions/GitHubWorkflowGeneratorFromJenkinsPipeline";
+import YAML from "json-to-pretty-yaml";
 
 export interface FileGeneratorConfig {
 
@@ -118,6 +122,30 @@ export class Runner {
         const content = fs.readFileSync(config.source).toString();
         const normalized = TestUtils.normalizeJenkinsfile(content);
         fs.writeFileSync(config.target, normalized);
+    }
+
+    /**
+     * Transform a Jenkinsfile into a GitHubActions file
+     * @param config The configuration
+     */
+    async jenkinsfile2ghaFile(config: JenkinsfileParserConfig) {
+        this.assertFilePrerequisites(config);
+
+        const parser = new JenkinsfileParser();
+        const readSourceFile = fs.readFileSync(config.source).toString()
+        const pipeline = parser.parse(readSourceFile);
+
+        //generate GHA file from pipeline
+        let generator: GitHubWorkflowGeneratorFromJenkinsPipeline = new GitHubWorkflowGeneratorFromJenkinsPipeline();
+        let result = generator.run(pipeline)
+        //append original jenkins file to generated json Object
+        result.originalJenkinsfile = readSourceFile
+
+        let resultString: string = JSON.stringify(result);
+        //create GHAfile in JSON
+        fs.writeFileSync(config.target, resultString);
+        //create GHAfile in YAML
+        fs.writeFileSync(config.target, YAML.stringify(result).replace(/["]+/g, ' '))
     }
 
 

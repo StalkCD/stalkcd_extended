@@ -14,10 +14,23 @@ export class JsonSchemaValidator {
         this.schema = ajv.compile(schema);
     }
 
-    public validate(dataPath: PathLike ) {
+    public validate(dataPath: PathLike ): any {
         const data = yaml.load(fs.readFileSync(dataPath, { encoding: 'utf8' }));
+
         const valid: boolean = this.schema(data);
-        valid ? console.log(`successfully validated file ${dataPath}.`) : throws(() => new ValidationError(this.schema.errors));
+        if (valid == true){
+            return valid
+        }
+
+        else
+        {
+            return this.schema
+        }
+
+        //valid ? return valid : throws(() => new ValidationError(this.schema.errors));
+
+        //TODO GHA Roundtrip nutzt auch diese Methode, diese Klassen muss entsprechend angepasst werden
+
     }
 
 }
