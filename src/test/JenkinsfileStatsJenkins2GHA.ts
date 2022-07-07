@@ -104,6 +104,9 @@ export class JenkinsfileStatsJenkins2GHA {
         // Sum of all failure classes
         const failureClassSum: any = {};
 
+        // Sortable Array
+        let sortableFailureClassSum = [];
+
         // All file details
         let fileDetails = '';
 
@@ -114,22 +117,37 @@ export class JenkinsfileStatsJenkins2GHA {
                              `\n${res.summary}\n`;
             
             // Increase overall sum for this failure class
-            if (!failureClassSum.hasOwnProperty(res.mainClass)) {
-                failureClassSum[res.mainClass] = 1;
-            } else {
-                failureClassSum[res.mainClass]++
+            for (const error of res.errors ) {
+                if (!failureClassSum.hasOwnProperty(JSON.stringify(error.params))) {
+                    failureClassSum[JSON.stringify(error.params)] = 1;
+                } else {
+                    failureClassSum[JSON.stringify(error.params)]++
+                }
             }
+
+            // Sort FailureClassSum regarding amount of errors
+
+            for (var errorString in failureClassSum) {
+                sortableFailureClassSum.push([errorString, failureClassSum[errorString]]);
+            }
+
+            sortableFailureClassSum.sort(function(a, b) {
+                return b[1] - a[1];
+            });
+
+
 
         }
 
+        //TODO funktioniert noch nicht
         let failureClassStats = '';
-        for (const failureClass in failureClassSum) {
-            if (!failureClassSum.hasOwnProperty(failureClass)) {
+        for (var failureClass in sortableFailureClassSum) {
+            if (!sortableFailureClassSum.includes(failureClass)) {
                 continue;
             }
 
             failureClassStats += `
-                    - ${failureClass}: ${failureClassSum[failureClass]}`;
+                    - ${failureClass}: ${sortableFailureClassSum[failureClass]}`;
         }
         
         return `

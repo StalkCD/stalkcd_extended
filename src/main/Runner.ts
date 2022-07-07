@@ -144,8 +144,8 @@ export class Runner {
         let resultString: string = JSON.stringify(result);
         //create GHAfile in JSON
         fs.writeFileSync(config.target, resultString);
-        //create GHAfile in YAML
-        fs.writeFileSync(config.target, YAML.stringify(result).replace(/["]+/g, ' '))
+        // TODO create GHAfile in YAML
+       // fs.writeFileSync(config.target, YAML.stringify(result).replace(/["]+/g, ' '))
     }
 
 

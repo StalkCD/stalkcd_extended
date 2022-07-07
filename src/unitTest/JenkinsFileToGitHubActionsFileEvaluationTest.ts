@@ -44,15 +44,10 @@ export class JenkinsFileToGitHubActionsFileEvaluationTest {
         const statsOutput = this.stats.output();
         fs.writeFileSync('res/evaluate-jenkins2GHA-result.txt', statsOutput);
         fs.writeFileSync('res/evaluate-jenkins2GHA-result.json', JSON.stringify(this.stats));
-        try {
-            TestUtils.checkResult("res/ExpectedResults/jenkins2GHA-result.json", this.stats);
-        } catch (error){
-            throw error;
-        } finally {
-            // Cleanup
-            TestUtils.removeDirectoryRecursively(this._jenkinsfileSource)
-            TestUtils.removeDirectoryRecursively(this._ghaTarget)
-        }
+
+       // Cleanup
+        TestUtils.removeDirectoryRecursively(this._jenkinsfileSource)
+        TestUtils.removeDirectoryRecursively(this._ghaTarget)
 
         // console.log(statsOutput);
     }
@@ -81,24 +76,22 @@ export class JenkinsFileToGitHubActionsFileEvaluationTest {
             fs.unlinkSync(config.ghaFileTarget);
         }
 
-        new Runner().jenkinsfile2ghaFile({
+        await new Runner().jenkinsfile2ghaFile({
             source: config.jenkinsFileSource,
             target: config.ghaFileTarget,
         });
 
-        //TODO Validation and Error Mapping (in neuer Stats Klasse ggf.? )
 
         let ghaValidator = new JsonSchemaValidator(GithubActionsFileParser.GITHUB_WORKFLOW_SCHEMA_PATH)
         let schemaResult = ghaValidator.validate(config.ghaFileTarget)
 
-        //TODO schema Boolean funktioniert? Oder was fuer Typ, Debugger
         if(schemaResult == true)
         {
          this.stats.success++;
         }
         else
         {
-          this.stats.failure++;  //TODO fuege Fehler schema.errors in stats ein
+          this.stats.failure++;
 
           let errors = schemaResult.errors
           let summary =""
@@ -106,8 +99,11 @@ export class JenkinsFileToGitHubActionsFileEvaluationTest {
             errors.forEach(function(error:any){
               summary = summary + JSON.stringify(error.params) + " "
             })
-          let evaluationResultObject = {config, errors, summary}
-            //TODO Errors muessen in stats in einer map gesammelt werden
+
+          let source = config.jenkinsFileSource
+          let target = config.ghaFileTarget
+
+          let evaluationResultObject = {source, target, errors, summary}
           this.stats.fileResults.push(evaluationResultObject);
         }
 
