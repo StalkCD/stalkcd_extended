@@ -102,10 +102,7 @@ export class JenkinsfileStatsJenkins2GHA {
         const failureRate = Math.round(this.failure / this.totalProcessedFiles * 100);
 
         // Sum of all failure classes
-        const failureClassSum: any = {};
-
-        // Sortable Array
-        let sortableFailureClassSum = [];
+        const failureClassSum = new Map();
 
         // All file details
         let fileDetails = '';
@@ -113,43 +110,30 @@ export class JenkinsfileStatsJenkins2GHA {
         // Collect failure classification results for all files, i.e. iterate over all errors
         for (const res of this.fileResults) {
             fileDetails += `\n\n  --- ${res.source}` +
-                             `\n  --> ${res.target}` +
-                             `\n${res.summary}\n`;
-            
+                `\n  --> ${res.target}` +
+                `\n${res.summary}\n`;
+
             // Increase overall sum for this failure class
-            for (const error of res.errors ) {
-                if (!failureClassSum.hasOwnProperty(JSON.stringify(error.params))) {
-                    failureClassSum[JSON.stringify(error.params)] = 1;
-                } else {
-                    failureClassSum[JSON.stringify(error.params)]++
+            for (const error of res.errors) {
+                let errorString: string = JSON.stringify(error.params)
+                if (!failureClassSum.has(errorString)) {
+                  failureClassSum.set(errorString, 1)
+                }
+                else {
+                    failureClassSum.set(errorString, failureClassSum.get(errorString) + 1)
                 }
             }
 
-            // Sort FailureClassSum regarding amount of errors
-
-            for (var errorString in failureClassSum) {
-                sortableFailureClassSum.push([errorString, failureClassSum[errorString]]);
-            }
-
-            sortableFailureClassSum.sort(function(a, b) {
-                return b[1] - a[1];
-            });
-
-
-
         }
-
-        //TODO funktioniert noch nicht
+        // Sort FailureClassSum regarding amount of errors
+        const failureClassSumSorted = new Map([...failureClassSum.entries()].sort((a, b) => b[1] - a[1]));
         let failureClassStats = '';
-        for (var failureClass in sortableFailureClassSum) {
-            if (!sortableFailureClassSum.includes(failureClass)) {
-                continue;
-            }
-
+        let failureClassSumSortedArray = Array.from(failureClassSumSorted.entries());
+        for (var failureEntry of failureClassSumSortedArray){
             failureClassStats += `
-                    - ${failureClass}: ${sortableFailureClassSum[failureClass]}`;
+                    - ${failureEntry[0]}: ${failureEntry[1]} `;
         }
-        
+
         return `
 ==== ERROR DETAILS
 ${fileDetails}
