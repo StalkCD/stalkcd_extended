@@ -5,7 +5,7 @@ import { StalkCdWriter } from './io/StalkCdWriter';
 import { JenkinsfileWriter } from './io/jenkinsfile/jenkinsfile-writer';
 import { BpmnWriter } from './io/BpmnWriter';
 import { JenkinsfileParser } from './io/jenkinsfile/jenkinsfile-parser';
-import { JenkinsfileCollector } from '../test/JenkinsfileCollector';
+import { JenkinsfileCollector } from '../test/jenkins/JenkinsfileCollector';
 import { TestUtils } from '../test/TestUtils';
 
 export interface FileGeneratorConfig {

@@ -1,6 +1,6 @@
 import { Runner } from './Runner';
 import { GitHubDownloader } from './JenkinsfileDownloader';
-import { Jenkins2StalkCDEvaluation } from '../test/Jenkins2StalkCdEvaluation';
+import { Jenkins2StalkCDEvaluation } from '../test/jenkins/Jenkins2StalkCdEvaluation';
 import {GithubActionsFileParser} from "./model/GitHubActions/GithubActionsFileParser";
 
 enum Mode {

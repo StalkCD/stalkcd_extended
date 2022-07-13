@@ -1,9 +1,10 @@
-import {ClassificationResult, JenkinsfileFailureClassification, JenkinsfileStats} from "./JenkinsfileStats";
+
+import {ClassificationResult, JenkinsfileFailureClassification, JenkinsfileStats} from "./jenkins/JenkinsfileStats";
 import * as jsDiff from 'diff';
 import * as fs from 'fs';
 import {PathLike} from 'fs';
 import {reporters as MochaReporters} from 'mocha';
-import {FileConfig} from "./JenkinsfileCollector";
+import {FileConfig} from "./jenkins/JenkinsfileCollector";
 
 import * as yaml from 'js-yaml';
 import * as JSZip from "jszip";

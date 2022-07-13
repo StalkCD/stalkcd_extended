@@ -1,7 +1,7 @@
 import { StalkCdCollector, FileConfig } from "./StalkCdCollector";
 import { reporters } from 'mocha';
 import * as fs from 'fs';
-import { Runner } from "../main/Runner";
+import { Runner } from "../../main/Runner";
 import { StalkCdStats } from "./StalkCdStats";
 
 export class StalkCd2BpmnEvaluation {
