@@ -31,6 +31,12 @@ export class GitHubDownloader {
         if (!fs.statSync(this.targetDir).isDirectory()) {
             throw new Error('The target is no directory');
         }
+        if (!this.token) {
+            console.log('Please provide GitHub Token');
+            if (!this.token) {
+                this.token = readline.question('Token: ');
+            }
+        }
     }
 
     /**
@@ -51,21 +57,15 @@ export class GitHubDownloader {
      * Initiates the download process
      */
     public async download(query: string) {
-        if (!this.token) {
-            console.log('Please provide GitHub Token');
-            if (!this.token) {
-                this.token = readline.question('Token: ');
-            }
-        }
-
         console.log('\nDownloading search results from GitHub...');
 
         let downloadUrl: string | undefined = GitHubDownloader.buildUrl('https://api.github.com/search/code', {
             q: query,
-            per_page: 99,
+            per_page: 10,
         });
 
         let allFiles: GitHubFiles = await this.getFilesList(downloadUrl);
+        fs.writeFileSync("allFiles.json", JSON.stringify(allFiles)); // safety feature, if at some point the program fails the data is not lost.
         await this.downloadFilesInList(allFiles);
     }
 
@@ -101,7 +101,7 @@ export class GitHubDownloader {
      * @param allFiles - List of all Files to be downloaded
      * @private
      */
-    private async downloadFilesInList(allFiles: { url: string; name: string; repository: { full_name: string } }[]) {
+    public async downloadFilesInList(allFiles: { url: string; name: string; repository: { full_name: string } }[]) {
         console.log('\n---------');
         console.log(`Found ${allFiles.length} files`);
         console.log(`Starting to download all files`);

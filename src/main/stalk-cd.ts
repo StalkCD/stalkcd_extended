@@ -156,7 +156,7 @@ switch (+mode) {
         new GitHubDownloader(jenkinsDir).download(jenkinsQuery);
         break;
     case Mode.DownloadSampleGithhubActionFiles:
-        let githubQuery = 'path:/.github/workflows';
+        let githubQuery = 'extension:yml extension:json path:/.github/workflows';
         if (config.query) {
             githubQuery = config.query;
         }
@@ -175,6 +175,8 @@ switch (+mode) {
         let githubActionsFileParser = new GithubActionsFileParser();
         let pipeline = githubActionsFileParser.parse(".github/workflows/main.yml");
         console.log(pipeline);
+        // let buffer: any = JSON.parse(fs.readFileSync("2022-07-07_allFiles.json").toString());
+        // new GitHubDownloader('res/GithubActions.source').downloadFilesInList(buffer)
         break;
     default:
         program.outputHelp();
