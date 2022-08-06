@@ -20,4 +20,6 @@ export enum ParsingImpossibleReason {
     StepEnvironment = "StepEnvironment",
     StepTimeoutMinutes = "StepTimeoutMinutes",
     StepContinueOnError = "StepContinueOnError",
+    ValidationFailed = "ValidationFailed",
+    UnknownError = "UnknownError",
 }

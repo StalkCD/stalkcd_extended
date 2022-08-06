@@ -28,9 +28,10 @@ import {IAgentOption} from "../pipeline/AgentSection";
 
 
 export class GithubActionsFileParser {
-    get evaluation(): any {
+    get evaluation(): Map<string, Map<string, number>> {
         return this._evaluation;
     }
+
     private jsonSchemaValidator: JsonSchemaValidator;
 
     public static readonly GITHUB_WORKFLOW_SCHEMA_PATH: PathLike = "res/schema/github-workflow.json";
@@ -71,7 +72,7 @@ export class GithubActionsFileParser {
                 throw new Error("The file is unknown to the evaluation, please check if the initialization of the evaluation at the beginning of the parsing process is done correctly.")
             }
             let totalNumber: number | undefined = totalEvaluation.get(errorType);
-            let currentNumber: number | undefined= currentFileEvaluation.get(errorType);
+            let currentNumber: number | undefined = currentFileEvaluation.get(errorType);
 
             if (totalNumber === undefined || currentNumber === undefined) {
                 throw new Error("The number is undefined, this should not be happening since the list initialized with a '0' and all errorTypes should be know in the enum. Please check the received errorType and the initialization process.")
@@ -91,32 +92,43 @@ export class GithubActionsFileParser {
      * In the same object you cannot rerun the same file-parsing if the 'evaluateErrors' flag is set to true.
      * @param input
      */
-    parse(input: PathLike): Pipeline {
+    parse(input: PathLike): Pipeline | undefined {
         this.currentlyEvaluatedFile = input.toString()
-        if (this.evaluateErrors && this._evaluation.get(this.currentlyEvaluatedFile) !== undefined) {
-            throw Error(`The File '${ this.currentlyEvaluatedFile }' was already parsed. If it would be parsed again the total evaluation would break.`)
-        }
 
+        if (this.evaluateErrors && this._evaluation.get(this.currentlyEvaluatedFile) !== undefined) {
+            throw Error(`The File '${this.currentlyEvaluatedFile}' was already parsed. If it would be parsed again the total evaluation would break.`)
+        }
         this._evaluation.set(this.currentlyEvaluatedFile, GithubActionsFileParser.getInitializedErrorMap());
 
-        this.jsonSchemaValidator.validate(input);
+        try {
 
-        let githubWorkflow: GithubWorkflow = <GithubWorkflow>yaml.load(fs.readFileSync(input, {encoding: 'utf8'}));
-        let builder: PipelineBuilder = new PipelineBuilder();
+            try {
+                this.jsonSchemaValidator.validate(input);
+            } catch (err) {
+                this.error("unable to validate file '" + input + "' against schema.", ParsingImpossibleReason.ValidationFailed)
+            }
 
-        // Workflow
-        builder.setDefinitions(GithubActionsFileParser.definitions(githubWorkflow));
-        builder.setEnvironment(GithubActionsFileParser.environment(githubWorkflow))
-        builder.setTriggers(this.triggers(githubWorkflow));
-        builder.setOptions(GithubActionsFileParser.options(githubWorkflow));
+            let githubWorkflow: GithubWorkflow = <GithubWorkflow>yaml.load(fs.readFileSync(input, {encoding: 'utf8'}));
+            let builder: PipelineBuilder = new PipelineBuilder();
 
-        // Stages
-        let stages: Stage[] = this.stages(githubWorkflow);
-        for (let stage of stages) {
-            builder.beginStage(stage.toSerial())
-            builder.endStage()
+            // Workflow
+            builder.setDefinitions(GithubActionsFileParser.definitions(githubWorkflow));
+            builder.setEnvironment(GithubActionsFileParser.environment(githubWorkflow))
+            builder.setTriggers(this.triggers(githubWorkflow));
+            builder.setOptions(GithubActionsFileParser.options(githubWorkflow));
+
+            // Stages
+            let stages: Stage[] = this.stages(githubWorkflow);
+            for (let stage of stages) {
+                builder.beginStage(stage.toSerial())
+                builder.endStage()
+            }
+            return builder.pipeline;
+        } catch (err) {
+            this.error("An Error Occured which was not expected", ParsingImpossibleReason.UnknownError)
         }
-        return builder.pipeline;
+
+        return undefined
     }
 
     private stages(githubWorkflow: GithubWorkflow): Stage[] {
@@ -312,7 +324,7 @@ export class GithubActionsFileParser {
         return false;
     }
 
-    private  agent(job: NormalJob): IAgentOption[] {
+    private agent(job: NormalJob): IAgentOption[] {
         let agents: IAgentOption[] = []
 
         if (job["runs-on"] instanceof Array) {

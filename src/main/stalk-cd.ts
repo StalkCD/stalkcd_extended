@@ -2,6 +2,7 @@ import { Runner } from './Runner';
 import { GitHubDownloader } from './JenkinsfileDownloader';
 import { Jenkins2StalkCDEvaluation } from '../test/jenkins/Jenkins2StalkCdEvaluation';
 import {GithubActionsFileParser} from "./model/GitHubActions/GithubActionsFileParser";
+import {GithubActions2StalkCdEvaluation} from "../test/github/GithubActions2StalkCdEvaluation";
 
 enum Mode {
     Help,
@@ -172,11 +173,12 @@ switch (+mode) {
     case Mode.Test:
         // TestUtils.validateJsonSchema("res/schema/github-workflow.json", ".github/workflows/main.yml")
         // TestUtils.generateTypesFromJsonSchema("res/schema/github-workflow.json", "src/main/model/GitHubActions/GeneratedTypes.ts");
-        let githubActionsFileParser = new GithubActionsFileParser();
-        let pipeline = githubActionsFileParser.parse(".github/workflows/main.yml");
-        console.log(pipeline);
+        // let githubActionsFileParser = new GithubActionsFileParser();
+        // let pipeline = githubActionsFileParser.parse(".github/workflows/main.yml");
+        // console.log(pipeline);
         // let buffer: any = JSON.parse(fs.readFileSync("2022-07-07_allFiles.json").toString());
         // new GitHubDownloader('res/GithubActions.source').downloadFilesInList(buffer)
+        GithubActions2StalkCdEvaluation.evaluate()
         break;
     default:
         program.outputHelp();
