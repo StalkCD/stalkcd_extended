@@ -211,7 +211,7 @@ function testSimpleMainRun() {
 }
 
 function testFlags() {
-    let testFlagsParser = new GithubActionsFileParser(true, true);
+    let testFlagsParser = new GithubActionsFileParser(true, []);
     assert(testFlagsParser.evaluateErrors, true)
     assert(testFlagsParser.doExperimentalConversion, true)
 
@@ -219,7 +219,7 @@ function testFlags() {
     assert(testFlagsParser2.evaluateErrors, false)
     assert(testFlagsParser2.doExperimentalConversion, false)
 
-    let testFlagsParser3 = new GithubActionsFileParser(false, false);
+    let testFlagsParser3 = new GithubActionsFileParser(false);
     assert(testFlagsParser3.evaluateErrors, false)
     assert(testFlagsParser3.doExperimentalConversion, false)
 }

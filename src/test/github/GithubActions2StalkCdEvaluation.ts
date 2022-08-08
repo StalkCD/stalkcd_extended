@@ -8,7 +8,7 @@ export class GithubActions2StalkCdEvaluation {
 
     public static evaluate() {
         let files: string[] = this.getFiles();
-        let parser: GithubActionsFileParser = new GithubActionsFileParser(true, true);
+        let parser: GithubActionsFileParser = new GithubActionsFileParser(true, []);
         files.map(f => parser.parse(f));
         let evaluation: Map<string, Map<string, number>> = parser.evaluation;
         let amountOfErrors: Map<number, Array<Map<string, number>>> = this.amountOfErrorsInObject(evaluation);
@@ -30,8 +30,8 @@ export class GithubActions2StalkCdEvaluation {
         console.log("Total files analysed: " + files.length)
     }
 
-    public static parseFiles(evaluateError: boolean, doExperimentalConversion: boolean, files: string[]): GithubActionsFileParser {
-        let parser: GithubActionsFileParser = new GithubActionsFileParser(evaluateError, doExperimentalConversion);
+    public static parseFiles(evaluateError: boolean, files: string[], restrictExperimentalConversionTo: string[]): GithubActionsFileParser {
+        let parser: GithubActionsFileParser = new GithubActionsFileParser(evaluateError, restrictExperimentalConversionTo);
         files.map(f => parser.parse(f));
         return parser
     }

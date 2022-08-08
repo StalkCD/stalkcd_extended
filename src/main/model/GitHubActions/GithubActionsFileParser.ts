@@ -15,7 +15,7 @@ import * as yaml from 'js-yaml';
 import {JsonSchemaValidator} from "../../JsonSchemaValidator";
 import {Pipeline} from "../pipeline/Pipeline";
 import {PipelineBuilder} from "../pipeline/PipelineBuilder";
-import {ParsingImpossibleError, ParsingImpossibleReason} from "../../errors/ParsingImpossibleError";
+import {ParsingImpossibleError, ParsingImpossibleReason as PIR} from "../../errors/ParsingImpossibleError";
 import {
     EnvironmentalVariableNameMarker,
     EnvironmentVariable,
@@ -43,6 +43,7 @@ export class GithubActionsFileParser {
 
     private readonly _evaluateErrors: boolean;
     private readonly _doExperimentalConversion: boolean;
+    private readonly _restrictExperimentalConversionTo: string[];
 
     private _evaluation: Map<string, Map<string, number>> = new Map<string, Map<string, number>>();
     private currentlyEvaluatedFile: string;
@@ -50,12 +51,16 @@ export class GithubActionsFileParser {
     /**
      * Initializes the schema.
      * @param evaluateError if this flag is true the thrown ParsingImpossibleError s are counted with the appropriate type.
-     * @param doExperimentalConversion If this Flag is set, some ParsingImpossibleError s are not thrown but a rather ambiguous way for conversion is chosen.
+     * @param restrictExperimentalConversionTo If this Parameter is defined, some ParsingImpossibleError's are not thrown.
+     *                                          A rather ambiguous way for conversion is chosen.
+     *                                          Furthermore, it is possible to restrict the conversion to certain types of Errors to see their effect.
+     *                                          If an empty list is given all errors are allowed by default
      */
-    constructor(evaluateError?: boolean, doExperimentalConversion?: boolean) {
+    constructor(evaluateError?: boolean, restrictExperimentalConversionTo?: string[]) {
         // set flags
         this._evaluateErrors = evaluateError !== undefined ? evaluateError : false;
-        this._doExperimentalConversion = doExperimentalConversion !== undefined ?  doExperimentalConversion : false;
+        this._doExperimentalConversion = restrictExperimentalConversionTo !== undefined;
+        this._restrictExperimentalConversionTo = this.getRestrictExperimentalConversion(restrictExperimentalConversionTo);
 
         // init schema
         this.jsonSchemaValidator = new JsonSchemaValidator(GithubActionsFileParser.GITHUB_WORKFLOW_SCHEMA_PATH);
@@ -65,15 +70,26 @@ export class GithubActionsFileParser {
         this.currentlyEvaluatedFile = ""
     }
 
+    private getRestrictExperimentalConversion(restrictExperimentalConversionTo: string[] | undefined) {
+        if (restrictExperimentalConversionTo !== undefined
+            && (restrictExperimentalConversionTo.length !== 0)) {
+            return restrictExperimentalConversionTo;
+        } else { // if no restrictions are given, every conversion is allowed
+            let noRestrictionMap: string[] = []
+            GithubActionsFileParser.getInitializedErrorMap().forEach((_, key) => noRestrictionMap.push(key));
+            return noRestrictionMap;
+        }
+    }
+
     public static getInitializedErrorMap(): Map<string, number> {
         let map = new Map<string, number>();
-        for (let reason in ParsingImpossibleReason) {
+        for (let reason in PIR) {
             map.set(reason, 0);
         }
         return map;
     }
 
-    private error(message: string, errorType: ParsingImpossibleReason) {
+    private error(message: string, errorType: PIR) {
         if (this._evaluateErrors) {
             let totalEvaluation = this._evaluation.get("total");
             let currentFileEvaluation = this._evaluation.get(this.currentlyEvaluatedFile);
@@ -115,7 +131,7 @@ export class GithubActionsFileParser {
             try {
                 this.jsonSchemaValidator.validate(input);
             } catch (err) {
-                this.error("unable to validate file '" + input + "' against schema.", ParsingImpossibleReason.ValidationFailed)
+                this.error("unable to validate file '" + input + "' against schema.", PIR.ValidationFailed)
             }
 
             let githubWorkflow: GithubWorkflow = <GithubWorkflow>yaml.load(fs.readFileSync(input, {encoding: 'utf8'}));
@@ -135,7 +151,7 @@ export class GithubActionsFileParser {
             }
             return builder.pipeline;
         } catch (err) {
-            this.error("An Error Occured which was not expected", ParsingImpossibleReason.UnknownError)
+            this.error("An Error Occured which was not expected", PIR.UnknownError)
         }
 
         return undefined
@@ -146,10 +162,10 @@ export class GithubActionsFileParser {
         let jobs = githubWorkflow.jobs;
         // fail fast
         if (GithubActionsFileParser.hasReusableWorkflowCallJob(jobs)) {
-            this.error(jobs.toString(), ParsingImpossibleReason.UnableToHandleReusableWorkflowCallJob)
+            this.error(jobs.toString(), PIR.UnableToHandleReusableWorkflowCallJob)
         }
         if (GithubActionsFileParser.hasOutput(jobs)) {
-            this.error(jobs.toString(), ParsingImpossibleReason.HasOutput)
+            this.error(jobs.toString(), PIR.HasOutput)
         }
 
         // processing
@@ -168,7 +184,7 @@ export class GithubActionsFileParser {
 
             let continueOnError = job["continue-on-error"];
             if (typeof continueOnError === "string") {
-                this.error("The attriubte 'continue-on-error' was a string: '" + continueOnError + "'", ParsingImpossibleReason.ContinueOnErrorIsString)
+                this.error("The attriubte 'continue-on-error' was a string: '" + continueOnError + "'", PIR.ContinueOnErrorIsString)
             }
             if (continueOnError !== undefined) {
                 pipelineStage.failFast = !continueOnError;
@@ -186,22 +202,22 @@ export class GithubActionsFileParser {
             for (let stepKey in steps) {
                 let githubStep = steps[stepKey];
                 if (githubStep.id) {
-                    this.error("Unsupported Attribute 'id' with value '" + githubStep.id + "'", ParsingImpossibleReason.StepId)
+                    this.error("Unsupported Attribute 'id' with value '" + githubStep.id + "'", PIR.StepId)
                 }
                 if (githubStep.if) {
-                    this.error("Unsupported Attribute 'if' with value '" + githubStep.if + "'", ParsingImpossibleReason.StepIf)
+                    this.error("Unsupported Attribute 'if' with value '" + githubStep.if + "'", PIR.StepIf)
                 }
                 if (githubStep.with) {
-                    this.error("Unsupported Attribute 'with' with value '" + githubStep.with + "'", ParsingImpossibleReason.StepWith)
+                    this.error("Unsupported Attribute 'with' with value '" + githubStep.with + "'", PIR.StepWith)
                 }
                 if (githubStep.env) {
-                    this.error("Unsupported Attribute 'env' with value '" + githubStep.env + "'", ParsingImpossibleReason.StepEnvironment)
+                    this.error("Unsupported Attribute 'env' with value '" + githubStep.env + "'", PIR.StepEnvironment)
                 }
                 if (githubStep["timeout-minutes"]) {
-                    this.error("Unsupported Attribute 'timeout-minutes' with value '" + githubStep["timeout-minutes"] + "'", ParsingImpossibleReason.StepTimeoutMinutes)
+                    this.error("Unsupported Attribute 'timeout-minutes' with value '" + githubStep["timeout-minutes"] + "'", PIR.StepTimeoutMinutes)
                 }
                 if (githubStep["continue-on-error"]) {
-                    this.error("Unsupported Attribute 'continue-on-error' with value '" + githubStep["continue-on-error"] + "'", ParsingImpossibleReason.StepContinueOnError)
+                    this.error("Unsupported Attribute 'continue-on-error' with value '" + githubStep["continue-on-error"] + "'", PIR.StepContinueOnError)
                 }
                 let stageStep = new Step({
                     label: githubStep.name,
@@ -238,14 +254,18 @@ export class GithubActionsFileParser {
         } else if ((typeof githubWorkflow.on) === "string") { // Handling Event; very ugly ts Seems Unnecessary Complicated Knowing typeS
             triggers.push(githubWorkflow.on.toString())
         } else { // arbitrary object for on.
-            if (this._doExperimentalConversion) {
+            if (this._doExperimentalConversion && this.isConversionAllowed(PIR.OnIsUnknownType)) {
                 triggers.push("onJSON")
                 triggers.push(JSON.stringify(githubWorkflow.on))
             } else {
-                this.error(githubWorkflow.on.toString(), ParsingImpossibleReason.OnIsUnknownType);
+                this.error(githubWorkflow.on.toString(), PIR.OnIsUnknownType);
             }
         }
         return triggers;
+    }
+
+    private isConversionAllowed(reason: PIR) {
+        return this._restrictExperimentalConversionTo.find(item => item == reason);
     }
 
     private static definitions(githubWorkflow: GithubWorkflow): string[] {
@@ -343,7 +363,7 @@ export class GithubActionsFileParser {
         let agents: IAgentOption[] = []
 
         if (job["runs-on"] instanceof Array) {
-            this.error("Unable to Handle the self-hosted option in 'runs-on'\n" + job["runs-on"].toString(), ParsingImpossibleReason.SelfHosted)
+            this.error("Unable to Handle the self-hosted option in 'runs-on'\n" + job["runs-on"].toString(), PIR.SelfHosted)
         }
         agents.push({
             name: "runs-on",
