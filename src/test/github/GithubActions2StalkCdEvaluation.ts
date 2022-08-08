@@ -26,9 +26,14 @@ export class GithubActions2StalkCdEvaluation {
         for (let mapElement of map) {
             console.log(`Error amount ${mapElement[0]}: ${mapElement[1].length}`)
         }
-        this.countTotalError(reducedErrors)
         console.log(this.countTotalError(reducedErrors))
         console.log("Total files analysed: " + files.length)
+    }
+
+    public static parseFiles(evaluateError: boolean, doExperimentalConversion: boolean, files: string[]): GithubActionsFileParser {
+        let parser: GithubActionsFileParser = new GithubActionsFileParser(evaluateError, doExperimentalConversion);
+        files.map(f => parser.parse(f));
+        return parser
     }
 
     /**
@@ -36,7 +41,7 @@ export class GithubActions2StalkCdEvaluation {
      * @param amount the amount of errors expected to be held by the
      * @private
      */
-    private static getAmountPredicate(amount: number): (e: Map<string, number>) => boolean {
+    static getAmountPredicate(amount: number): (e: Map<string, number>) => boolean {
         return (e: Map<string, number>) => {
             let amountOfErrors: number = 0;
             for (let errorElement of e) {
@@ -48,7 +53,7 @@ export class GithubActions2StalkCdEvaluation {
         };
     }
 
-    private static getFiles(): string[] {
+    public static getFiles(): string[] {
         return fs.readdirSync(this._sourcePath).map(fileName => this._sourcePath + "/" + fileName);
     }
 
@@ -58,7 +63,7 @@ export class GithubActions2StalkCdEvaluation {
      * @param evaluation
      * @private
      */
-    private static amountOfErrorsInObject(evaluation: Map<string, Map<string, number>>): Map<number, Array<Map<string, number>>> {
+    static amountOfErrorsInObject(evaluation: Map<string, Map<string, number>>): Map<number, Array<Map<string, number>>> {
         let numberOfErrorsMap: Map<number, Array<Map<string, number>>> = new Map();
 
         // fill Map
@@ -98,7 +103,7 @@ export class GithubActions2StalkCdEvaluation {
      * @param predicate the predicate which chooses the objects. If true object is in map.
      * @private
      */
-    private static reduceEvaluationMap(evaluation: Map<string, Map<string, number>>, predicate: Function): Map<string, Map<string, number>> {
+    public static reduceEvaluationMap(evaluation: Map<string, Map<string, number>>, predicate: Function): Map<string, Map<string, number>> {
         let reducedMap: Map<string, Map<string, number>> = new Map();
         for (let evaluationElement of evaluation) {
             if (evaluationElement[0] === "total") {
@@ -116,7 +121,7 @@ export class GithubActions2StalkCdEvaluation {
      * @param countMap
      * @private
      */
-    private static countTotalError(countMap: Map<string, Map<string, number>>): Map<string, number> {
+    static countTotalError(countMap: Map<string, Map<string, number>>): Map<string, number> {
         let totalMap: Map<string, number> = GithubActionsFileParser.getInitializedErrorMap();
 
         for (let evaluationElement of countMap) { // run through all elements in given map
