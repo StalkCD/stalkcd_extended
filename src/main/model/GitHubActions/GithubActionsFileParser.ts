@@ -55,7 +55,7 @@ export class GithubActionsFileParser {
         this.currentlyEvaluatedFile = ""
     }
 
-    private static getInitializedErrorMap(): Map<string, number> {
+    public static getInitializedErrorMap(): Map<string, number> {
         let map = new Map<string, number>();
         for (let reason in ParsingImpossibleReason) {
             map.set(reason, 0);
