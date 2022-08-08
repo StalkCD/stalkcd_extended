@@ -1,7 +1,6 @@
 import * as fs from "fs";
 import {PathLike} from "fs";
 import {GithubActionsFileParser} from "../../main/model/GitHubActions/GithubActionsFileParser";
-import {Pipeline} from "../../main/model/pipeline/Pipeline";
 
 export class GithubActions2StalkCdEvaluation {
 
@@ -9,17 +8,21 @@ export class GithubActions2StalkCdEvaluation {
 
     public static evaluate() {
         let files: string[] = this.getFiles();
-        let parser: GithubActionsFileParser = new GithubActionsFileParser(true);
-        let pipelines: (Pipeline | undefined)[] = files.map(f => parser.parse(f));
+        let parser: GithubActionsFileParser = new GithubActionsFileParser(true, true);
+        files.map(f => parser.parse(f));
         let evaluation: Map<string, Map<string, number>> = parser.evaluation;
         let amountOfErrors: Map<number, Array<Map<string, number>>> = this.amountOfErrorsInObject(evaluation);
+
+        console.log("Total Errors")
         for (let mapElement of amountOfErrors) {
             console.log(`Error amount ${mapElement[0]}: ${mapElement[1].length}`)
         }
         // console.log(map.get(1))
         let reducedErrors: Map<string, Map<string, number>> = this.reduceEvaluationMap(evaluation, this.getAmountPredicate(1));
-        console.log(reducedErrors.size)
+        console.log("Reduced Errors" + reducedErrors.size)
         let map = this.amountOfErrorsInObject(reducedErrors);
+
+        console.log("Reduced Errors Evaluation")
         for (let mapElement of map) {
             console.log(`Error amount ${mapElement[0]}: ${mapElement[1].length}`)
         }

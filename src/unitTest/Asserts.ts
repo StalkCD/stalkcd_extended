@@ -51,7 +51,7 @@ export function assertStringKeyValueArray(myArrayValue: any[], key: string, valu
     })
 }
 
-export function assertDefined(value: any) {
+export function assertDefined(value: any | undefined) {
     if (value === undefined) {
         throw new AssertionError("Value was undefined");
     }

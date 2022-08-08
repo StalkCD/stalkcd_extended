@@ -7,12 +7,13 @@ import * as fs from "fs";
 const githubActionsFileParser = new GithubActionsFileParser(false);
 
 export function parseData(filename: string): Pipeline {
+    // @ts-ignore
     return githubActionsFileParser.parse("testRes/GithubRoundtrip/" + filename);
 }
 
 let pipeline: Pipeline = parseData("main.yml");
 
-let generator: GithubWorkflowGenerator = new GithubWorkflowGenerator();
+let generator: GithubWorkflowGenerator = new GithubWorkflowGenerator(true);
 let run: string = JSON.stringify(generator.run(pipeline));
 console.log("-----------------")
 console.log(run)

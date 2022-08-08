@@ -11,8 +11,8 @@ export class GithubWorkflowGenerator {
 
     private builder: WorkflowBuilder;
 
-    constructor() {
-        this.builder = new WorkflowBuilder()
+    constructor(doExperimentalConversion?: boolean) {
+        this.builder = new WorkflowBuilder(doExperimentalConversion)
     }
 
     run(pipeline: Pipeline) {

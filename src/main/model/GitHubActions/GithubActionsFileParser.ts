@@ -28,29 +28,39 @@ import {IAgentOption} from "../pipeline/AgentSection";
 
 
 export class GithubActionsFileParser {
+    get doExperimentalConversion(): boolean {
+        return this._doExperimentalConversion;
+    }
+    get evaluateErrors(): boolean {
+        return this._evaluateErrors;
+    }
     get evaluation(): Map<string, Map<string, number>> {
         return this._evaluation;
     }
 
     private jsonSchemaValidator: JsonSchemaValidator;
-
     public static readonly GITHUB_WORKFLOW_SCHEMA_PATH: PathLike = "res/schema/github-workflow.json";
-    private evaluateErrors: boolean;
+
+    private readonly _evaluateErrors: boolean;
+    private readonly _doExperimentalConversion: boolean;
+
     private _evaluation: Map<string, Map<string, number>> = new Map<string, Map<string, number>>();
     private currentlyEvaluatedFile: string;
 
     /**
      * Initializes the schema.
      * @param evaluateError if this flag is true the thrown ParsingImpossibleError s are counted with the appropriate type.
+     * @param doExperimentalConversion If this Flag is set, some ParsingImpossibleError s are not thrown but a rather ambiguous way for conversion is chosen.
      */
-    constructor(evaluateError?: boolean) {
-        this.jsonSchemaValidator = new JsonSchemaValidator(GithubActionsFileParser.GITHUB_WORKFLOW_SCHEMA_PATH);
-        if (evaluateError) {
-            this.evaluateErrors = evaluateError;
-        } else {
-            this.evaluateErrors = false;
-        }
+    constructor(evaluateError?: boolean, doExperimentalConversion?: boolean) {
+        // set flags
+        this._evaluateErrors = evaluateError !== undefined ? evaluateError : false;
+        this._doExperimentalConversion = doExperimentalConversion !== undefined ?  doExperimentalConversion : false;
 
+        // init schema
+        this.jsonSchemaValidator = new JsonSchemaValidator(GithubActionsFileParser.GITHUB_WORKFLOW_SCHEMA_PATH);
+
+        // init evaluation
         this._evaluation.set("total", GithubActionsFileParser.getInitializedErrorMap());
         this.currentlyEvaluatedFile = ""
     }
@@ -64,7 +74,7 @@ export class GithubActionsFileParser {
     }
 
     private error(message: string, errorType: ParsingImpossibleReason) {
-        if (this.evaluateErrors) {
+        if (this._evaluateErrors) {
             let totalEvaluation = this._evaluation.get("total");
             let currentFileEvaluation = this._evaluation.get(this.currentlyEvaluatedFile);
 
@@ -95,7 +105,7 @@ export class GithubActionsFileParser {
     parse(input: PathLike): Pipeline | undefined {
         this.currentlyEvaluatedFile = input.toString()
 
-        if (this.evaluateErrors && this._evaluation.get(this.currentlyEvaluatedFile) !== undefined) {
+        if (this._evaluateErrors && this._evaluation.get(this.currentlyEvaluatedFile) !== undefined) {
             throw Error(`The File '${this.currentlyEvaluatedFile}' was already parsed. If it would be parsed again the total evaluation would break.`)
         }
         this._evaluation.set(this.currentlyEvaluatedFile, GithubActionsFileParser.getInitializedErrorMap());
@@ -227,8 +237,13 @@ export class GithubActionsFileParser {
             githubWorkflow.on.forEach(e => triggers.push(e.toString()));
         } else if ((typeof githubWorkflow.on) === "string") { // Handling Event; very ugly ts Seems Unnecessary Complicated Knowing typeS
             triggers.push(githubWorkflow.on.toString())
-        } else {
-            this.error(githubWorkflow.on.toString(), ParsingImpossibleReason.OnIsUnknownType);
+        } else { // arbitrary object for on.
+            if (this._doExperimentalConversion) {
+                triggers.push("onJSON")
+                triggers.push(JSON.stringify(githubWorkflow.on))
+            } else {
+                this.error(githubWorkflow.on.toString(), ParsingImpossibleReason.OnIsUnknownType);
+            }
         }
         return triggers;
     }

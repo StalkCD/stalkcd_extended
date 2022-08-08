@@ -9,7 +9,8 @@ import {Pipeline} from "../main/model/pipeline/Pipeline";
 
 const githubActionsFileParser = new GithubActionsFileParser(false);
 
-function parseData(filename: string): Pipeline {
+function parseData(filename: string): Pipeline  {
+    // @ts-ignore
     return githubActionsFileParser.parse("testRes/GitHubToStalkCd/" + filename);
 }
 
@@ -209,6 +210,20 @@ function testSimpleMainRun() {
     console.log(parseData("main.yml"));
 }
 
+function testFlags() {
+    let testFlagsParser = new GithubActionsFileParser(true, true);
+    assert(testFlagsParser.evaluateErrors, true)
+    assert(testFlagsParser.doExperimentalConversion, true)
+
+    let testFlagsParser2 = new GithubActionsFileParser();
+    assert(testFlagsParser2.evaluateErrors, false)
+    assert(testFlagsParser2.doExperimentalConversion, false)
+
+    let testFlagsParser3 = new GithubActionsFileParser(false, false);
+    assert(testFlagsParser3.evaluateErrors, false)
+    assert(testFlagsParser3.doExperimentalConversion, false)
+}
+
 
 // General WF information
 testDefinitions();
@@ -235,6 +250,7 @@ testAgent()
 // steps
 testSteps()
 testSteps2()
+testFlags()
 
 testSimpleMainRun();
 console.log(githubActionsFileParser.evaluation)

@@ -1,5 +1,6 @@
 export class WorkflowBuilder {
 
+    // values of GithubActionWorkflow
     private _on: string | string[] | undefined;
     private _name: string | undefined;
     private _env: {
@@ -15,9 +16,22 @@ export class WorkflowBuilder {
     } = {}
     private _currentJob: JobBuilder = new JobBuilder(this, "", this._jobs);
 
+    // flags
+    private readonly doExperimentalConversion: boolean;
+
+    /**
+     * @param doExperimentalConversions this will only be possible if the experimental features were activated during the creation of the stalkCD object.
+     * @constructor
+     */
+    public constructor(doExperimentalConversions?: boolean) {
+        this.doExperimentalConversion = doExperimentalConversions !== undefined ?  doExperimentalConversions : false;
+    }
+
     on(value: string[]): WorkflowBuilder {
         if (value.length === 1) {
             this._on = value[0];
+        } else if (this.doExperimentalConversion && value.length == 2 && value[0] === "onJSON") {
+            this._on = JSON.parse(value[1])
         } else {
             this._on = value;
         }
