@@ -22,4 +22,6 @@ export enum ParsingImpossibleReason {
     StepContinueOnError = "StepContinueOnError",
     ValidationFailed = "ValidationFailed",
     UnknownError = "UnknownError",
+    StepWithArgs = "StepArgsOrEntrypoint",
+    StepWithEntrypoint = "StepArgsOrEntrypoint",
 }

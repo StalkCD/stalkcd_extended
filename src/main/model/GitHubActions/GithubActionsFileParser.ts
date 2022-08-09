@@ -28,12 +28,14 @@ import {IAgentOption} from "../pipeline/AgentSection";
 
 
 export class GithubActionsFileParser {
-    get doExperimentalConversion(): boolean {
-        return this._doExperimentalConversion;
+    get experimentalConversionActive(): boolean {
+        return this._experimentalConversionActive;
     }
+
     get evaluateErrors(): boolean {
         return this._evaluateErrors;
     }
+
     get evaluation(): Map<string, Map<string, number>> {
         return this._evaluation;
     }
@@ -42,7 +44,7 @@ export class GithubActionsFileParser {
     public static readonly GITHUB_WORKFLOW_SCHEMA_PATH: PathLike = "res/schema/github-workflow.json";
 
     private readonly _evaluateErrors: boolean;
-    private readonly _doExperimentalConversion: boolean;
+    private readonly _experimentalConversionActive: boolean;
     private readonly _restrictExperimentalConversionTo: string[];
 
     private _evaluation: Map<string, Map<string, number>> = new Map<string, Map<string, number>>();
@@ -59,7 +61,7 @@ export class GithubActionsFileParser {
     constructor(evaluateError?: boolean, restrictExperimentalConversionTo?: string[]) {
         // set flags
         this._evaluateErrors = evaluateError !== undefined ? evaluateError : false;
-        this._doExperimentalConversion = restrictExperimentalConversionTo !== undefined;
+        this._experimentalConversionActive = restrictExperimentalConversionTo !== undefined;
         this._restrictExperimentalConversionTo = this.getRestrictExperimentalConversion(restrictExperimentalConversionTo);
 
         // init schema
@@ -200,6 +202,7 @@ export class GithubActionsFileParser {
         let pipelineSteps: Step[] = [];
         if (steps) {
             for (let stepKey in steps) {
+                let environment: Map<string, string | number | boolean> | undefined = undefined;
                 let githubStep = steps[stepKey];
                 if (githubStep.id) {
                     this.error("Unsupported Attribute 'id' with value '" + githubStep.id + "'", PIR.StepId)
@@ -208,7 +211,34 @@ export class GithubActionsFileParser {
                     this.error("Unsupported Attribute 'if' with value '" + githubStep.if + "'", PIR.StepIf)
                 }
                 if (githubStep.with) {
-                    this.error("Unsupported Attribute 'with' with value '" + githubStep.with + "'", PIR.StepWith)
+                    if (this._experimentalConversionActive && this.isConversionAllowed(PIR.StepWith)) {
+                        if (typeof githubStep.with === 'string') {
+                            // ignore
+                            // this should be impossible a value needs a reference.
+                            this.error("Unsupported Attribute 'with' with value '" + githubStep.with + "'", PIR.StepWith);
+                        } else {
+                            let map: Map<string, string | number | boolean> = new Map<string, string | number | boolean>();
+                            for (let key in githubStep.with) {
+                                // ignore if one of these happen, they are incompatible with any concept known to us in StalkCD (09.08.2022)
+                                if (githubStep.with.args) {
+                                    this.error("Unsupported Attribute 'with.args' with value '" + githubStep.with.args + "'", PIR.StepWithArgs);
+                                    // https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepswithargs
+                                    continue
+                                }
+                                if (githubStep.with.entrypoint) {
+                                    // https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepswithentrypoint
+                                    this.error("Unsupported Attribute 'with.entrypoint' with value '" + githubStep.with.entrypoint + "'", PIR.StepWithEntrypoint);
+                                    continue
+                                }
+                                // variables are accessible by upper case and with INPUT_ as prefix see documentation:
+                                // https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepswith
+                                map.set("INPUT_" + key.toUpperCase(), githubStep.with[key]);
+                            }
+                            environment = map;
+                        }
+                    } else {
+                        this.error("Unsupported Attribute 'with' with value '" + githubStep.with + "'", PIR.StepWith);
+                    }
                 }
                 if (githubStep.env) {
                     this.error("Unsupported Attribute 'env' with value '" + githubStep.env + "'", PIR.StepEnvironment)
@@ -221,7 +251,8 @@ export class GithubActionsFileParser {
                 }
                 let stageStep = new Step({
                     label: githubStep.name,
-                    command: githubStep.run ? (githubStep.shell ? githubStep.shell + " " : " ") + githubStep.run : githubStep.uses //
+                    command: githubStep.run ? (githubStep.shell ? githubStep.shell + " " : " ") + githubStep.run : githubStep.uses,
+                    environment: environment
                 });
                 pipelineSteps.push(stageStep);
             }
@@ -254,7 +285,7 @@ export class GithubActionsFileParser {
         } else if ((typeof githubWorkflow.on) === "string") { // Handling Event; very ugly ts Seems Unnecessary Complicated Knowing typeS
             triggers.push(githubWorkflow.on.toString())
         } else { // arbitrary object for on.
-            if (this._doExperimentalConversion && this.isConversionAllowed(PIR.OnIsUnknownType)) {
+            if (this._experimentalConversionActive && this.isConversionAllowed(PIR.OnIsUnknownType)) {
                 triggers.push("onJSON")
                 triggers.push(JSON.stringify(githubWorkflow.on))
             } else {

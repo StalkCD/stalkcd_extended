@@ -213,15 +213,15 @@ function testSimpleMainRun() {
 function testFlags() {
     let testFlagsParser = new GithubActionsFileParser(true, []);
     assert(testFlagsParser.evaluateErrors, true)
-    assert(testFlagsParser.doExperimentalConversion, true)
+    assert(testFlagsParser.experimentalConversionActive, true)
 
     let testFlagsParser2 = new GithubActionsFileParser();
     assert(testFlagsParser2.evaluateErrors, false)
-    assert(testFlagsParser2.doExperimentalConversion, false)
+    assert(testFlagsParser2.experimentalConversionActive, false)
 
     let testFlagsParser3 = new GithubActionsFileParser(false);
     assert(testFlagsParser3.evaluateErrors, false)
-    assert(testFlagsParser3.doExperimentalConversion, false)
+    assert(testFlagsParser3.experimentalConversionActive, false)
 }
 
 

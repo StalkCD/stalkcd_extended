@@ -1,7 +1,7 @@
-import { clean } from "../../util";
+import {clean} from "../../util";
 
 export interface IStep {
-
+    environment?: Map<string, string | number | boolean>
     label?: string;
     command?: string;
 
@@ -13,9 +13,10 @@ export class Step {
     ) {
         this.label = init.label;
         this.command = init.command;
+        this.environment = init.environment
     }
 
-    
+    environment?: Map<string, string | number | boolean>
     label?: string;
     command?: string;
 
