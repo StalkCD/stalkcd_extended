@@ -28,7 +28,7 @@ export class GithubActionsEvaluationCLI {
             console.log()
         },
         setExperimentalConversion: function (state: { [index: string]: any }) {
-            let selected = readLine.keyInSelect(["on", "off"], "experimentalConversion on or off?",);
+            let selected = readLine.keyInSelect(["on", "off"], "experimentalConversion on or off?\n",);
             state.experimentalConversion = selected == 0
             if (state.experimentalConversion) {
                 let noRestrictionMap: string[] = [];
@@ -101,7 +101,17 @@ export class GithubActionsEvaluationCLI {
                     console.log(key + ": " + value)
                 }
             })
-
+        },
+        printObjectsWithErrorType: function (state: { [index: string]: any }, providedResults?: Map<string, Map<string, number>>) {
+            let results: Map<string, Map<string, number>>;
+            if (providedResults) {
+                results = providedResults;
+            } else {
+                results = state.parsed.evaluation
+            }
+            let countedObjectsPerErrorType = GHAEval.countObjectsWithErrorType(results);
+            console.log("The following shows how many workflows were affected by the known error-types")
+            console.log(countedObjectsPerErrorType)
         }
     }
 

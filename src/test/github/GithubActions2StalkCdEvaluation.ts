@@ -139,4 +139,24 @@ export class GithubActions2StalkCdEvaluation {
 
         return totalMap
     }
+
+    public static countObjectsWithErrorType(evaluation: Map<string, Map<string, number>>) {
+        let countedObjectsPerErrorType: Map<string, number> = GithubActionsFileParser.getInitializedErrorMap();
+        for (let evaluationElement of evaluation) { // run through all elements in given map
+            if (evaluationElement[0] === "total") {
+                continue
+            }
+            for (let errorTypeElement of evaluationElement[1]) {
+                if (errorTypeElement[1] > 0) {
+                    let amount = countedObjectsPerErrorType.get(errorTypeElement[0]);
+                    if (amount) {
+                        countedObjectsPerErrorType.set(errorTypeElement[0], amount + 1);
+                    } else {
+                        countedObjectsPerErrorType.set(errorTypeElement[0], 1);
+                    }
+                }
+            }
+        }
+        return countedObjectsPerErrorType;
+    }
 }
