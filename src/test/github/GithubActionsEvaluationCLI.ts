@@ -11,20 +11,20 @@ export class GithubActionsEvaluationCLI {
         allFiles: GHAEval.getFiles(),
         filteredFiles: [],
         filesToParse: GHAEval.getFiles(),
-        allParsed: "GHAEval.parseFiles(true, false, GHAEval.getFiles())",
+        parsed: "GHAEval.parseFiles(true, false, GHAEval.getFiles())",
         experimentalConversion: false,
         restrictExperimentalConversionTo: []
     }
 
-    private parseMenu: { [index: string]: any } = {
+    private menu: { [index: string]: any } = {
         parse: function (state: { [index: string]: any }) {
             let restrictExperimentalConversionTo = state.experimentalConversion ? state.restrictExperimentalConversionTo : undefined;
-            let allParsed = GHAEval.parseFiles(true, state.filesToParse, restrictExperimentalConversionTo);
-            state.allParsed = allParsed
+            let parsed = GHAEval.parseFiles(true, state.filesToParse, restrictExperimentalConversionTo);
+            state.parsed = parsed
             console.log(">> state.experimentalConversion = " + state.experimentalConversion)
             console.log(">> state.restrictExperimentalConversionTo = " + state.restrictExperimentalConversionTo)
             console.log(">> state.filesToParse = " + state.filesToParse.length)
-            console.log(">> parsed Files: " + (allParsed.evaluation.size - 1))
+            console.log(">> parsed Files: " + (parsed.evaluation.size - 1))
             console.log()
         },
         setExperimentalConversion: function (state: { [index: string]: any }) {
@@ -58,49 +58,61 @@ export class GithubActionsEvaluationCLI {
             console.log()
         },
         filterByAmountOfErrors: function (state: { [index: string]: any }) {
-            if (typeof state.allParsed == 'string') {
+            if (typeof state.parsed == 'string') {
                 console.log("Please run a parse-command first.")
                 return
             }
-            let allEvaluation = state.allParsed.evaluation;
-            let map = GHAEval.amountOfErrorsInObject(allEvaluation);
-            console.log("Total errors")
-            for (let mapElement of map) {
-                console.log(`Error amount ${mapElement[0]}: ${mapElement[1].length}`)
-            }
+            this.printTotalErrorsPerObject(state)
 
-            let amountOfErrorsPerObject = readLine.questionInt("How many Errors?\n");
-            let reducedEvaluation = GHAEval.reduceEvaluationMap(allEvaluation, GHAEval.getAmountPredicate(amountOfErrorsPerObject));
+            let amountOfErrorsPerObject = readLine.questionInt("Filter amount of Errors?\n");
+            let allEvaluation = state.parsed.evaluation;
+            let reducedResults: Map<string, Map<string, number>> = GHAEval.reduceEvaluationMap(allEvaluation, GHAEval.getAmountPredicate(amountOfErrorsPerObject));
 
             // print evaluation
             console.log("------------------")
-            let reducedResults: Map<string, Map<string, number>> = GHAEval.reduceEvaluationMap(reducedEvaluation, GHAEval.getAmountPredicate(amountOfErrorsPerObject));
             console.log("Found objects with " + amountOfErrorsPerObject + " error: " + reducedResults.size)
             console.log("------------------")
-            console.log("Total error-types counted:")
-            let totalErrorCount = GHAEval.countTotalError(reducedResults);
-            totalErrorCount.forEach((value, key) => {
-                if (value > 0) {
-                    console.log(key + ": " + value)
-                }
-            })
+            this.printCumulatedErrorCount(state, reducedResults)
             console.log("------------------")
 
             // save reduced files in state
             let filteredFiles: string[] = []
             reducedResults.forEach((_, filename) => filteredFiles.push(filename))
             state.filteredFiles = filteredFiles;
+        },
+        printTotalErrorsPerObject: function (state: { [index: string]: any }) {
+            let allEvaluation = state.parsed.evaluation;
+            let map = GHAEval.amountOfErrorsInObject(allEvaluation);
+            console.log("Total errors")
+            for (let mapElement of map) {
+                console.log(`Error amount ${mapElement[0]}: ${mapElement[1].length}`)
+            }
+        },
+        printCumulatedErrorCount: function (state: { [index: string]: any }, providedResults?: Map<string, Map<string, number>>) {
+            let results: Map<string, Map<string, number>>;
+            if (providedResults) {
+                results = providedResults;
+            } else {
+                results = state.parsed.evaluation
+            }
+            let totalErrorCount = GHAEval.countErrorsByType(results);
+            totalErrorCount.forEach((value, key) => {
+                if (value > 0) {
+                    console.log(key + ": " + value)
+                }
+            })
+
         }
     }
 
     run() {
-        let items = Object.keys(this.parseMenu);
+        let items = Object.keys(this.menu);
         while (true) {
             let commandToExecute = readLine.keyInSelect(items, "\n");
-            if (commandToExecute === -1) {
+            if (commandToExecute === -1) { // CANCEL is selected
                 break
             }
-            this.parseMenu[items[commandToExecute]](this.state)
+            this.menu[items[commandToExecute]](this.state)
         }
     }
 }

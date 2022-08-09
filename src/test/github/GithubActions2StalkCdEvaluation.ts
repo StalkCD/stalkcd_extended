@@ -26,7 +26,7 @@ export class GithubActions2StalkCdEvaluation {
         for (let mapElement of map) {
             console.log(`Error amount ${mapElement[0]}: ${mapElement[1].length}`)
         }
-        console.log(this.countTotalError(reducedErrors))
+        console.log(this.countErrorsByType(reducedErrors))
         console.log("Total files analysed: " + files.length)
     }
 
@@ -121,7 +121,7 @@ export class GithubActions2StalkCdEvaluation {
      * @param countMap
      * @private
      */
-    static countTotalError(countMap: Map<string, Map<string, number>>): Map<string, number> {
+    static countErrorsByType(countMap: Map<string, Map<string, number>>): Map<string, number> {
         let totalMap: Map<string, number> = GithubActionsFileParser.getInitializedErrorMap();
 
         for (let evaluationElement of countMap) { // run through all elements in given map
