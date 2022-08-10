@@ -72,7 +72,11 @@ export class GithubActionsEvaluationCLI {
             console.log("------------------")
             console.log("Found objects with " + amountOfErrorsPerObject + " error: " + reducedResults.size)
             console.log("------------------")
+            console.log("Print cumulated error count")
             this.printCumulatedErrorCount(state, reducedResults)
+            console.log("------------------")
+            console.log("Print Objects per error")
+            this.printObjectsWithErrorType(state, reducedResults)
             console.log("------------------")
 
             // save reduced files in state

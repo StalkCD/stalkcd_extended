@@ -202,6 +202,7 @@ export class GithubActionsFileParser {
         let pipelineSteps: Step[] = [];
         if (steps) {
             for (let stepKey in steps) {
+                let reusableCallParameters: Map<string, string | number | boolean> | undefined = undefined;
                 let environment: Map<string, string | number | boolean> | undefined = undefined;
                 let githubStep = steps[stepKey];
                 if (githubStep.id) {
@@ -212,36 +213,17 @@ export class GithubActionsFileParser {
                 }
                 if (githubStep.with) {
                     if (this._experimentalConversionActive && this.isConversionAllowed(PIR.StepWith)) {
-                        if (typeof githubStep.with === 'string') {
-                            // ignore
-                            // this should be impossible a value needs a reference.
-                            this.error("Unsupported Attribute 'with' with value '" + githubStep.with + "'", PIR.StepWith);
-                        } else {
-                            let map: Map<string, string | number | boolean> = new Map<string, string | number | boolean>();
-                            for (let key in githubStep.with) {
-                                // ignore if one of these happen, they are incompatible with any concept known to us in StalkCD (09.08.2022)
-                                if (githubStep.with.args) {
-                                    this.error("Unsupported Attribute 'with.args' with value '" + githubStep.with.args + "'", PIR.StepWithArgs);
-                                    // https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepswithargs
-                                    continue
-                                }
-                                if (githubStep.with.entrypoint) {
-                                    // https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepswithentrypoint
-                                    this.error("Unsupported Attribute 'with.entrypoint' with value '" + githubStep.with.entrypoint + "'", PIR.StepWithEntrypoint);
-                                    continue
-                                }
-                                // variables are accessible by upper case and with INPUT_ as prefix see documentation:
-                                // https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepswith
-                                map.set("INPUT_" + key.toUpperCase(), githubStep.with[key]);
-                            }
-                            environment = map;
-                        }
+                        reusableCallParameters = this.doStepWith(githubStep);
                     } else {
                         this.error("Unsupported Attribute 'with' with value '" + githubStep.with + "'", PIR.StepWith);
                     }
                 }
                 if (githubStep.env) {
-                    this.error("Unsupported Attribute 'env' with value '" + githubStep.env + "'", PIR.StepEnvironment)
+                    if (this._experimentalConversionActive && this.isConversionAllowed(PIR.StepEnvironment)) {
+                        environment = this.doStepEnv(githubStep);
+                    } else {
+                        this.error("Unsupported Attribute 'env' with value '" + githubStep.env + "'", PIR.StepEnvironment);
+                    }
                 }
                 if (githubStep["timeout-minutes"]) {
                     this.error("Unsupported Attribute 'timeout-minutes' with value '" + githubStep["timeout-minutes"] + "'", PIR.StepTimeoutMinutes)
@@ -252,12 +234,56 @@ export class GithubActionsFileParser {
                 let stageStep = new Step({
                     label: githubStep.name,
                     command: githubStep.run ? (githubStep.shell ? githubStep.shell + " " : " ") + githubStep.run : githubStep.uses,
+                    reusableCallParameters: reusableCallParameters,
                     environment: environment
                 });
                 pipelineSteps.push(stageStep);
             }
         }
         return pipelineSteps;
+    }
+
+    private doStepWith(githubStep: { id?: string; if?: string; name?: string; uses?: string; run?: string; "working-directory"?: WorkingDirectory; shell?: Shell; with?: { [p: string]: string | number | boolean } | string; env?: { [p: string]: string | number | boolean } | string; "continue-on-error"?: boolean | ExpressionSyntax; "timeout-minutes"?: number }): Map<string, string | number | boolean> | undefined {
+        if (typeof githubStep.with === 'string') {
+            // ignore
+            // this should be impossible a value needs a reference.
+            this.error("Unsupported Attribute 'with' with value '" + githubStep.with + "'", PIR.StepWith);
+            return undefined
+        }
+        let map: Map<string, string | number | boolean> = new Map<string, string | number | boolean>();
+        for (let key in githubStep.with) {
+            // ignore if one of these happen, they are incompatible with any concept known to us in StalkCD (09.08.2022)
+            if (githubStep.with.args) {
+                this.error("Unsupported Attribute 'with.args' with value '" + githubStep.with.args + "'", PIR.StepWithArgs);
+                // https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepswithargs
+                continue
+            }
+            if (githubStep.with.entrypoint) {
+                // https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepswithentrypoint
+                this.error("Unsupported Attribute 'with.entrypoint' with value '" + githubStep.with.entrypoint + "'", PIR.StepWithEntrypoint);
+                continue
+            }
+            // variables are accessible by upper case and with INPUT_ as prefix; see documentation:
+            // https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepswith
+            map.set("INPUT_" + key.toUpperCase(), githubStep.with[key]);
+        }
+        return map;
+
+    }
+
+    private doStepEnv(githubStep: { id?: string; if?: string; name?: string; uses?: string; run?: string; "working-directory"?: WorkingDirectory; shell?: Shell; with?: { [p: string]: string | number | boolean } | string; env?: { [p: string]: string | number | boolean } | string; "continue-on-error"?: boolean | ExpressionSyntax; "timeout-minutes"?: number }): Map<string, string | number | boolean> | undefined {
+        if (typeof githubStep.env === 'string') {
+            // ignore
+            // this should be impossible a value needs a reference.
+            this.error("Unsupported Attribute 'env' with value '" + githubStep.env + "'", PIR.StepEnvironment);
+            return undefined
+        }
+
+        let map: Map<string, string | number | boolean> = new Map<string, string | number | boolean>();
+        for (let key in githubStep.env) {
+            map.set(key, githubStep.env[key])
+        }
+        return map
     }
 
     private static when(job: NormalJob): string {

@@ -1,10 +1,12 @@
 import {clean} from "../../util";
 
 export interface IStep {
-    environment?: Map<string, string | number | boolean>
     label?: string;
     command?: string;
 
+    // experimental
+    reusableCallParameters?: Map<string, string | number | boolean>
+    environment?: Map<string, string | number | boolean>
 }
 
 export class Step {
@@ -13,12 +15,19 @@ export class Step {
     ) {
         this.label = init.label;
         this.command = init.command;
+
+        // experimental
         this.environment = init.environment
+        this.reusableCallParameters = init.reusableCallParameters
     }
 
-    environment?: Map<string, string | number | boolean>
     label?: string;
     command?: string;
+
+    // experimental
+    reusableCallParameters?: Map<string, string | number | boolean>
+    environment?: Map<string, string | number | boolean>
+
 
     toSerial(): any {
         return clean(Object.assign({}, this));
