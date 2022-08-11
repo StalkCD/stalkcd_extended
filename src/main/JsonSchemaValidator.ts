@@ -14,6 +14,10 @@ export class JsonSchemaValidator {
         this.schema = ajv.compile(schema);
     }
 
+    /**
+     * The file is schema-valid if the method runs error free.
+     * @param dataPath the path to the respective file.
+     */
     public validate(dataPath: PathLike ) {
         const data = yaml.load(fs.readFileSync(dataPath, { encoding: 'utf8' }));
         const valid: boolean = this.schema(data);
