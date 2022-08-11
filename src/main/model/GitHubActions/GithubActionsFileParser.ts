@@ -202,6 +202,7 @@ export class GithubActionsFileParser {
         let pipelineSteps: Step[] = [];
         if (steps) {
             for (let stepKey in steps) {
+                let when: string[] | undefined = undefined;
                 let reusableCallParameters: Map<string, string | number | boolean> | undefined = undefined;
                 let environment: Map<string, string | number | boolean> | undefined = undefined;
                 let githubStep = steps[stepKey];
@@ -209,7 +210,11 @@ export class GithubActionsFileParser {
                     this.error("Unsupported Attribute 'id' with value '" + githubStep.id + "'", PIR.StepId)
                 }
                 if (githubStep.if) {
-                    this.error("Unsupported Attribute 'if' with value '" + githubStep.if + "'", PIR.StepIf)
+                    if (this._experimentalConversionActive && this.isConversionAllowed(PIR.StepIf)) {
+                        when = [githubStep.if];
+                    } else {
+                        this.error("Unsupported Attribute 'if' with value '" + githubStep.if + "'", PIR.StepIf);
+                    }
                 }
                 if (githubStep.with) {
                     if (this._experimentalConversionActive && this.isConversionAllowed(PIR.StepWith)) {
@@ -235,7 +240,8 @@ export class GithubActionsFileParser {
                     label: githubStep.name,
                     command: githubStep.run ? (githubStep.shell ? githubStep.shell + " " : " ") + githubStep.run : githubStep.uses,
                     reusableCallParameters: reusableCallParameters,
-                    environment: environment
+                    environment: environment,
+                    when: when
                 });
                 pipelineSteps.push(stageStep);
             }
