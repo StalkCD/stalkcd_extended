@@ -6,15 +6,16 @@ import {ValidationError} from "./errors/ValidationError";
 import * as fs from "fs";
 
 export class JsonSchemaValidator {
+    ajv: any;
     schema: any;
 
     constructor(schemaPath: PathLike) {
 
         // report all validation errors (rather than failing on the first errors)
         //TODO GitHub JSON Schema nutzen, dass im strict mode keine Fehler wirft?
-        let ajv = new Ajv({allErrors: true, strict: false});
+        this.ajv = new Ajv({allErrors: true, strict: false});
         const schema = JSON.parse(fs.readFileSync(schemaPath).toString("utf8"));
-        this.schema = ajv.compile(schema);
+        this.schema = this.ajv.compile(schema);
     }
 
     public validate(dataPath: PathLike ): any {

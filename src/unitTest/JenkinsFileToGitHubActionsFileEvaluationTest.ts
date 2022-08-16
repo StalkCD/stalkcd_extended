@@ -94,16 +94,12 @@ export class JenkinsFileToGitHubActionsFileEvaluationTest {
           this.stats.failure++;
 
           let errors = schemaResult.errors
-          let summary =""
 
-            errors.forEach(function(error:any){
-              summary = summary + JSON.stringify(error.params) + " "
-            })
 
           let source = config.jenkinsFileSource
           let target = config.ghaFileTarget
 
-          let evaluationResultObject = {source, target, errors, summary}
+          let evaluationResultObject = {source, target, errors}
           this.stats.fileResults.push(evaluationResultObject);
         }
 

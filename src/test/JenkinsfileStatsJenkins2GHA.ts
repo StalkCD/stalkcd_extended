@@ -93,7 +93,8 @@ export class JenkinsfileStatsJenkins2GHA {
      * Detailed evaluation results for each file
      */
     readonly fileResults: any[] = [];
-    
+
+
     /**
      * Prints all relevant statistical data
      */
@@ -107,15 +108,15 @@ export class JenkinsfileStatsJenkins2GHA {
         // All file details
         let fileDetails = '';
 
-        // Collect failure classification results for all files, i.e. iterate over all errors
+        // Collect failure classification results for all files (res = results for one file), i.e. iterate over all errors
         for (const res of this.fileResults) {
             fileDetails += `\n\n  --- ${res.source}` +
                 `\n  --> ${res.target}` +
-                `\n${res.summary}\n`;
+                `\n${JSON.stringify(res.errors, null, " ")}\n`;
 
             // Increase overall sum for this failure class
             for (const error of res.errors) {
-                let errorString: string = JSON.stringify(error.params)
+                let errorString: string =  " error code: " + JSON.stringify(error.params) + "| error message: " + JSON.stringify(error.message) + "| instance path of input: " + JSON.stringify(error.instancePath)
                 if (!failureClassSum.has(errorString)) {
                   failureClassSum.set(errorString, 1)
                 }
@@ -131,13 +132,17 @@ export class JenkinsfileStatsJenkins2GHA {
         let failureClassSumSortedArray = Array.from(failureClassSumSorted.entries());
         for (var failureEntry of failureClassSumSortedArray){
             failureClassStats += `
-                    - ${failureEntry[0]}: ${failureEntry[1]} `;
+                    - amount of files: ${failureEntry[1]} | ${failureEntry[0]}`;
         }
 
         return `
+==== JenkinsToGitHubAction Evaluation Output
+==== Please find the validation error summary at the end of the file.
+
 ==== ERROR DETAILS
 ${fileDetails}
 
+==== Validation error summary
 ==== Total Input Files: ${this.totalInputFiles}
         No Jenkinsfile: ${this.skippedNoJenkinsfile}
        Not Declarative: ${this.skippedNonDeclarative}
