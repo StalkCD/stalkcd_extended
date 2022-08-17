@@ -39,6 +39,10 @@ constructor() {
         if (pipeline.triggers == undefined)
         {
             triggers = new Array<string>()
+
+            //If there is no trigger provided by the input jenkins file set up a default value (push), which should be the case, since jenkins file triggers are defined outside of the jenkinsfile.
+            triggers.push("push");
+            this.builder.appendToComments("Please review. Since there was no trigger provided by the jenkins file, we set [push] as a default trigger ('on:'). ")
         }
         else
         {
@@ -46,12 +50,6 @@ constructor() {
         }
 
         let name: string[] = pipeline.definitions ? pipeline.definitions : [];
-
-        //vielleicht auch noch in eine Error Map schreiben, sodass am Ende in Konsole Uebersicht gegeben werden kann, was alles fehlt im GHA File
-        if (triggers.length == 0)
-        {
-            this.builder.appendToComments(" # Please add one or multiple trigger events here to get a valid GitHub Actions File.")
-        }
 
         this.builder
             .on(triggers)

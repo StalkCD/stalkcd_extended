@@ -116,7 +116,7 @@ export class JenkinsfileStatsJenkins2GHA {
 
             // Increase overall sum for this failure class
             for (const error of res.errors) {
-                let errorString: string =  " error code: " + JSON.stringify(error.params) + "| error message: " + JSON.stringify(error.message) + "| instance path of input: " + JSON.stringify(error.instancePath)
+                let errorString: string = "instance path of input: " + JSON.stringify(error.instancePath) + "| error code: " + JSON.stringify(error.params) + "| error message: " + JSON.stringify(error.message)
                 if (!failureClassSum.has(errorString)) {
                   failureClassSum.set(errorString, 1)
                 }
