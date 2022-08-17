@@ -133,12 +133,14 @@ constructor() {
 
 
     protected doAgent(keyValue: IAgentOption, stageId?: string) {
-        if (keyValue.name === "runs-on") {
-            this.builder.currentJob().runsOn(keyValue.value)
+
+        if (keyValue.name === "any" || keyValue.name === undefined) {
+            this.builder.currentJob().runsOn("ubuntu-latest")
+            this.builder.appendToComments("Please review. In stage " + stageId +" as the jenkinsfile agent was '" + JSON.stringify(keyValue)+ "' we set a default value ('ubuntu-latest') for 'runs-on.'")
         }
 
         else{
-            this.builder.appendToComments("In stage " + stageId +" please replace former jenkins file entry for agent '" + JSON.stringify(keyValue)+ "' with corresponding GHA run environment.")
+            this.builder.currentJob().runsOn(keyValue.value)
         }
 
     }
