@@ -15,11 +15,7 @@ export class WorkflowBuilder {
     } = {}
     private _currentJob: JobBuilder = new JobBuilder(this, "", this._jobs);
 
-    //used to store information from jenkinsfile which could not mapped to a valid GitHub Workflow object
-    private _unknownWorkflowOptions : string | object | undefined;
-
-    // used to store the post section from a jenkinsfile workflow
-    private _postsection : string | object | undefined;
+    private _comments: string[] = [];
 
     on(value: string[]): WorkflowBuilder {
         if (value.length === 1) {
@@ -83,15 +79,6 @@ export class WorkflowBuilder {
         return this;
     }
 
-    unknownOptionsObjects(value: string | object | undefined): WorkflowBuilder {
-        this._unknownWorkflowOptions = " # The following options could not be mapped to GitHub Actions: " + value
-        return this;
-    }
-
-    postSection(value: string | object | undefined): WorkflowBuilder {
-        this._postsection = " #The following steps were part of the post section in the jenkinsfile. Please transform these to steps with the corresponding GHA condition: " + value
-        return this;
-    }
 
     job(id: string): JobBuilder {
         this._currentJob = new JobBuilder(this, id, this._jobs);
@@ -104,15 +91,19 @@ export class WorkflowBuilder {
 
     workflowDefaulthelper(): Object | undefined {
 
-       if(this._defaultsRun != undefined) {
-          let defaultObject = {run: this._defaultsRun}
-          return defaultObject
-       }
-       else
-       {
-           return
-       }
+        if(this._defaultsRun != undefined) {
+            let defaultObject = {run: this._defaultsRun}
+            return defaultObject
+        }
+        else
+        {
+            return
+        }
 
+    }
+
+    appendToComments(value: string){
+        this._comments?.push(value)
     }
 
 
@@ -128,10 +119,27 @@ export class WorkflowBuilder {
             defaults: this.workflowDefaulthelper(),
             concurrency: this._concurrency,
             permissions: this._permissions,
-            jobs: this._jobs,
-            unknownWorkflowOptions: this._unknownWorkflowOptions,
-            jenkins_post_steps: this._postsection
+            jobs: this._jobs
         };
+    }
+
+
+    buildComments(): any {
+
+        if(this._comments.length >0)
+        {
+            let commentString: string = "These are tips to make your generated, non-valid GHA-file  a valid one.\n\n";
+            this._comments.forEach(function (value) {
+                commentString = commentString + "-" + value + "\n\n"
+            });
+            return commentString;
+        }
+
+        else
+        {
+            return undefined;
+        }
+
     }
 
 }

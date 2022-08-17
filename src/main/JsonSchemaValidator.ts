@@ -6,7 +6,7 @@ import {ValidationError} from "./errors/ValidationError";
 import * as fs from "fs";
 
 export class JsonSchemaValidator {
-    ajv: any;
+    ajv: Ajv;
     schema: any;
 
     constructor(schemaPath: PathLike) {

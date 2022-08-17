@@ -138,8 +138,6 @@ export class Runner {
         //generate GHA file from pipeline
         let generator: GitHubWorkflowGeneratorFromJenkinsPipeline = new GitHubWorkflowGeneratorFromJenkinsPipeline();
         let result = generator.run(pipeline)
-        //append original jenkins file to generated json Object
-        result.originalJenkinsfile = readSourceFile
 
         let resultString: string = JSON.stringify(result);
         //create GHAfile in JSON

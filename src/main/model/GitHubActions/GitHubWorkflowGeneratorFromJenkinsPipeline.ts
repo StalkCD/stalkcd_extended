@@ -29,7 +29,8 @@ constructor() {
             this.builder.currentJob().end()
         }
 
-        return this.builder.build();
+        return [this.builder.build(), this.builder.buildComments()];
+
     }
 
 
@@ -49,7 +50,7 @@ constructor() {
         //vielleicht auch noch in eine Error Map schreiben, sodass am Ende in Konsole Uebersicht gegeben werden kann, was alles fehlt im GHA File
         if (triggers.length == 0)
         {
-            triggers.push(" # Please add one or multiple trigger events here to get a valid GitHub Actions File.")
+            this.builder.appendToComments(" # Please add one or multiple trigger events here to get a valid GitHub Actions File.")
         }
 
         this.builder
@@ -61,7 +62,7 @@ constructor() {
         //Options for jobs in a pipeline are not parsed with StalkCD yet, so there is no corresponding implementation for workflow options
         let options: string[] | undefined = pipeline.options;
         if (options) {
-            this.builder.unknownOptionsObjects(options)
+            this.builder.appendToComments("The following options could not be mapped to GitHub Actions:" + options)
         }
 
         let env: EnvironmentVariable[] | undefined = pipeline.environment;
@@ -90,12 +91,12 @@ constructor() {
         this.builder.job(id);
         let agent = stage.agent;
         if (agent) {
-            agent.forEach(keyValue => this.doAgent(keyValue))
+            agent.forEach(keyValue => this.doAgent(keyValue, id))
         }
         else{
             agent = pipeline.agent
             if (agent) {
-                agent.forEach(keyValue => this.doAgent(keyValue))
+                agent.forEach(keyValue => this.doAgent(keyValue, id))
             }
             else{   //Jenkinsfiles without Agent are invalid because Agent is mandatory in jenkins
                 throw new Error("There was no Agent declared in the Jenkinsfile. ")
@@ -126,38 +127,44 @@ constructor() {
 
         let post: IPostSection | undefined = stage.post
         if (post) {
-            this.doPostSection(post, true)
+            this.doPostSection(post, true, id)
         }
 
 
     }
 
 
-    protected doAgent(keyValue: IAgentOption) {
+    protected doAgent(keyValue: IAgentOption, stageId?: string) {
         if (keyValue.name === "runs-on") {
             this.builder.currentJob().runsOn(keyValue.value)
         }
 
         else{
-            let jobAgent = " # Please replace former jenkins file entry for agent '" + JSON.stringify(keyValue)+ "' with corresponding GHA run environment."
-            this.builder.currentJob().runsOn(jobAgent)
+            this.builder.appendToComments("In stage " + stageId +" please replace former jenkins file entry for agent '" + JSON.stringify(keyValue)+ "' with corresponding GHA run environment.")
         }
 
     }
 
 
-    protected doPostSection(postSection: IPostSection, postOnJobLayer : Boolean) {
+    protected doPostSection(postSection: IPostSection, postOnJobLayer : Boolean, jobId?:string) {
 
         var postString = ""
         Object.entries(postSection).forEach(prop => {
             if (prop[1].length > 0 && prop[0] != "propertiesOrder") {
-                 postString = postString + JSON.stringify(prop)
+                if (postOnJobLayer == false)
+                {
+                    postString = "The following steps were part of the post section in the jenkinsfile. Please transform these to steps with the corresponding GHA condition: "
+                    postString = postString + JSON.stringify(prop)
+                    this.builder.appendToComments(postString)}
+
+                else if (postOnJobLayer == true)
+                {
+                    postString = "The following steps were part of the post section in the job" + jobId + ". Please transform these to steps with the corresponding GHA condition: "
+                    postString = postString + JSON.stringify(prop)
+                    this.builder.appendToComments("" + postString)}
             }
         })
-        if (postString.length > 0 && postOnJobLayer == false)
-        {this.builder.postSection(postString)}
-        else if (postString.length > 0 && postOnJobLayer == true)
-        {this.builder.currentJob().postSection(postString)}
+
     }
 
 

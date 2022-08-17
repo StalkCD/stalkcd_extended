@@ -17,17 +17,34 @@ const pipeline = parser.parse(readFile);
 
 //generate GHA file from pipeline
 let generator: GitHubWorkflowGeneratorFromJenkinsPipeline = new GitHubWorkflowGeneratorFromJenkinsPipeline();
-let result = generator.run(pipeline)
+let results:any[] = generator.run(pipeline)
 //let jenkinsYaml = YAML.stringify(readFile)
 
 //var readFileWithoutQuotes= readFile.replace(/[\n]+/g, '\\')
-result.originalJenkinsfile = readFile
 
-let resultString: string = JSON.stringify(result);
+let resultString: string = JSON.stringify(results[0], null, " ");
 
 console.log("-----------------")
 console.log(resultString)
 console.log("-----------------")
 fs.writeFileSync("testJ2GHAfile.json", resultString)
-fs.writeFileSync("testJ2GHAfile.yaml", YAML.stringify(result).replace(/["]+/g, ' '))
-new JsonSchemaValidator(GithubActionsFileParser.GITHUB_WORKFLOW_SCHEMA_PATH).validate("testJ2GHAfile.json")
+
+//TODO YAML Erstellung in eigene Builder Methode auslagern
+fs.writeFileSync("testJ2GHAfile.yaml", YAML.stringify(results[0]).replace(/["]+/g, ' '))
+let validationResult = new JsonSchemaValidator(GithubActionsFileParser.GITHUB_WORKFLOW_SCHEMA_PATH).validate("testJ2GHAfile.json")
+
+if (validationResult != true)
+    {
+
+        //TODO validator output mitreinschreiben
+        console.log("-----------------")
+        console.log("Create comment file")
+        console.log("-----------------")
+        fs.writeFileSync("testJ2GHAfile.json.txt", results[1] + "\n\n The following are the errors from the failed validation: \n\n" + JSON.stringify(validationResult.errors, null, " "))
+    }
+
+else{
+    console.log("-----------------")
+    console.log("No comment file is created because the validation was successfull.")
+    console.log("-----------------")
+}
