@@ -19,8 +19,6 @@ export class JenkinsFileToGitHubActionsFileEvaluationTest {
 
     private readonly _ghaTarget = 'res/GHAFiles.target';
 
-   // private readonly _stalkCdTarget = 'res/StalkCd.target';
-
     async evaluate() {
         if (fs.existsSync(this._jenkinsfileSource)) {
             TestUtils.removeDirectoryRecursively(this._jenkinsfileSource)
