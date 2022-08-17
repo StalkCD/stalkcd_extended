@@ -1,3 +1,5 @@
+import {eachItem} from "ajv/dist/compile/util";
+
 export class JenkinsfileStatsJenkins2GHA {
 
     /**
@@ -77,7 +79,7 @@ export class JenkinsfileStatsJenkins2GHA {
     }
     
     /**
-     * Jenkinsfiles that could not be transformed to completely GitHub Action Files
+     * Jenkinsfiles that could not be transformed to valid GitHub Action Files
      */
     private _failure = 0;
     get failure() {
@@ -89,10 +91,38 @@ export class JenkinsfileStatsJenkins2GHA {
         this._failure = val;
     }
 
+    private _failureFileNameList:string[] = [];
+
+    appendFailureFileNameList(val: string) {
+        this._failureFileNameList.push(val);
+    }
+
+    failureFileNameListToString() {
+        let failureFilesListString: string = "";
+        this._failureFileNameList.forEach(function (value) {
+            failureFilesListString = failureFilesListString + value + "\n"
+        });
+        return failureFilesListString;
+    }
+
+    private _successFileNameList:string[] = [];
+
+    appendSuccessFileNameList(val: string) {
+        this._successFileNameList.push(val);
+    }
+
+    successFileNameListToString() {
+        let successFilesListString: string = "";
+        this._successFileNameList.forEach(function (value) {
+            successFilesListString = successFilesListString + value + "\n"
+        });
+        return successFilesListString;
+    }
+
     /**
      * Detailed evaluation results for each file
      */
-    readonly fileResults: any[] = [];
+    readonly failedFileResults: any[] = [];
 
 
     /**
@@ -109,7 +139,7 @@ export class JenkinsfileStatsJenkins2GHA {
         let fileDetails = '';
 
         // Collect failure classification results for all files (res = results for one file), i.e. iterate over all errors
-        for (const res of this.fileResults) {
+        for (const res of this.failedFileResults) {
             fileDetails += `\n\n  --- ${res.source}` +
                 `\n  --> ${res.target}` +
                 `\n${JSON.stringify(res.errors, null, " ")}\n`;
@@ -128,7 +158,7 @@ export class JenkinsfileStatsJenkins2GHA {
         }
         // Sort FailureClassSum regarding amount of errors
         const failureClassSumSorted = new Map([...failureClassSum.entries()].sort((a, b) => b[1] - a[1]));
-        let failureClassStats = '';
+        let failureClassStats = 'Aggregated validation error classification: \n';
         let failureClassSumSortedArray = Array.from(failureClassSumSorted.entries());
         for (var failureEntry of failureClassSumSortedArray){
             failureClassStats += `
@@ -149,9 +179,13 @@ ${fileDetails}
     Multiple pipelines: ${this.skippedMultiplePipeline}
 
 ====       Valid files: ${this.totalProcessedFiles}
-               Success: ${this.success} (${successRate} %)
-               Failure: ${this.failure} (${failureRate} %)
+               Success: ${this.success} (${successRate} %) See list of files below
+               Failure: ${this.failure} (${failureRate} %) See list of files below
+                   
 ${failureClassStats}
+
+====   Successfully validated files: ${this.successFileNameListToString()}
+====   Failed validated files: ${this.failureFileNameListToString()}
         `;
     }
 }

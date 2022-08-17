@@ -86,10 +86,12 @@ export class JenkinsFileToGitHubActionsFileEvaluationTest {
         if(schemaResult == true)
         {
          this.stats.success++;
+         this.stats.appendSuccessFileNameList(config.jenkinsFileSource)
         }
         else
         {
           this.stats.failure++;
+          this.stats.appendFailureFileNameList(config.jenkinsFileSource)
 
           let errors = schemaResult.errors
 
@@ -98,16 +100,9 @@ export class JenkinsFileToGitHubActionsFileEvaluationTest {
           let target = config.ghaFileTarget
 
           let evaluationResultObject = {source, target, errors}
-          this.stats.fileResults.push(evaluationResultObject);
+          this.stats.failedFileResults.push(evaluationResultObject);
         }
 
-/*
-        if (normSource !== normResult) {
-            this.stats.failure++;
-            TestUtils.classifyJenkinsfileDiff(config, normSource, normResult, this.stats);
-        } else {
-            this.stats.success++;
-        }*/
     }
 
 }
