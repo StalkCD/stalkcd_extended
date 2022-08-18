@@ -1,17 +1,17 @@
-import {TestUtils} from "../test/TestUtils";
+import {TestUtils} from "./TestUtils";
 import * as fs from 'fs';
-import {JenkinsfileStats} from "../test/JenkinsfileStats";
-import {JenkinsfileCollector, FileConfig} from "../test/JenkinsfileCollector";
+import {JenkinsfileStats} from "./JenkinsfileStats";
+import {JenkinsfileCollector, FileConfig} from "./JenkinsfileCollector";
 import {Runner} from "../main/Runner";
 import {reporters} from 'mocha';
 import {JSZipObject} from "jszip";
-import {FileConfigJenkins2GHA, JenkinsfileCollectorJenkins2GHA} from "../test/JenkinsfileCollectorJenkins2GHA";
+import {FileConfigJenkins2GHA, JenkinsfileCollectorJenkins2GHA} from "./JenkinsfileCollectorJenkins2GHA";
 import {JsonSchemaValidator} from "../main/JsonSchemaValidator";
 import {GithubActionsFileParser} from "../main/model/GitHubActions/GithubActionsFileParser";
-import {JenkinsfileStatsJenkins2GHA} from "../test/JenkinsfileStatsJenkins2GHA";
+import {JenkinsfileStatsJenkins2GHA} from "./JenkinsfileStatsJenkins2GHA";
 import {eachItem} from "ajv/dist/compile/util";
 
-export class JenkinsFileToGitHubActionsFileEvaluationTest {
+export class JenkinsFileToGitHubActionsFileEvaluation {
 
     private stats = new JenkinsfileStatsJenkins2GHA();
 
@@ -40,14 +40,17 @@ export class JenkinsFileToGitHubActionsFileEvaluationTest {
             }
         }
         const statsOutput = this.stats.output();
-        fs.writeFileSync('res/evaluate-jenkins2GHA-result.txt', statsOutput);
-        fs.writeFileSync('res/evaluate-jenkins2GHA-result.json', JSON.stringify(this.stats));
+        let outputFilepathTxt: string = 'res/evaluate-jenkins2GHA-result.txt'
+        let outputFilepathJson: string = 'res/evaluate-jenkins2GHA-result.json'
+        fs.writeFileSync(outputFilepathTxt, statsOutput);
+        fs.writeFileSync(outputFilepathJson, JSON.stringify(this.stats, null, " "));
+
+        console.log("\n\n ================== Evaluation logs created in: " + outputFilepathTxt + "and " + outputFilepathJson);
 
        // Cleanup
         TestUtils.removeDirectoryRecursively(this._jenkinsfileSource)
         TestUtils.removeDirectoryRecursively(this._ghaTarget)
 
-        // console.log(statsOutput);
     }
 
     private async getSourceData() {
@@ -77,7 +80,7 @@ export class JenkinsFileToGitHubActionsFileEvaluationTest {
         await new Runner().jenkinsfile2ghaFile({
             source: config.jenkinsFileSource,
             target: config.ghaFileTarget,
-        });
+        }, false);
 
 
         let ghaValidator = new JsonSchemaValidator(GithubActionsFileParser.GITHUB_WORKFLOW_SCHEMA_PATH)
