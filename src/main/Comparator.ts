@@ -53,7 +53,7 @@ export class Comparator {
                     this.internalCompareObjects(expectedElement, actualElement, current_context, errors);
                     break;
                 case "function":
-                    // funtions are intetionally ignored
+                    // functions are intentionally ignored
                     break;
                 default:
                     expectedElement === actualElement ? "" : this.error(errors, FailedComparisonReason.UNEQUAL_UNKNOWN_TYPE, contextErrorString);
