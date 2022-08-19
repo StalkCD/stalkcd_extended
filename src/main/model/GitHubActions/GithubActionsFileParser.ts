@@ -203,8 +203,8 @@ export class GithubActionsFileParser {
         if (steps) {
             for (let stepKey in steps) {
                 let when: string[] | undefined = undefined;
-                let reusableCallParameters: Map<string, string | number | boolean> | undefined = undefined;
-                let environment: Map<string, string | number | boolean> | undefined = undefined;
+                let reusableCallParameters: {[p: string]: string | number | boolean} | undefined = undefined;
+                let environment: {[p: string]: string | number | boolean} | undefined = undefined;
                 let githubStep = steps[stepKey];
                 if (githubStep.id) {
                     this.error("Unsupported Attribute 'id' with value '" + githubStep.id + "'", PIR.StepId)
@@ -238,7 +238,7 @@ export class GithubActionsFileParser {
                 }
                 let stageStep = new Step({
                     label: githubStep.name,
-                    command: githubStep.run ? (githubStep.shell ? githubStep.shell + " " : " ") + githubStep.run : githubStep.uses,
+                    command: githubStep.run ? (githubStep.shell ? githubStep.shell + " " : " ") + githubStep.run : "$uses$ " + githubStep.uses,
                     reusableCallParameters: reusableCallParameters,
                     environment: environment,
                     when: when
@@ -249,14 +249,14 @@ export class GithubActionsFileParser {
         return pipelineSteps;
     }
 
-    private doStepWith(githubStep: { id?: string; if?: string; name?: string; uses?: string; run?: string; "working-directory"?: WorkingDirectory; shell?: Shell; with?: { [p: string]: string | number | boolean } | string; env?: { [p: string]: string | number | boolean } | string; "continue-on-error"?: boolean | ExpressionSyntax; "timeout-minutes"?: number }): Map<string, string | number | boolean> | undefined {
+    private doStepWith(githubStep: { id?: string; if?: string; name?: string; uses?: string; run?: string; "working-directory"?: WorkingDirectory; shell?: Shell; with?: { [p: string]: string | number | boolean } | string; env?: { [p: string]: string | number | boolean } | string; "continue-on-error"?: boolean | ExpressionSyntax; "timeout-minutes"?: number }): {[p: string]: string | number | boolean} | undefined {
         if (typeof githubStep.with === 'string') {
             // ignore
             // this should be impossible a value needs a reference.
             this.error("Unsupported Attribute 'with' with value '" + githubStep.with + "'", PIR.StepWith);
             return undefined
         }
-        let map: Map<string, string | number | boolean> = new Map<string, string | number | boolean>();
+        let map: {[p: string]: string | number | boolean} = {};
         for (let key in githubStep.with) {
             // ignore if one of these happen, they are incompatible with any concept known to us in StalkCD (09.08.2022)
             if (githubStep.with.args) {
@@ -271,13 +271,13 @@ export class GithubActionsFileParser {
             }
             // variables are accessible by upper case and with INPUT_ as prefix; see documentation:
             // https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepswith
-            map.set("INPUT_" + key.toUpperCase(), githubStep.with[key]);
+            map["INPUT_" + key.toUpperCase()] = githubStep.with[key];
         }
         return map;
 
     }
 
-    private doStepEnv(githubStep: { id?: string; if?: string; name?: string; uses?: string; run?: string; "working-directory"?: WorkingDirectory; shell?: Shell; with?: { [p: string]: string | number | boolean } | string; env?: { [p: string]: string | number | boolean } | string; "continue-on-error"?: boolean | ExpressionSyntax; "timeout-minutes"?: number }): Map<string, string | number | boolean> | undefined {
+    private doStepEnv(githubStep: { id?: string; if?: string; name?: string; uses?: string; run?: string; "working-directory"?: WorkingDirectory; shell?: Shell; with?: { [p: string]: string | number | boolean } | string; env?: { [p: string]: string | number | boolean } | string; "continue-on-error"?: boolean | ExpressionSyntax; "timeout-minutes"?: number }): {[p: string]: string | number | boolean} | undefined {
         if (typeof githubStep.env === 'string') {
             // ignore
             // this should be impossible a value needs a reference.
@@ -285,9 +285,9 @@ export class GithubActionsFileParser {
             return undefined
         }
 
-        let map: Map<string, string | number | boolean> = new Map<string, string | number | boolean>();
+        let map: {[p: string]: string | number | boolean} = {};
         for (let key in githubStep.env) {
-            map.set(key, githubStep.env[key])
+            map[key] =  githubStep.env[key]
         }
         return map
     }

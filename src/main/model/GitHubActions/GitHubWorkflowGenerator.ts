@@ -5,6 +5,7 @@ import {WorkflowBuilder} from "./GithubWorkflowBuilder";
 import {separateKeyValue} from "../../util";
 import {EnvironmentVariable} from "../pipeline/EnvironmentSection";
 import {IAgentOption} from "../pipeline/AgentSection";
+import {isNumberic} from "../util/Utils";
 
 
 export class GithubWorkflowGenerator {
@@ -37,7 +38,6 @@ export class GithubWorkflowGenerator {
         let name: string[] = pipeline.definitions ? pipeline.definitions : [];
         if (!triggers) {
             throw new Error("Triggers are required.")
-
         }
 
         this.builder
@@ -51,8 +51,25 @@ export class GithubWorkflowGenerator {
 
         let env: EnvironmentVariable[] | undefined = pipeline.environment;
         if (env) {
-            env.forEach(e => this.builder.env(e.name, e.value))
+            env.forEach(e => this.builder.env(e.name, this.getValueTyped(e.value)))
         }
+    }
+
+    private getValueTyped(value: string | number | boolean): string | number | boolean {
+        // find out type by parsing to number
+        if (typeof value === 'boolean' || typeof value === 'number') {
+            return value
+        }
+        // handling of possible toString-conversion-types
+        if ("true" === value) {
+            return true
+        } else if ("false" === value) {
+            return false
+        } else if (isNumberic(value)) {
+            return +value
+        }
+
+        return value; // the actual string value
     }
 
     private doStage(stage: IStage): void {
@@ -81,7 +98,7 @@ export class GithubWorkflowGenerator {
                 }
 
                 // normal env processing
-                this.builder.currentJob().env(environmentVariable.name, environmentVariable.value);
+                this.builder.currentJob().env(environmentVariable.name, this.getValueTyped(environmentVariable.value));
             }
         }
 
@@ -121,12 +138,26 @@ export class GithubWorkflowGenerator {
             .name(step.label)
             .shell(this.getShell(step.command))
             .run(this.getRun(step.command))
+            .uses(this.getUses(step.command))
+            .if(this.getIfStatement(step))
+            .with(step.reusableCallParameters)
+            .env(step.environment)
             .end()
     }
 
+    private getIfStatement(step: IStep): string | undefined {
+        if (!step.when) {
+            return undefined
+        }
+        return step.when.join(" || ");
+    }
+
     private getShell(command: string | undefined): string | undefined {
+        if (command?.startsWith("$uses$ ")) {
+            return undefined
+        }
         let split: any = command?.split(" ");
-        return split[0];
+        return split[0].length > 0 ? split[0] : undefined;
     }
 
     private doOptionForWorkflow(optionString: string): void {
@@ -189,6 +220,10 @@ export class GithubWorkflowGenerator {
 
     private getRun(command: string | undefined): string | undefined {
         if (command) {
+            if (command.startsWith("$uses$ ")) {
+                return undefined
+            }
+
             let shell: string | undefined = this.getShell(command);
             if (shell) {
                 return command.replace(shell + " ", "");
@@ -197,5 +232,16 @@ export class GithubWorkflowGenerator {
             }
         }
         return command;
+    }
+
+    private getUses(command: string | undefined) {
+        if (command === undefined) {
+            return undefined
+        }
+        if (!command.includes("$uses$ ")) {
+            return undefined;
+        }
+
+        return command.replace("$uses$ ", "");
     }
 }

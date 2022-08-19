@@ -10,7 +10,7 @@ export class EnvironmentVariable implements IEnvironmentVariable {
         this.value = value;
     }
     name: string;
-    value: string;
+    value: string; // TODO: this should be string | number | boolean
 }
 
 export enum EnvironmentalVariableNameMarker {

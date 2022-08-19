@@ -63,18 +63,20 @@ function areErrorsSame(expectedErros: string[], actual: string[]): Boolean {
 
 function errorsDetected(errors: Map<string, string[]>): string[] {
     let errorList: string[] = []
-    errors.forEach((value,_) => {
+    errors.forEach((value, _) => {
         if (value) {
             value.forEach(s => errorList.push(s));
         }
-    } )
+    })
     for (let key in errors) {
     }
     return errorList;
 }
 
 doPositiveComparison(expectedFull, actualFull)
-doNegativeComparison([ 'obj[wrongValue] = that --> actual = this' ], {wrongValue: "that"}, {wrongValue: "this"})
+doPositiveComparison({list: [{myVal: "val"}, {myVal: "val"}]}, {list: [{myVal: "val"}, {myVal: "val"}]})
+doNegativeComparison(['obj[1]'], [{myVal: "val"}, {myVal: "val"}], [{myVal: "val"}, {myVal: "val", mySecondVal: "val"}])
+doNegativeComparison(['obj[wrongValue] = that --> actual = this'], {wrongValue: "that"}, {wrongValue: "this"})
 doNegativeComparison(['obj[wrongKey] type: string --> actual: undefined'], {wrongKey: "that"}, {reallyWronKey: "that"})
 doNegativeComparison(['obj[myBoolean] = true --> actual = false'], {myBoolean: true}, {myBoolean: false})
 doNegativeComparison(['obj[myNumber] = 1 --> actual = 5'], {myNumber: 1}, {myNumber: 5})

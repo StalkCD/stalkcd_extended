@@ -1,3 +1,5 @@
+import {removeUndefinedKeys} from "../util/Utils";
+
 export class WorkflowBuilder {
 
     // values of GithubActionWorkflow
@@ -24,7 +26,7 @@ export class WorkflowBuilder {
      * @constructor
      */
     public constructor(doExperimentalConversions?: boolean) {
-        this.doExperimentalConversion = doExperimentalConversions !== undefined ?  doExperimentalConversions : false;
+        this.doExperimentalConversion = doExperimentalConversions !== undefined ? doExperimentalConversions : false;
     }
 
     on(value: string[]): WorkflowBuilder {
@@ -99,18 +101,16 @@ export class WorkflowBuilder {
     }
 
     workflowDefaulthelper(): Object | undefined {
-       if(this._defaultsRun != undefined) {
-           return {run: this._defaultsRun}
-       }
+        if (this._defaultsRun != undefined) {
+            return {run: this._defaultsRun}
+        }
     }
 
 
     build(): any {
         // TODO: "timeout-minutes": this._timeoutMinutes,
         // TODO: options for Job(s),
-
-
-        return {
+        let obj = {
             name: this._name,
             on: this._on,
             env: this._env,
@@ -119,6 +119,7 @@ export class WorkflowBuilder {
             permissions: this._permissions,
             jobs: this._jobs
         };
+        return removeUndefinedKeys(obj);
     }
 
 }
@@ -139,7 +140,7 @@ class JobBuilder {
     } | undefined;
     private _concurrency: string | object | undefined
     private _permissions: string | object | undefined;
-    private _needs:  string[] = [];
+    private _needs: string[] = [];
     private _strategy: object | undefined;
     private _runsOn: string | undefined;
     private _name: string | undefined;
@@ -243,7 +244,7 @@ class JobBuilder {
     }
 
     jobDefaulthelper(): Object | undefined {
-        if(this._defaultsRun != undefined) {
+        if (this._defaultsRun != undefined) {
             return {run: this._defaultsRun}
         }
     }
@@ -302,6 +303,10 @@ class StepBuilder {
     private _name: string | undefined;
     private _shell: string | undefined;
     private _run: string | undefined;
+    private _uses: string | undefined;
+    private _if: string | undefined;
+    private _env: { [p: string]: string | number | boolean } | undefined;
+    private _with: { [p: string]: string | number | boolean } | undefined;
 
     constructor(parent: JobBuilder, steps: any[]) {
         this._parent = parent;
@@ -317,11 +322,15 @@ class StepBuilder {
         return this._parent;
     }
 
-    private build():any {
+    private build(): any {
         return {
             name: this._name,
             shell: this._shell,
-            run: this._run
+            run: this._run,
+            uses: this._uses,
+            if: this._if,
+            env: this._env,
+            with: this._with
         };
     }
 
@@ -338,5 +347,25 @@ class StepBuilder {
     run(run: string | undefined): StepBuilder {
         this._run = run;
         return this;
+    }
+
+    uses(uses: string | undefined): StepBuilder {
+        this._uses = uses;
+        return this;
+    }
+
+    if(ifStatement: string | undefined): StepBuilder {
+        this._if = ifStatement;
+        return this
+    }
+
+    env(env: { [p: string]: string | number | boolean } | undefined): StepBuilder {
+        this._env = env;
+        return this
+    }
+
+    with(withParameters: { [p: string]: string | number | boolean } | undefined): StepBuilder {
+        this._with = withParameters;
+        return this
     }
 }

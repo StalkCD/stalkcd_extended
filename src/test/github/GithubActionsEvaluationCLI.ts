@@ -22,8 +22,8 @@ export class GithubActionsEvaluationCLI {
             let parsed = GHAEval.parseFiles(true, state.filesToParse, restrictExperimentalConversionTo);
             state.parsed = parsed
             console.log(">> state.experimentalConversion = " + state.experimentalConversion)
-            console.log(">> state.restrictExperimentalConversionTo = " + state.restrictExperimentalConversionTo)
-            console.log(">> state.filesToParse = [" + state.filesToParse.length + "]")
+            console.log(">> state.restrictExperimentalConversionTo = [" + state.restrictExperimentalConversionTo + "]")
+            console.log(">> state.filesToParse = " + state.filesToParse.length)
             console.log(">> parsed Files: " + (parsed.evaluation.size - 1))
             console.log()
         },

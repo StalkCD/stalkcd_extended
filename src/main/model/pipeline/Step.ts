@@ -5,8 +5,8 @@ export interface IStep {
     command?: string;
 
     // experimental
-    reusableCallParameters?: Map<string, string | number | boolean>;
-    environment?: Map<string, string | number | boolean>;
+    reusableCallParameters?: {[p: string]: string | number | boolean};
+    environment?: {[p: string]: string | number | boolean};
     when?: string[];
 }
 
@@ -27,8 +27,8 @@ export class Step {
     command?: string;
 
     // experimental
-    reusableCallParameters?: Map<string, string | number | boolean>
-    environment?: Map<string, string | number | boolean>
+    reusableCallParameters?: {[p: string]: string | number | boolean}
+    environment?: {[p: string]: string | number | boolean}
     when?: string[];
 
     toSerial(): any {

@@ -1,4 +1,4 @@
-export enum FailedComparisonReason {
+enum FailedComparisonReason {
     UNEQUAL_AMOUNT_OF_KEYS = "UNEQUAL_AMOUNT_OF_KEYS",
     NOT_SAME_ELEMENT_TYPE = "NOT_SAME_ELEMENT_TYPE",
     UNEQUAL_STRING = "UNEQUAL_STRING",
@@ -10,16 +10,28 @@ export enum FailedComparisonReason {
 export class Comparator {
 
     /**
-     * The
+     * This will compare two objects deeply and provide a map of the occurred differences.
      * @param expected - expected object, this is the truth so to say.
      * @param actual - the actual object, it is the object which has to hold true to the expected.
      */
     public static compareObjects(expected: object, actual: object): Map<string, string[]> {
+        // initialize error Map
         let map = new Map<string, string[]>();
         for (let reason in FailedComparisonReason) {
             map.set(reason, []);
         }
-        return this.internalCompareObjects(expected, actual, "obj", map);
+
+        // do comparison
+        this.internalCompareObjects(expected, actual, "obj", map);
+
+        // filter empty entries
+        let resultMap = new Map<string, string[]>()
+        map.forEach((value, key) => {
+            if (value.length > 0) {
+                resultMap.set(key, value);
+            }
+        })
+        return resultMap;
     }
 
     private static internalCompareObjects(expected: any, actual: any, context: string, errors: Map<string, string[]>): Map<string, string[]> {
