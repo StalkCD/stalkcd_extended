@@ -160,10 +160,11 @@ export class Runner {
 
             if (validationResult != true) {
                 fs.writeFileSync(config.target + ".txt", results[1] + "\n\n The following are the errors from the failed validation: \n\n" + JSON.stringify(validationResult.errors, null, " "))
-                console.log("Created comment file: " + config.target + ".txt")
+                console.log("Created comment file with validation error results: " + config.target + ".txt")
 
             } else {
-                console.log("No comment file is created because the validation was successfull.")
+                fs.writeFileSync(config.target + ".txt", results[1])
+                console.log("Created comment file, the validation was successfull:" + config.target + ".txt")
             }
             //
         }

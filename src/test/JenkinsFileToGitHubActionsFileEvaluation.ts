@@ -45,7 +45,7 @@ export class JenkinsFileToGitHubActionsFileEvaluation {
         fs.writeFileSync(outputFilepathTxt, statsOutput);
         fs.writeFileSync(outputFilepathJson, JSON.stringify(this.stats, null, " "));
 
-        console.log("\n\n ================== Evaluation logs created in: " + outputFilepathTxt + "and " + outputFilepathJson);
+        console.log("\n\n ================== Evaluation logs created in: " + outputFilepathTxt + " and " + outputFilepathJson);
 
        // Cleanup
         TestUtils.removeDirectoryRecursively(this._jenkinsfileSource)

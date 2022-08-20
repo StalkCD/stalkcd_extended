@@ -38,10 +38,10 @@ constructor() {
         let triggers
         if (pipeline.triggers == undefined)
         {
-            triggers = new Array<string>()
+            //triggers = undefined
 
             //If there is no trigger provided by the input jenkins file set up a default value (push), which should be the case, since jenkins file triggers are defined outside of the jenkinsfile.
-            triggers.push("push");
+            triggers = ["push"];
             this.builder.appendToComments("Please review. Since there was no trigger provided by the jenkins file, we set [push] as a default trigger ('on:'). ")
         }
         else
@@ -88,6 +88,9 @@ constructor() {
 
         this.builder.job(id);
         let agent = stage.agent;
+
+        //agents in Jenkinsfiles can be defined on pipeline level (mandatory) and on stage level(optional)
+        //if there is no agent defined on stage level, take the agent defined on pipeline level for the current job
         if (agent) {
             agent.forEach(keyValue => this.doAgent(keyValue, id))
         }
@@ -136,11 +139,12 @@ constructor() {
 
         if (keyValue.name === "any" || keyValue.name === undefined) {
             this.builder.currentJob().runsOn("ubuntu-latest")
+            //this.builder.currentJob().runsOn(keyValue.name)
             this.builder.appendToComments("Please review. In stage " + stageId +" as the jenkinsfile agent was '" + JSON.stringify(keyValue)+ "' we set a default value ('ubuntu-latest') for 'runs-on.'")
         }
 
         else{
-            this.builder.currentJob().runsOn(keyValue.value)
+            this.builder.currentJob().runsOn(keyValue.name)
         }
 
     }

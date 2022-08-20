@@ -17,8 +17,14 @@ export class WorkflowBuilder {
 
     private _comments: string[] = [];
 
-    on(value: string[]): WorkflowBuilder {
-        if (value.length === 1) {
+    on(value: string[]|undefined): WorkflowBuilder {
+
+        if(value === undefined)
+        {
+            this._on = undefined;
+        }
+
+        else if (value.length === 1) {
             this._on = value[0];
         } else {
             this._on = value;
@@ -246,11 +252,6 @@ class JobBuilder {
 
     runsOn(value: string | undefined): JobBuilder {
         this._runsOn = value;
-        return this;
-    }
-
-    postSection(value: string | object | undefined): JobBuilder {
-        this._postsection = " #The following steps were part of the post section in the jenkinsfile. Please transform these to steps with the corresponding GHA condition: " + value
         return this;
     }
 
