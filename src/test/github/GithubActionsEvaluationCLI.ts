@@ -19,7 +19,7 @@ export class GithubActionsEvaluationCLI {
     private menu: { [index: string]: any } = {
         parse: function (state: { [index: string]: any }) {
             let restrictExperimentalConversionTo = state.experimentalConversion ? state.restrictExperimentalConversionTo : undefined;
-            let parsed = GHAEval.parseFiles(true, state.filesToParse, restrictExperimentalConversionTo);
+            let parsed:GithubActionsFileParser = GHAEval.parseFiles(state.filesToParse, true, restrictExperimentalConversionTo);
             state.parsed = parsed
             console.log(">> state.experimentalConversion = " + state.experimentalConversion)
             console.log(">> state.restrictExperimentalConversionTo = [" + state.restrictExperimentalConversionTo + "]")

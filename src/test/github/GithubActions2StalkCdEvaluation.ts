@@ -1,6 +1,12 @@
 import * as fs from "fs";
-import {PathLike} from "fs";
+import {PathLike, PathOrFileDescriptor} from "fs";
 import {GithubActionsFileParser} from "../../main/model/GitHubActions/GithubActionsFileParser";
+import {Pipeline} from "../../main/model/pipeline/Pipeline";
+import {GithubWorkflowGenerator} from "../../main/model/GitHubActions/GitHubWorkflowGenerator";
+import {JsonSchemaValidator} from "../../main/JsonSchemaValidator";
+import {Comparator} from "../../main/Comparator";
+import {GithubWorkflow} from "../../main/model/GitHubActions/GeneratedTypes";
+import * as yaml from "js-yaml";
 
 export class GithubActions2StalkCdEvaluation {
 
@@ -8,33 +14,119 @@ export class GithubActions2StalkCdEvaluation {
 
     public static evaluate() {
         let files: string[] = this.getFiles();
-        let parser: GithubActionsFileParser = new GithubActionsFileParser(true, []);
-        files.map(f => parser.parse(f));
-        let evaluation: Map<string, Map<string, number>> = parser.evaluation;
-        let amountOfErrors: Map<number, Array<Map<string, number>>> = this.amountOfErrorsInObject(evaluation);
+        // parse all
+        let parserResult: GithubActionsFileParser = this.parseFiles(files, true, []);
+        let zeroErrorResults: Map<string, Map<string, number>> = this.reduceEvaluationMap(parserResult.evaluation, this.getAmountPredicate(0));
+        let zeroErrorFiles: string[] = []
+        zeroErrorResults.forEach((_, filename) => zeroErrorFiles.push(filename))
 
-        console.log("Total Errors")
-        for (let mapElement of amountOfErrors) {
-            console.log(`Error amount ${mapElement[0]}: ${mapElement[1].length}`)
-        }
-        // console.log(map.get(1))
-        let reducedErrors: Map<string, Map<string, number>> = this.reduceEvaluationMap(evaluation, this.getAmountPredicate(1));
-        console.log("Reduced Errors" + reducedErrors.size)
-        let map = this.amountOfErrorsInObject(reducedErrors);
+        let pipelinesMap: Map<string, Pipeline | undefined> = this.parseFilesToPipeline(zeroErrorFiles, true, []);
 
-        console.log("Reduced Errors Evaluation")
-        for (let mapElement of map) {
-            console.log(`Error amount ${mapElement[0]}: ${mapElement[1].length}`)
-        }
-        console.log(this.countErrorsByType(reducedErrors))
-        console.log("Total files analysed: " + files.length)
+        let generatedWorkflows: Map<string, any> = this.generateGithubActionObjects(pipelinesMap);
+
+        // Get evaluation basis
+        let workflowsValidityMap: Map<string, boolean> = this.schemaValidation(generatedWorkflows);
+        let workflowsComparisonMap: Map<string, Map<string, string[]>> = this.compareDeeply(generatedWorkflows);
+
+        // check if everything has run successfully
+        workflowsValidityMap.forEach((value,key) => {
+            if (!value) {
+                console.log(key + " was unable to be validated after generation.")
+            }
+        });
+        console.log();
+        let counter = 0
+        workflowsComparisonMap.forEach((value, key) => {
+            if (value.size > 0) {
+                counter++
+                console.log(key + " contains deep comparioson errors.")
+                console.log(value)
+                console.log()
+            }
+        })
+        console.log("Failed deep comparison for: " + counter)
+        console.log("Total Converted: " + workflowsComparisonMap.size)
     }
 
-    public static parseFiles(evaluateError: boolean, files: string[], restrictExperimentalConversionTo: string[]): GithubActionsFileParser {
+    /**
+     * parse all files in the given list and return the parser.
+     * This is done for analysis methods.
+     * @param files
+     * @param evaluateError
+     * @param restrictExperimentalConversionTo
+     */
+    public static parseFiles(files: string[], evaluateError: boolean, restrictExperimentalConversionTo: string[]): GithubActionsFileParser {
         let parser: GithubActionsFileParser = new GithubActionsFileParser(evaluateError, restrictExperimentalConversionTo);
         files.map(f => parser.parse(f));
         return parser
     }
+
+
+    public static parseFilesToPipeline(files: string[], evaluateError: boolean, restrictExperimentalConversionTo: string[]): Map<string, Pipeline | undefined> {
+        let parser: GithubActionsFileParser = new GithubActionsFileParser(evaluateError, restrictExperimentalConversionTo);
+        let pipelineMap: Map<string, Pipeline | undefined> = new Map();
+        files.forEach(f => pipelineMap.set(f, parser.parse(f)) );
+        return pipelineMap
+    }
+
+    /**
+     * takes in a pipeline and transforms it to a GithubActionFile
+     * @param pipelineMap
+     */
+    public static generateGithubActionObjects(pipelineMap: Map<string, Pipeline | undefined>) {
+        let githubWorkflowGenerator: GithubWorkflowGenerator = new GithubWorkflowGenerator(true);
+        let workflowMap: Map<string, any> = new Map();
+        for (let element of pipelineMap) {
+            if (element[1] === undefined) { // skip undefined entries
+                continue
+            }
+            workflowMap.set(element[0], githubWorkflowGenerator.run(element[1]));
+        }
+        return workflowMap
+    }
+
+    /**
+     * validates all entries in the map against the given schema
+     * @param workflowMap
+     */
+    public static schemaValidation(workflowMap: Map<string, any>) {
+        let validator: JsonSchemaValidator = new JsonSchemaValidator(GithubActionsFileParser.GITHUB_WORKFLOW_SCHEMA_PATH)
+        let isSchemaValidMap: Map<string, boolean> = new Map();
+        for (let element of workflowMap) {
+            let isValid = true
+            try {
+                validator.validate(element[1]);
+            } catch (err) {
+                isValid = false
+            }
+            isSchemaValidMap.set(element[0] , isValid)
+        }
+        return isSchemaValidMap;
+    }
+
+    public static compareDeeply(workflowMap: Map<string, any>) {
+        let compareDeeplyMap: Map<string, Map<string, string[]>> = new Map();
+        for (let element of workflowMap) {
+            let expected: object = this.loadFile(element[0]);
+            let actual: object = element[1];
+            compareDeeplyMap.set(element[0], Comparator.compareObjects(expected, actual))
+        }
+        return compareDeeplyMap
+    }
+
+    public static loadFile(path: PathOrFileDescriptor): GithubWorkflow {
+        return <GithubWorkflow>yaml.load(fs.readFileSync(path, {encoding: 'utf8'}))
+    }
+
+    public static hasUndefinedEntry(pipelineMap: Map<string, Pipeline | undefined>): boolean {
+        for (let element of pipelineMap) {
+            if (element[1] === undefined) {
+                return true
+            }
+        }
+        return false
+    }
+
 
     /**
      * Simple predicate function for the "reduceEvaluationMap" function.
