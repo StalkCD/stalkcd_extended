@@ -35,6 +35,12 @@ export class Comparator {
     }
 
     private static internalCompareObjects(expected: any, actual: any, context: string, errors: Map<string, string[]>): Map<string, string[]> {
+        if (expected === null) {
+            if (actual !== null) {
+                this.error(errors, FailedComparisonReason.NOT_SAME_ELEMENT_TYPE, context + " type: null --> actual: " + typeof actual)
+            }
+            return errors;
+        }
         let expectedKeys: string[] = Object.keys(expected);
         if (expectedKeys.length !== Object.keys(actual).length) {
             this.error(errors, FailedComparisonReason.UNEQUAL_AMOUNT_OF_KEYS, context);
