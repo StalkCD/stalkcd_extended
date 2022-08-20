@@ -140,7 +140,7 @@ class JobBuilder {
     } | undefined;
     private _concurrency: string | object | undefined
     private _permissions: string | object | undefined;
-    private _needs: string[] = [];
+    private _needs: string[] | undefined;
     private _strategy: object | undefined;
     private _runsOn: string | undefined;
     private _name: string | undefined;
@@ -214,6 +214,9 @@ class JobBuilder {
 
     needs(value: string | undefined): JobBuilder {
         if (value) {
+            if (this._needs === undefined) {
+                this._needs = []
+            }
             this._needs.push(value);
         }
         return this;
@@ -307,6 +310,7 @@ class StepBuilder {
     private _if: string | undefined;
     private _env: { [p: string]: string | number | boolean } | undefined;
     private _with: { [p: string]: string | number | boolean } | undefined;
+    private _workingDirectory: string | undefined;
 
     constructor(parent: JobBuilder, steps: any[]) {
         this._parent = parent;
@@ -330,7 +334,8 @@ class StepBuilder {
             uses: this._uses,
             if: this._if,
             env: this._env,
-            with: this._with
+            with: this._with,
+            "working-directory": this._workingDirectory
         };
     }
 
@@ -366,6 +371,11 @@ class StepBuilder {
 
     with(withParameters: { [p: string]: string | number | boolean } | undefined): StepBuilder {
         this._with = withParameters;
+        return this
+    }
+
+    workingDirectory(workingDirectory: string | undefined): StepBuilder {
+        this._workingDirectory = workingDirectory;
         return this
     }
 }

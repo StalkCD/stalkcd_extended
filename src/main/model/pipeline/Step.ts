@@ -8,6 +8,7 @@ export interface IStep {
     reusableCallParameters?: {[p: string]: string | number | boolean};
     environment?: {[p: string]: string | number | boolean};
     when?: string[];
+    workingDirectory?: string
 }
 
 export class Step {
@@ -21,6 +22,7 @@ export class Step {
         this.environment = init.environment
         this.reusableCallParameters = init.reusableCallParameters
         this.when = init.when
+        this.workingDirectory = init.workingDirectory
     }
 
     label?: string;
@@ -30,6 +32,7 @@ export class Step {
     reusableCallParameters?: {[p: string]: string | number | boolean}
     environment?: {[p: string]: string | number | boolean}
     when?: string[];
+    workingDirectory?: string
 
     toSerial(): any {
         return clean(Object.assign({}, this));

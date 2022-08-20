@@ -205,6 +205,8 @@ export class GithubActionsFileParser {
                 let when: string[] | undefined = undefined;
                 let reusableCallParameters: {[p: string]: string | number | boolean} | undefined = undefined;
                 let environment: {[p: string]: string | number | boolean} | undefined = undefined;
+                let workingDirectory: string | undefined;
+
                 let githubStep = steps[stepKey];
                 if (githubStep.id) {
                     this.error("Unsupported Attribute 'id' with value '" + githubStep.id + "'", PIR.StepId)
@@ -236,12 +238,20 @@ export class GithubActionsFileParser {
                 if (githubStep["continue-on-error"]) {
                     this.error("Unsupported Attribute 'continue-on-error' with value '" + githubStep["continue-on-error"] + "'", PIR.StepContinueOnError)
                 }
+                if (githubStep["working-directory"]) {
+                    if (this._experimentalConversionActive && this.isConversionAllowed(PIR.StepWorkingDirectory)) {
+                        workingDirectory = githubStep["working-directory"];
+                    } else {
+                        this.error("Unsupported Attribute 'working-directory' with value '" + githubStep["working-directory"] + "'", PIR.StepWorkingDirectory);
+                    }
+                }
                 let stageStep = new Step({
                     label: githubStep.name,
                     command: githubStep.run ? (githubStep.shell ? githubStep.shell + " " : " ") + githubStep.run : "$uses$ " + githubStep.uses,
                     reusableCallParameters: reusableCallParameters,
                     environment: environment,
-                    when: when
+                    when: when,
+                    workingDirectory: workingDirectory
                 });
                 pipelineSteps.push(stageStep);
             }

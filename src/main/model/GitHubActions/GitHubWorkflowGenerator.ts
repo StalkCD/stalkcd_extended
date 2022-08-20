@@ -11,12 +11,15 @@ import {isNumberic} from "../util/Utils";
 export class GithubWorkflowGenerator {
 
     private builder: WorkflowBuilder;
+    private doExperimentalConversion: boolean
 
     constructor(doExperimentalConversion?: boolean) {
-        this.builder = new WorkflowBuilder(doExperimentalConversion)
+        this.doExperimentalConversion = doExperimentalConversion !== undefined ? doExperimentalConversion : false
+        this.builder = new WorkflowBuilder(this.doExperimentalConversion)
     }
 
     run(pipeline: Pipeline) {
+        this.builder = new WorkflowBuilder(this.doExperimentalConversion)
         this.doPipeline(pipeline);
         let stages = pipeline.stages;
         for (let stage of stages) {
@@ -142,6 +145,7 @@ export class GithubWorkflowGenerator {
             .if(this.getIfStatement(step))
             .with(step.reusableCallParameters)
             .env(step.environment)
+            .workingDirectory(step.workingDirectory)
             .end()
     }
 
