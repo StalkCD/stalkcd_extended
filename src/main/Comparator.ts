@@ -13,8 +13,9 @@ export class Comparator {
      * This will compare two objects deeply and provide a map of the occurred differences.
      * @param expected - expected object, this is the truth so to say.
      * @param actual - the actual object, it is the object which has to hold true to the expected.
+     * @param specialCasesCallback
      */
-    public static compareObjects(expected: object, actual: object): Map<string, string[]> {
+    public static compareObjects(expected: object, actual: object, specialCasesCallback: (context: any[], expectedElement: any, actualElement: any) => boolean = () => false): Map<string, string[]> {
         // initialize error Map
         let map = new Map<string, string[]>();
         for (let reason in FailedComparisonReason) {
@@ -22,7 +23,7 @@ export class Comparator {
         }
 
         // do comparison
-        this.internalCompareObjects(expected, actual, "obj", map);
+        this.internalCompareObjects(expected, actual, [], map, specialCasesCallback);
 
         // filter empty entries
         let resultMap = new Map<string, string[]>()
@@ -34,7 +35,10 @@ export class Comparator {
         return resultMap;
     }
 
-    private static internalCompareObjects(expected: any, actual: any, context: string, errors: Map<string, string[]>): Map<string, string[]> {
+    private static internalCompareObjects(expected: any, actual: any, context: any[], errors: Map<string, string[]>, specialCaseEquality: (context: any[], expectedElement: any, actualElement: any) => boolean): Map<string, string[]> {
+        if (specialCaseEquality([...context], expected, actual)) {
+            return errors;
+        }
         if (expected === null) {
             if (actual !== null) {
                 this.error(errors, FailedComparisonReason.NOT_SAME_ELEMENT_TYPE, context + " type: null --> actual: " + typeof actual)
@@ -43,20 +47,22 @@ export class Comparator {
         }
         let expectedKeys: string[] = Object.keys(expected);
         if (expectedKeys.length !== Object.keys(actual).length) {
-            this.error(errors, FailedComparisonReason.UNEQUAL_AMOUNT_OF_KEYS, context);
+            this.error(errors, FailedComparisonReason.UNEQUAL_AMOUNT_OF_KEYS, this.contextString(context));
         }
         for (let key of expectedKeys) {
             let expectedElement: any = expected[key];
             let actualElement: any = actual[key];
-            let current_context: string = context + "[" + key + "]";
+            let current_context: any[] = [...context, key];
             if (typeof expectedElement !== typeof actualElement) {
-                this.error(errors, FailedComparisonReason.NOT_SAME_ELEMENT_TYPE, current_context + " type: " + typeof expectedElement + " --> actual: " + typeof actualElement);
-                continue;
+                if (!specialCaseEquality([...current_context], expectedElement, actualElement)) {
+                    this.error(errors, FailedComparisonReason.NOT_SAME_ELEMENT_TYPE, this.contextString(current_context) + " type: " + typeof expectedElement + " --> actual: " + typeof actualElement);
+                    continue;
+                }
             }
             // console.log("Expected: " + current_context + " = " + expectedElement);
             // console.log("Actual: " + current_context + " = " + actualElement);
             // console.log();
-            let contextErrorString: string = current_context + " = " + expectedElement + " --> actual = " + actualElement
+            let contextErrorString: string = this.contextString(current_context) + " = " + expectedElement + " --> actual = " + actualElement
             switch (typeof expectedElement) {
                 case "string":
                     expectedElement === actualElement ? "" : this.error(errors, FailedComparisonReason.UNEQUAL_STRING, contextErrorString);
@@ -68,7 +74,7 @@ export class Comparator {
                     expectedElement === actualElement ? "" : this.error(errors, FailedComparisonReason.UNEQUAL_NUMBER, contextErrorString);
                     break;
                 case "object":
-                    this.internalCompareObjects(expectedElement, actualElement, current_context, errors);
+                    this.internalCompareObjects(expectedElement, actualElement, current_context, errors, specialCaseEquality);
                     break;
                 case "function":
                     // functions are intentionally ignored
@@ -78,6 +84,10 @@ export class Comparator {
             }
         }
         return errors
+    }
+
+    private static contextString(context: any[]): string {
+        return "obj[" + context.join("][") + "]"
     }
 
     /**

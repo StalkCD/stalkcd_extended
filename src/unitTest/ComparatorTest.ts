@@ -1,5 +1,20 @@
 import {Comparator} from "../main/Comparator";
 
+function getSpecialCaseEquality(): (c: any[], e: any, a: any) => boolean {
+    return (c: any[], e: any, a: any): boolean => {
+        try {
+            if (c.pop() === "on") {
+                if (e instanceof Array && typeof a === "string") {
+                    return e.length === 1 && e[0] === a
+                }
+            }
+        } catch (err) {
+            return false
+        }
+        return false
+    };
+}
+
 let actualFull: object = {
     myString: "myValue",
     list: [1, 2, 3],
@@ -17,8 +32,8 @@ let expectedFull: object = {
     myObject: {key: "myValue", list: [1, 2, 3], myNumber: 5, myBoolean: true, myBoolean2: false}
 };
 
-function doPositiveComparison(expected: object, actual: object) {
-    let map: Map<string, string[]> = Comparator.compareObjects(expected, actual);
+function doPositiveComparison(expected: object, actual: object, specialCasesCallback?: (context: any[], expectedElement: any, actualElement: any) => boolean) {
+    let map: Map<string, string[]> = Comparator.compareObjects(expected, actual, specialCasesCallback);
     let errors: string[] = errorsDetected(map);
     if (errors.length > 0) {
         console.log(map)
@@ -29,8 +44,8 @@ function doPositiveComparison(expected: object, actual: object) {
     }
 }
 
-function doNegativeComparison(expectedErros: string[], expected: object, actual: object) {
-    let map: Map<string, string[]> = Comparator.compareObjects(expected, actual);
+function doNegativeComparison(expectedErros: string[], expected: object, actual: object, specialCasesCallback?: (context: any[], expectedElement: any, actualElement: any) => boolean) {
+    let map: Map<string, string[]> = Comparator.compareObjects(expected, actual, specialCasesCallback);
     let actualErrors: string[] = errorsDetected(map);
 
 
@@ -73,6 +88,8 @@ function errorsDetected(errors: Map<string, string[]>): string[] {
     return errorList;
 }
 
+
+// Standard functionality
 doPositiveComparison(expectedFull, actualFull)
 doPositiveComparison({list: [{myVal: "val"}, {myVal: "val"}]}, {list: [{myVal: "val"}, {myVal: "val"}]})
 doNegativeComparison(['obj[1]'], [{myVal: "val"}, {myVal: "val"}], [{myVal: "val"}, {myVal: "val", mySecondVal: "val"}])
@@ -82,3 +99,9 @@ doNegativeComparison(['obj[myBoolean] = true --> actual = false'], {myBoolean: t
 doNegativeComparison(['obj[myNumber] = 1 --> actual = 5'], {myNumber: 1}, {myNumber: 5})
 doNegativeComparison(['obj[myObject][1] type: string --> actual: undefined'], {myObject: {1: "val"}}, {myObject: ["val"]})
 doNegativeComparison(['obj[myObject][1] type: string --> actual: undefined'], {myObject: {1: "val"}}, {myObject: ["val"]})
+
+
+// Cases with callback
+doPositiveComparison({on: ["myOnlyElement"]}, {on: "myOnlyElement"}, getSpecialCaseEquality())
+doPositiveComparison({on: "myOnlyElement"}, {on: "myOnlyElement"}, getSpecialCaseEquality())
+doNegativeComparison([ 'obj[on] type: string --> actual: object' ], {on: "myOnlyElement"}, {on: ["myOnlyElement"]}, getSpecialCaseEquality())
