@@ -281,7 +281,8 @@ export class GithubActionsFileParser {
             }
             // variables are accessible by upper case and with INPUT_ as prefix; see documentation:
             // https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepswith
-            map["INPUT_" + key.toUpperCase()] = githubStep.with[key];
+            // active decition against this schema, since this is probably for internal referencing and the transformation back is impossible.
+            map[key] = githubStep.with[key];
         }
         return map;
 
