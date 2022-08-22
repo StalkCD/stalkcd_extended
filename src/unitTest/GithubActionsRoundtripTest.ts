@@ -4,7 +4,7 @@ import {GithubWorkflowGenerator} from "../main/model/GitHubActions/GitHubWorkflo
 import {JsonSchemaValidator} from "../main/JsonSchemaValidator";
 import * as fs from "fs";
 import {Comparator} from "../main/Comparator";
-import {GithubActions2StalkCdEvaluation} from "../test/github/GithubActions2StalkCdEvaluation";
+import {GithubActions2StalkCdEvaluation as GH2SCDEval} from "../test/github/GithubActions2StalkCdEvaluation";
 import {AssertionError} from "./Asserts";
 
 const githubActionsFileParser = new GithubActionsFileParser(false, []);
@@ -17,7 +17,7 @@ export function parseData(filename: string): Pipeline  {
 }
 
 function roundtripTest(filename: string, specialCasesEquality?: (context: any[], expectedElement: any, actualElement: any) => boolean ): void {
-    let expected = GithubActions2StalkCdEvaluation.loadFile(ROUNDTRIP_TEST_FOLDER + filename);
+    let expected = GH2SCDEval.loadFile(ROUNDTRIP_TEST_FOLDER + filename);
 
     let pipeline: Pipeline = parseData(filename);
 
@@ -50,7 +50,10 @@ roundtripTest("main.yml");
 roundtripTest("WopsS_RED4ext.SDK.build.yml");
 roundtripTest("actions-cool_issue-vote.test-all.yml");
 roundtripTest("hashed-io_hashed-luhn-ui.gh-pages.yml");
-roundtripTest("active-group_reacl-c-testing.tests.yml", GithubActions2StalkCdEvaluation.specialCaseEqualityOn);
-roundtripTest("finfet_kestrel.release.yml", GithubActions2StalkCdEvaluation.specialCaseEqualityNeeds);
+roundtripTest("active-group_reacl-c-testing.tests.yml", GH2SCDEval.specialCaseEqualityOn);
+roundtripTest("finfet_kestrel.release.yml", GH2SCDEval.specialCaseEqualityNeeds);
+roundtripTest("tugrulcan_staket.test-and-codestyle.yml", (c, e, a) => GH2SCDEval.specialCaseEqualityOn([...c], e, a) || GH2SCDEval.specialCaseEqualityNeeds([...c], e, a));
+roundtripTest("urllib3_urllib3.publish.yml", (c, e, a) => GH2SCDEval.specialCaseEqualityOn([...c], e, a) || GH2SCDEval.specialCaseEqualityNeeds([...c], e, a));
+roundtripTest("SkynetLabs_skynet-kernel.ci_webapps_kernel-test-suite.yml", (c, e, a) => GH2SCDEval.specialCaseEqualityOn([...c], e, a) || GH2SCDEval.specialCaseEqualityNeeds([...c], e, a));
 
 console.log("Roundtrip successful.")
