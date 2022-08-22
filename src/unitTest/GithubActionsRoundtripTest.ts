@@ -43,14 +43,14 @@ function roundtripTest(filename: string, specialCasesEquality?: (context: any[],
     }
 }
 
-// roundtripTest("main.yml");
-// roundtripTest("WopsS_RED4ext.SDK.build.yml");
-// roundtripTest("actions-cool_issue-vote.test-all.yml");
-// roundtripTest("hashed-io_hashed-luhn-ui.gh-pages.yml");
-// roundtripTest("active-group_reacl-c-testing.tests.yml", GH2SCDEval.specialCaseEqualityOn);
-// roundtripTest("finfet_kestrel.release.yml", GH2SCDEval.specialCaseEqualityNeeds);
-// roundtripTest("tugrulcan_staket.test-and-codestyle.yml", (c, e, a) => GH2SCDEval.specialCaseEqualityOn([...c], e, a) || GH2SCDEval.specialCaseEqualityNeeds([...c], e, a));
-// roundtripTest("urllib3_urllib3.publish.yml", (c, e, a) => GH2SCDEval.specialCaseEqualityOn([...c], e, a) || GH2SCDEval.specialCaseEqualityNeeds([...c], e, a) || GH2SCDEval.specialCaseEqualityEnvAndEnvironment([...c], e));
+roundtripTest("main.yml");
+roundtripTest("WopsS_RED4ext.SDK.build.yml");
+roundtripTest("actions-cool_issue-vote.test-all.yml");
+roundtripTest("hashed-io_hashed-luhn-ui.gh-pages.yml");
+roundtripTest("active-group_reacl-c-testing.tests.yml", GH2SCDEval.specialCaseEqualityOn);
+roundtripTest("finfet_kestrel.release.yml", GH2SCDEval.specialCaseEqualityNeeds);
+roundtripTest("tugrulcan_staket.test-and-codestyle.yml", (c, e, a) => GH2SCDEval.specialCaseEqualityOn([...c], e, a) || GH2SCDEval.specialCaseEqualityNeeds([...c], e, a));
+roundtripTest("urllib3_urllib3.publish.yml", (c, e, a) => GH2SCDEval.specialCaseEqualityOn([...c], e, a) || GH2SCDEval.specialCaseEqualityNeeds([...c], e, a) || GH2SCDEval.specialCaseEqualityEnvAndEnvironment([...c], e));
 roundtripTest("SkynetLabs_skynet-kernel.ci_webapps_kernel-test-suite.yml", (c, e, a) => GH2SCDEval.specialCaseEqualityOn([...c], e, a) || GH2SCDEval.specialCaseEqualityNeeds([...c], e, a));
 
 console.log("Roundtrip successful.")
