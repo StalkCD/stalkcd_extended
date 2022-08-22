@@ -115,7 +115,7 @@ export class GithubActionsFileParser {
     }
 
     /**
-     * Returns an Pipeline-Object based on the given GithubActionsWorkflow-File.
+     * Returns a Pipeline-Object based on the given GithubActionsWorkflow-File.
      * If the file is not a valid GithubActionsWorkflow yml-File, an ValidationError is thrown.
      * In the same object you cannot rerun the same file-parsing if the 'evaluateErrors' flag is set to true.
      * @param input
@@ -153,7 +153,7 @@ export class GithubActionsFileParser {
             }
             return builder.pipeline;
         } catch (err) {
-            this.error("An Error Occured which was not expected", PIR.UnknownError)
+            this.error("An Error Occurred which was not expected", PIR.UnknownError)
         }
 
         return undefined
@@ -186,7 +186,7 @@ export class GithubActionsFileParser {
 
             let continueOnError = job["continue-on-error"];
             if (typeof continueOnError === "string") {
-                this.error("The attriubte 'continue-on-error' was a string: '" + continueOnError + "'", PIR.ContinueOnErrorIsString)
+                this.error("The attribute 'continue-on-error' was a string: '" + continueOnError + "'", PIR.ContinueOnErrorIsString)
             }
             if (continueOnError !== undefined) {
                 pipelineStage.failFast = !continueOnError;
@@ -281,7 +281,7 @@ export class GithubActionsFileParser {
             }
             // variables are accessible by upper case and with INPUT_ as prefix; see documentation:
             // https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepswith
-            // active decition against this schema, since this is probably for internal referencing and the transformation back is impossible.
+            // active decision against this schema, since this is probably for internal referencing and the transformation back is impossible.
             map[key] = githubStep.with[key];
         }
         return map;
@@ -357,7 +357,8 @@ export class GithubActionsFileParser {
             pipelineEnvironment.push(new EnvironmentVariable(EnvironmentalVariableNameMarker.EXTERNAL_ENVIRONMENT, env));
         } else if (typeof env === "object") {
             for (let envKey in env) {
-                pipelineEnvironment.push(new EnvironmentVariable(envKey, env[envKey].toString()));
+                // @ts-ignore intentionally ignored, javascript can handle ambiguous types.
+                pipelineEnvironment.push(new EnvironmentVariable(envKey, env[envKey])); // TODO: this should be string | number | boolean
             }
         }
 

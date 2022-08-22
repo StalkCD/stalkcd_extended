@@ -1,7 +1,7 @@
 
 export interface IAgentOption {
     name: string;
-    value?: string;
+    value?: string; // TODO: this is ambiguous with GithubActions, since some of the given values are objects and not simple strings.
     options?: IAgentOption[];
 }
 

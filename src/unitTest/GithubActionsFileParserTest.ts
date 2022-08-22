@@ -29,8 +29,10 @@ function testEnvironment() {
     if (pipeline.environment) {
         assert(pipeline.environment.length, 3);
         assertArray(pipeline.environment, (v: EnvironmentVariable) => v.name === "my-var" && v.value === "test")
-        assertArray(pipeline.environment, (v: EnvironmentVariable) => v.name === "my-number" && v.value === "0")
-        assertArray(pipeline.environment, (v: EnvironmentVariable) => v.name === "my-boolean" && v.value === "true")
+        // @ts-ignore
+        assertArray(pipeline.environment, (v: EnvironmentVariable) => v.name === "my-number" && v.value === 0)
+        // @ts-ignore
+        assertArray(pipeline.environment, (v: EnvironmentVariable) => v.name === "my-boolean" && v.value === true)
     }
 }
 
@@ -42,8 +44,10 @@ function testEnvironmentWithStages() {
         assertDefined(env)
         assert(env.length, 4);
         assertArray(env, (v: EnvironmentVariable) => v.name === "my-var" && v.value === "test")
-        assertArray(env, (v: EnvironmentVariable) => v.name === "my-number" && v.value === "0")
-        assertArray(env, (v: EnvironmentVariable) => v.name === "my-boolean" && v.value === "true")
+        // @ts-ignore
+        assertArray(env, (v: EnvironmentVariable) => v.name === "my-number" && v.value === 0)
+        // @ts-ignore
+        assertArray(env, (v: EnvironmentVariable) => v.name === "my-boolean" && v.value === true)
         assertArray(env, (v: EnvironmentVariable) => v.name === "strategyJSON" && v.value === "{\"matrix\":{\"version\":[10,12,14],\"os\":[\"ubuntu-latest\",\"windows-latest\"]}}")
     }
 }
@@ -194,10 +198,10 @@ function testSteps() {
         assert(steps[2].label, "Run tests in docker image")
         assert(steps[3].label, "Uses")
 
-        assert(steps[0].command, "actions/checkout@v3")
+        assert(steps[0].command, "$uses$ actions/checkout@v3")
         assert(steps[1].command, " docker build --target stalkcd-application --tag stalkcd-application:latest --file docker/Application.dockerfile .")
         assert(steps[2].command, "bash docker run --rm -v \"/home/runner/work/stalkcd/stalkcd/res:/usr/app/res\" -v \"/home/runner/work/stalkcd/stalkcd/src:/usr/app/src\" stalkcd-application")
-        assert(steps[3].command, "my-usage")
+        assert(steps[3].command, "$uses$ my-usage")
     }
 }
 

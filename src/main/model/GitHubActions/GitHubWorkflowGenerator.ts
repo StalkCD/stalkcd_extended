@@ -5,7 +5,6 @@ import {WorkflowBuilder} from "./GithubWorkflowBuilder";
 import {separateKeyValue} from "../../util";
 import {EnvironmentVariable} from "../pipeline/EnvironmentSection";
 import {IAgentOption} from "../pipeline/AgentSection";
-import {isNumberic} from "../util/Utils";
 
 
 export class GithubWorkflowGenerator {
@@ -54,27 +53,9 @@ export class GithubWorkflowGenerator {
 
         let env: EnvironmentVariable[] | undefined = pipeline.environment;
         if (env) {
-            env.forEach(e => this.builder.env(e.name, this.getValueTyped(e.value)))
+            env.forEach(e => this.builder.env(e.name, e.value))
         }
     }
-
-    private getValueTyped(value: string | number | boolean): string | number | boolean {
-        // find out type by parsing to number
-        if (typeof value === 'boolean' || typeof value === 'number') {
-            return value
-        }
-        // handling of possible toString-conversion-types
-        if ("true" === value) {
-            return true
-        } else if ("false" === value) {
-            return false
-        } else if (isNumberic(value)) {
-            return +value
-        }
-
-        return value; // the actual string value
-    }
-
     private doStage(stage: IStage): void {
         let id: string | undefined = stage.name;
         if (id === undefined) {
@@ -101,7 +82,7 @@ export class GithubWorkflowGenerator {
                 }
 
                 // normal env processing
-                this.builder.currentJob().env(environmentVariable.name, this.getValueTyped(environmentVariable.value));
+                this.builder.currentJob().env(environmentVariable.name, environmentVariable.value);
             }
         }
 
