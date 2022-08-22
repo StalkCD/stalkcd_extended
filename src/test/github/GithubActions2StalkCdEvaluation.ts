@@ -281,5 +281,4 @@ export class GithubActions2StalkCdEvaluation {
             }
             return false
     }
-
 }
