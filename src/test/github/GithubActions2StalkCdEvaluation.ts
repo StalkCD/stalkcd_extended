@@ -29,7 +29,7 @@ export class GithubActions2StalkCdEvaluation {
         let workflowsComparisonMap: Map<string, Map<string, string[]>> = this.compareDeeply(generatedWorkflows);
 
         // check if everything has run successfully
-        workflowsValidityMap.forEach((value,key) => {
+        workflowsValidityMap.forEach((value, key) => {
             if (!value) {
                 console.log(key + " was unable to be validated after generation.")
             }
@@ -65,7 +65,7 @@ export class GithubActions2StalkCdEvaluation {
     public static parseFilesToPipeline(files: string[], evaluateError: boolean, restrictExperimentalConversionTo: string[]): Map<string, Pipeline | undefined> {
         let parser: GithubActionsFileParser = new GithubActionsFileParser(evaluateError, restrictExperimentalConversionTo);
         let pipelineMap: Map<string, Pipeline | undefined> = new Map();
-        files.forEach(f => pipelineMap.set(f, parser.parse(f)) );
+        files.forEach(f => pipelineMap.set(f, parser.parse(f)));
         return pipelineMap
     }
 
@@ -99,7 +99,7 @@ export class GithubActions2StalkCdEvaluation {
             } catch (err) {
                 isValid = false
             }
-            isSchemaValidMap.set(element[0] , isValid)
+            isSchemaValidMap.set(element[0], isValid)
         }
         return isSchemaValidMap;
     }
@@ -112,7 +112,7 @@ export class GithubActions2StalkCdEvaluation {
             compareDeeplyMap.set(
                 element[0],
                 Comparator.compareObjects(expected, actual,
-                (c, e, a) => this.specialCaseEqualityOn([...c], e, a) || this.specialCaseEqualityNeeds([...c], e, a))
+                    (c, e, a) => this.specialCaseEqualityOn([...c], e, a) || this.specialCaseEqualityNeeds([...c], e, a))
             )
         }
         return compareDeeplyMap
@@ -257,28 +257,33 @@ export class GithubActions2StalkCdEvaluation {
     }
 
     public static specialCaseEqualityOn(context: any[], expected: any, actual: any): boolean {
-            try {
-                if (context.pop() === "on") {
-                    if (expected instanceof Array && typeof actual === "string") {
-                        return expected.length === 1 && expected[0] === actual
-                    }
-                }
-            } catch (err) {
-                return false
+        if (context.pop() === "on") {
+            if (expected instanceof Array && typeof actual === "string") {
+                return expected.length === 1 && expected[0] === actual
             }
-            return false
+        }
+        return false
     }
 
     public static specialCaseEqualityNeeds(context: any[], expected: any, actual: any): boolean {
-            try {
-                if (context.pop() === "needs") {
-                    if (actual instanceof Array && typeof expected === "string") {
-                        return actual.length === 1 && actual[0] === expected
-                    }
-                }
-            } catch (err) {
-                return false
+        if (context.pop() === "needs") {
+            if (actual instanceof Array && typeof expected === "string") {
+                return actual.length === 1 && actual[0] === expected
             }
-            return false
+        }
+        return false
+    }
+
+    /**
+     * This is evil, please don't do this manipulation of the object.
+     * Reason: manipulating an object while it is processed is bad practice and can lead to funny errors or the crash of the program.
+     * This only works because intrinsic workings of the Comparator-Class are known to the programmer [ck] and objects in JS are mutable.
+     */
+    public static specialCaseEqualityEnvAndEnvironment(context: any[], expected: any): boolean {
+        if (context[context.length - 2] === "jobs" && expected.environment !== undefined) {
+            expected.env = expected.environment
+            delete expected.environment
+        }
+        return false
     }
 }

@@ -352,7 +352,8 @@ export class GithubActionsFileParser {
 
     private static environment(entity: GithubWorkflow | NormalJob): IEnvironmentVariable[] {
         let pipelineEnvironment: IEnvironmentVariable[] = [];
-        let env = entity.env;
+        // @ts-ignore environment is present in the schema for "NormalJob". It is expected that only one of the two is present.
+        let env = entity.env ? entity.env : entity.environment;
         if (typeof env === "string") {
             pipelineEnvironment.push(new EnvironmentVariable(EnvironmentalVariableNameMarker.EXTERNAL_ENVIRONMENT, env));
         } else if (typeof env === "object") {

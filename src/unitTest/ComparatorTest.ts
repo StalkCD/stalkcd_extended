@@ -90,5 +90,7 @@ doNegativeComparison(['obj[myObject][1] type: string --> actual: undefined'], {m
 // Cases with callback
 doPositiveComparison({on: ["myOnlyElement"]}, {on: "myOnlyElement"}, GHAEval.specialCaseEqualityOn)
 doPositiveComparison({needs: "myOnlyElement"}, {needs: ["myOnlyElement"]}, GHAEval.specialCaseEqualityNeeds)
+doPositiveComparison({on: "myOnlyElement"}, {on: "myOnlyElement"}, () => { throw new Error("Unexpected :)")})
+doPositiveComparison({jobs: {myJob: {environment: "myOnlyElement"}}}, {jobs: {myJob: {env: "myOnlyElement" }}}, GHAEval.specialCaseEqualityEnvAndEnvironment)
 doNegativeComparison([ 'obj[on] type: string --> actual: object' ], {on: "myOnlyElement"}, {on: ["myOnlyElement"]}, GHAEval.specialCaseEqualityOn)
 doNegativeComparison([ 'obj[on] type: string --> actual: object' ], {on: "myOnlyElement"}, {on: ["myOnlyElement", "secondElement"]}, GHAEval.specialCaseEqualityOn)

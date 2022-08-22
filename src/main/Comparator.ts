@@ -13,7 +13,15 @@ export class Comparator {
      * This will compare two objects deeply and provide a map of the occurred differences.
      * @param expected - expected object, this is the truth so to say.
      * @param actual - the actual object, it is the object which has to hold true to the expected.
-     * @param specialCasesCallback
+     * @param specialCasesCallback - use this with extreme caution, it is possible to break the comparing functionality with this.
+     *                              This is for syntactic equality and can circumvent the true-equality which is checked by this class.
+     *                              Errors can be thrown and will not affect the program-flow, meaning normal operation is continued and the special case is omitted.
+     *                              There are two types of comparisons which are possible:
+     *                              1. Create simple comparisons for values
+     *                                  e.g. one key is a string and the other an array, but there is a way they can be considered the same.
+     *                              2. Create Complex comparisons for Entries in the Object.
+     *                                  e.g. there are two names of a key which are valid.
+     *                                       This case would never be compared so this has to be caught at one layer above.
      */
     public static compareObjects(expected: object, actual: object, specialCasesCallback: (context: any[], expectedElement: any, actualElement: any) => boolean = () => false): Map<string, string[]> {
         // initialize error Map
@@ -52,8 +60,8 @@ export class Comparator {
             let actualElement: any = actual[key];
             let current_context: any[] = [...context, key];
 
-            // special cases
-            if (specialCaseEquality([...current_context], expectedElement, actualElement)) {
+            // special cases of value comparison
+            if (this.isSpecialCaseValid(() => specialCaseEquality([...current_context], expectedElement, actualElement))) {
                 continue;
             }
 
@@ -104,5 +112,18 @@ export class Comparator {
     private static error(errors: Map<string, string[]>, reason: string, context: string): void {
         // @ts-ignore --> only an enum type shall be given, these are initialized in the constructor
         errors.get(reason).push(context);
+    }
+
+    private static isSpecialCaseValid(myFunction: () => boolean) {
+        try {
+            let b = myFunction();
+            // noinspection SuspiciousTypeOfGuard
+            if (b === undefined || typeof b !== 'boolean') { // someone could pass a function which returns no value, in this case false is assumed.
+                return false
+            }
+            return b;
+        } catch (err) {
+            return false
+        }
     }
 }

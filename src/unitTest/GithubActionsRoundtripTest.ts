@@ -24,9 +24,6 @@ function roundtripTest(filename: string, specialCasesEquality?: (context: any[],
     let generator: GithubWorkflowGenerator = new GithubWorkflowGenerator(true);
     let actual = generator.run(pipeline);
     let jsonResultString: string = JSON.stringify(actual);
-    console.log("-----------------")
-    console.log(jsonResultString)
-    console.log("-----------------")
     fs.writeFileSync("testfile.json", jsonResultString)
 
     try {
@@ -53,7 +50,7 @@ roundtripTest("hashed-io_hashed-luhn-ui.gh-pages.yml");
 roundtripTest("active-group_reacl-c-testing.tests.yml", GH2SCDEval.specialCaseEqualityOn);
 roundtripTest("finfet_kestrel.release.yml", GH2SCDEval.specialCaseEqualityNeeds);
 roundtripTest("tugrulcan_staket.test-and-codestyle.yml", (c, e, a) => GH2SCDEval.specialCaseEqualityOn([...c], e, a) || GH2SCDEval.specialCaseEqualityNeeds([...c], e, a));
-roundtripTest("urllib3_urllib3.publish.yml", (c, e, a) => GH2SCDEval.specialCaseEqualityOn([...c], e, a) || GH2SCDEval.specialCaseEqualityNeeds([...c], e, a));
+roundtripTest("urllib3_urllib3.publish.yml", (c, e, a) => GH2SCDEval.specialCaseEqualityOn([...c], e, a) || GH2SCDEval.specialCaseEqualityNeeds([...c], e, a) || GH2SCDEval.specialCaseEqualityEnvAndEnvironment([...c], e, a));
 roundtripTest("SkynetLabs_skynet-kernel.ci_webapps_kernel-test-suite.yml", (c, e, a) => GH2SCDEval.specialCaseEqualityOn([...c], e, a) || GH2SCDEval.specialCaseEqualityNeeds([...c], e, a));
 
 console.log("Roundtrip successful.")
