@@ -1,19 +1,5 @@
 import {Comparator} from "../main/Comparator";
-
-function getSpecialCaseEquality(): (c: any[], e: any, a: any) => boolean {
-    return (c: any[], e: any, a: any): boolean => {
-        try {
-            if (c.pop() === "on") {
-                if (e instanceof Array && typeof a === "string") {
-                    return e.length === 1 && e[0] === a
-                }
-            }
-        } catch (err) {
-            return false
-        }
-        return false
-    };
-}
+import {GithubActions2StalkCdEvaluation as GHAEval} from "../test/github/GithubActions2StalkCdEvaluation";
 
 let actualFull: object = {
     myString: "myValue",
@@ -102,6 +88,7 @@ doNegativeComparison(['obj[myObject][1] type: string --> actual: undefined'], {m
 
 
 // Cases with callback
-doPositiveComparison({on: ["myOnlyElement"]}, {on: "myOnlyElement"}, getSpecialCaseEquality())
-doPositiveComparison({on: "myOnlyElement"}, {on: "myOnlyElement"}, getSpecialCaseEquality())
-doNegativeComparison([ 'obj[on] type: string --> actual: object' ], {on: "myOnlyElement"}, {on: ["myOnlyElement"]}, getSpecialCaseEquality())
+doPositiveComparison({on: ["myOnlyElement"]}, {on: "myOnlyElement"}, GHAEval.specialCaseEqualityOn)
+doPositiveComparison({needs: "myOnlyElement"}, {needs: ["myOnlyElement"]}, GHAEval.specialCaseEqualityNeeds)
+doNegativeComparison([ 'obj[on] type: string --> actual: object' ], {on: "myOnlyElement"}, {on: ["myOnlyElement"]}, GHAEval.specialCaseEqualityOn)
+doNegativeComparison([ 'obj[on] type: string --> actual: object' ], {on: "myOnlyElement"}, {on: ["myOnlyElement", "secondElement"]}, GHAEval.specialCaseEqualityOn)

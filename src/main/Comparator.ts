@@ -36,9 +36,6 @@ export class Comparator {
     }
 
     private static internalCompareObjects(expected: any, actual: any, context: any[], errors: Map<string, string[]>, specialCaseEquality: (context: any[], expectedElement: any, actualElement: any) => boolean): Map<string, string[]> {
-        if (specialCaseEquality([...context], expected, actual)) {
-            return errors;
-        }
         if (expected === null) {
             if (actual !== null) {
                 this.error(errors, FailedComparisonReason.NOT_SAME_ELEMENT_TYPE, context + " type: null --> actual: " + typeof actual)
@@ -50,19 +47,26 @@ export class Comparator {
             this.error(errors, FailedComparisonReason.UNEQUAL_AMOUNT_OF_KEYS, this.contextString(context));
         }
         for (let key of expectedKeys) {
+            // setup
             let expectedElement: any = expected[key];
             let actualElement: any = actual[key];
             let current_context: any[] = [...context, key];
+
+            // special cases
+            if (specialCaseEquality([...current_context], expectedElement, actualElement)) {
+                continue;
+            }
+
+            // normal processing
             if (typeof expectedElement !== typeof actualElement) {
-                if (!specialCaseEquality([...current_context], expectedElement, actualElement)) {
-                    this.error(errors, FailedComparisonReason.NOT_SAME_ELEMENT_TYPE, this.contextString(current_context) + " type: " + typeof expectedElement + " --> actual: " + typeof actualElement);
-                    continue;
-                }
+                this.error(errors, FailedComparisonReason.NOT_SAME_ELEMENT_TYPE, this.contextString(current_context) + " type: " + typeof expectedElement + " --> actual: " + typeof actualElement);
+                continue
             }
             // console.log("Expected: " + current_context + " = " + expectedElement);
             // console.log("Actual: " + current_context + " = " + actualElement);
             // console.log();
             let contextErrorString: string = this.contextString(current_context) + " = " + expectedElement + " --> actual = " + actualElement
+
             switch (typeof expectedElement) {
                 case "string":
                     expectedElement === actualElement ? "" : this.error(errors, FailedComparisonReason.UNEQUAL_STRING, contextErrorString);

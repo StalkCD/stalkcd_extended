@@ -16,7 +16,7 @@ export function parseData(filename: string): Pipeline  {
     return githubActionsFileParser.parse(ROUNDTRIP_TEST_FOLDER + filename);
 }
 
-function roundtripTest(filename: string ): void {
+function roundtripTest(filename: string, specialCasesEquality?: (context: any[], expectedElement: any, actualElement: any) => boolean ): void {
     let expected = GithubActions2StalkCdEvaluation.loadFile(ROUNDTRIP_TEST_FOLDER + filename);
 
     let pipeline: Pipeline = parseData(filename);
@@ -36,7 +36,7 @@ function roundtripTest(filename: string ): void {
         throw err
     }
 
-    let map = Comparator.compareObjects(expected, actual);
+    let map = Comparator.compareObjects(expected, actual ,specialCasesEquality);
     if (map.size > 0) {
         console.log(map)
         console.log("--> deep comparison failed: " + filename);
@@ -49,6 +49,8 @@ function roundtripTest(filename: string ): void {
 roundtripTest("main.yml");
 roundtripTest("WopsS_RED4ext.SDK.build.yml");
 roundtripTest("actions-cool_issue-vote.test-all.yml");
-// roundtripTest("active-group_reacl-c-testing.tests.yml"); // TODO: obj[on]
-roundtripTest("finfet_kestrel.release.yml");
 roundtripTest("hashed-io_hashed-luhn-ui.gh-pages.yml");
+roundtripTest("active-group_reacl-c-testing.tests.yml", GithubActions2StalkCdEvaluation.specialCaseEqualityOn);
+roundtripTest("finfet_kestrel.release.yml", GithubActions2StalkCdEvaluation.specialCaseEqualityNeeds);
+
+console.log("Roundtrip successful.")

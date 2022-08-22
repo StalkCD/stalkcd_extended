@@ -109,7 +109,11 @@ export class GithubActions2StalkCdEvaluation {
         for (let element of workflowMap) {
             let expected: object = this.loadFile(element[0]);
             let actual: object = element[1];
-            compareDeeplyMap.set(element[0], Comparator.compareObjects(expected, actual))
+            compareDeeplyMap.set(
+                element[0],
+                Comparator.compareObjects(expected, actual,
+                (c, e, a) => this.specialCaseEqualityOn([...c], e, a) || this.specialCaseEqualityNeeds([...c], e, a))
+            )
         }
         return compareDeeplyMap
     }
@@ -251,4 +255,31 @@ export class GithubActions2StalkCdEvaluation {
         }
         return countedObjectsPerErrorType;
     }
+
+    public static specialCaseEqualityOn(context: any[], expected: any, actual: any): boolean {
+            try {
+                if (context.pop() === "on") {
+                    if (expected instanceof Array && typeof actual === "string") {
+                        return expected.length === 1 && expected[0] === actual
+                    }
+                }
+            } catch (err) {
+                return false
+            }
+            return false
+    }
+
+    public static specialCaseEqualityNeeds(context: any[], expected: any, actual: any): boolean {
+            try {
+                if (context.pop() === "needs") {
+                    if (actual instanceof Array && typeof expected === "string") {
+                        return actual.length === 1 && actual[0] === expected
+                    }
+                }
+            } catch (err) {
+                return false
+            }
+            return false
+    }
+
 }
