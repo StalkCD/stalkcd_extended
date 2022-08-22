@@ -200,6 +200,7 @@ export class GithubActionsFileParser {
 
     private steps(steps: { id?: string; if?: string; name?: string; uses?: string; run?: string; "working-directory"?: WorkingDirectory; shell?: Shell; with?: { [p: string]: string | number | boolean } | string; env?: { [p: string]: string | number | boolean } | string; "continue-on-error"?: boolean | ExpressionSyntax; "timeout-minutes"?: number }[] | undefined) {
         let pipelineSteps: Step[] = [];
+
         if (steps) {
             for (let stepKey in steps) {
                 let when: string[] | undefined = undefined;
@@ -247,7 +248,7 @@ export class GithubActionsFileParser {
                 }
                 let stageStep = new Step({
                     label: githubStep.name,
-                    command: githubStep.run ? (githubStep.shell ? githubStep.shell + " " : " ") + githubStep.run : "$uses$ " + githubStep.uses,
+                    command: this.getCommand(githubStep),
                     reusableCallParameters: reusableCallParameters,
                     environment: environment,
                     when: when,
@@ -258,6 +259,20 @@ export class GithubActionsFileParser {
         }
         return pipelineSteps;
     }
+
+    /**
+     * apparently it is possible to only give a name without any processing.
+     * @param githubStep
+     * @private
+     */
+    private getCommand(githubStep: { id?: string; if?: string; name?: string; uses?: string; run?: string; "working-directory"?: WorkingDirectory; shell?: Shell; with?: { [p: string]: string | number | boolean } | string; env?: { [p: string]: string | number | boolean } | string; "continue-on-error"?: boolean | ExpressionSyntax; "timeout-minutes"?: number }) {
+        if (githubStep.run) {
+            return (githubStep.shell ? githubStep.shell + " " : " ") + githubStep.run;
+        } else if (githubStep.uses) {
+            return "$uses$ " + githubStep.uses;
+        }
+    }
+
 
     private doStepWith(githubStep: { id?: string; if?: string; name?: string; uses?: string; run?: string; "working-directory"?: WorkingDirectory; shell?: Shell; with?: { [p: string]: string | number | boolean } | string; env?: { [p: string]: string | number | boolean } | string; "continue-on-error"?: boolean | ExpressionSyntax; "timeout-minutes"?: number }): {[p: string]: string | number | boolean} | undefined {
         if (typeof githubStep.with === 'string') {

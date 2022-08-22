@@ -138,11 +138,13 @@ export class GithubWorkflowGenerator {
     }
 
     private getShell(command: string | undefined): string | undefined {
-        if (command?.startsWith("$uses$ ")) {
-            return undefined
+        if (command) {
+            if (command.startsWith("$uses$ ")) {
+                return undefined;
+            }
+            let split: any = command?.split(" ");
+            return split[0].length > 0 ? split[0] : undefined;
         }
-        let split: any = command?.split(" ");
-        return split[0].length > 0 ? split[0] : undefined;
     }
 
     private doOptionForWorkflow(optionString: string): void {
@@ -220,13 +222,12 @@ export class GithubWorkflowGenerator {
     }
 
     private getUses(command: string | undefined) {
-        if (command === undefined) {
-            return undefined
-        }
-        if (!command.includes("$uses$ ")) {
-            return undefined;
+        if (command) {
+            if (!command.includes("$uses$ ")) {
+                return undefined;
+            }
+            return command.replace("$uses$ ", "");
         }
 
-        return command.replace("$uses$ ", "");
     }
 }
