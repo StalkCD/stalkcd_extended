@@ -1,5 +1,6 @@
 import {Comparator} from "../main/Comparator";
 import {GithubActions2StalkCdEvaluation as GHAEval} from "../test/github/GithubActions2StalkCdEvaluation";
+import {AssertionError} from "./Asserts";
 
 let actualFull: object = {
     myString: "myValue",
@@ -25,6 +26,7 @@ function doPositiveComparison(expected: object, actual: object, specialCasesCall
         console.log(map)
         console.log(errors);
         console.log("errors are not as expected");
+        throw new AssertionError("Comparison was not successful.")
     } else {
         console.log("success")
     }
@@ -38,6 +40,7 @@ function doNegativeComparison(expectedErros: string[], expected: object, actual:
     if (!areErrorsSame(expectedErros, actualErrors)) {
         console.log(map)
         console.log("errors are not as expected");
+        throw new AssertionError("Comparison was not successful.")
     } else {
         console.log("success");
     }

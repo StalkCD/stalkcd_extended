@@ -1,7 +1,6 @@
 import { Runner } from './Runner';
 import { GitHubDownloader } from './JenkinsfileDownloader';
 import { Jenkins2StalkCDEvaluation } from '../test/jenkins/Jenkins2StalkCdEvaluation';
-import {GithubActionsFileParser} from "./model/GitHubActions/GithubActionsFileParser";
 import {GithubActions2StalkCdEvaluation} from "../test/github/GithubActions2StalkCdEvaluation";
 
 enum Mode {
@@ -16,6 +15,7 @@ enum Mode {
     EvaluateJ2S,
     Test,
     DownloadSampleGithhubActionFiles,
+    EvaluateGithub2StalkCD,
 }
 
 let mode: Mode = Mode.Help;
@@ -105,6 +105,13 @@ program
         config = cmd;
     });
 
+program
+    .command('evaluate-github2stalkcd')
+    .action((cmd:String) => {
+        mode = Mode.EvaluateGithub2StalkCD;
+        config = cmd;
+    });
+
 program.command('test')
     .action((cmd:String) => {
         mode = Mode.Test;
@@ -170,15 +177,14 @@ switch (+mode) {
     case Mode.EvaluateJ2S:
         new Jenkins2StalkCDEvaluation().evaluate();
         break;
-    case Mode.Test:
-        // TestUtils.validateJsonSchema("res/schema/github-workflow.json", ".github/workflows/main.yml")
-        // TestUtils.generateTypesFromJsonSchema("res/schema/github-workflow.json", "src/main/model/GitHubActions/GeneratedTypes.ts");
-        // let githubActionsFileParser = new GithubActionsFileParser();
-        // let pipeline = githubActionsFileParser.parse(".github/workflows/main.yml");
-        // console.log(pipeline);
-        // let buffer: any = JSON.parse(fs.readFileSync("2022-07-07_allFiles.json").toString());
-        // new GitHubDownloader('res/GithubActions.source').downloadFilesInList(buffer)
+    case Mode.EvaluateGithub2StalkCD:
+        require('../unitTest/ComparatorTest.js')
+        require('../unitTest/GithubActionsFileParserTest.js')
+        require('../unitTest/GithubActionsRoundtripTest.js')
         GithubActions2StalkCdEvaluation.evaluate()
+        break;
+    case Mode.Test:
+
         break;
     default:
         program.outputHelp();
