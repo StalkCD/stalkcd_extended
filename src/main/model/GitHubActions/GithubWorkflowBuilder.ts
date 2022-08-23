@@ -45,7 +45,7 @@ export class WorkflowBuilder {
         return this;
     }
 
-    env(key: string, value: string | number | boolean | undefined): WorkflowBuilder {
+    env(key: string | undefined, value: string | number | boolean | undefined): WorkflowBuilder {
         // single element
         if (this._env === undefined && key === undefined && typeof value === "string") {
             this._env = value;
@@ -164,7 +164,7 @@ class JobBuilder {
         return this._currentStep
     }
 
-    env(key: string, value: string | number | boolean | undefined): JobBuilder {
+    env(key: string | undefined, value: string | number | boolean | undefined): JobBuilder {
         // single element
         if (this._env === undefined && key === undefined && typeof value === "string") {
             this._env = value;

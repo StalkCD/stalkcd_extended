@@ -53,7 +53,7 @@ export class GithubWorkflowGenerator {
 
         let env: EnvironmentVariable[] | undefined = pipeline.environment;
         if (env) {
-            env.forEach(e => this.builder.env(e.name, e.value))
+            env.forEach(e => this.builder.env(e.name === "EXTERNAL_ENVIRONMENT" ? undefined : e.name, e.value))
         }
     }
     private doStage(stage: IStage): void {
@@ -82,7 +82,7 @@ export class GithubWorkflowGenerator {
                 }
 
                 // normal env processing
-                this.builder.currentJob().env(environmentVariable.name, environmentVariable.value);
+                this.builder.currentJob().env(environmentVariable.name === "EXTERNAL_ENVIRONMENT" ? undefined : environmentVariable.name, environmentVariable.value);
             }
         }
 

@@ -112,7 +112,10 @@ export class GithubActions2StalkCdEvaluation {
             compareDeeplyMap.set(
                 element[0],
                 Comparator.compareObjects(expected, actual,
-                    (c, e, a) => this.specialCaseEqualityOn([...c], e, a) || this.specialCaseEqualityNeeds([...c], e, a))
+                    (c, e, a) => this.specialCaseEqualityOn([...c], e, a)
+                        || this.specialCaseEqualityNeeds([...c], e, a)
+                        || this.specialCaseEqualityEnvAndEnvironment([...c], e)
+                )
             )
         }
         return compareDeeplyMap
@@ -278,9 +281,10 @@ export class GithubActions2StalkCdEvaluation {
      * This is evil, please don't do this manipulation of the object.
      * Reason: manipulating an object while it is processed is bad practice and can lead to funny errors or the crash of the program.
      * This only works because intrinsic workings of the Comparator-Class are known to the programmer [ck] and objects in JS are mutable.
+     * Also this is still ambiguous since there can be "env" and "environment at the same time.
      */
     public static specialCaseEqualityEnvAndEnvironment(context: any[], expected: any): boolean {
-        if (context[context.length - 2] === "jobs" && expected.environment !== undefined) {
+        if (context[context.length - 2] === "jobs" && expected.environment !== undefined && expected.env === undefined) {
             expected.env = expected.environment
             delete expected.environment
         }
