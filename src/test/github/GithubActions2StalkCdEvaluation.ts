@@ -7,13 +7,16 @@ import {JsonSchemaValidator} from "../../main/JsonSchemaValidator";
 import {Comparator} from "../../main/Comparator";
 import {GithubWorkflow} from "../../main/model/GitHubActions/GeneratedTypes";
 import * as yaml from "js-yaml";
+import {TestUtils} from "../TestUtils";
+import {JSZipObject} from "jszip";
 
 export class GithubActions2StalkCdEvaluation {
 
     private static readonly _sourcePath: PathLike = "res/GithubActions.source";
 
-    public static evaluate() {
-        let files: string[] = this.getFiles();
+    public static async evaluate() {
+        let files = await this.setup();
+
         // parse all
         let parserResult: GithubActionsFileParser = this.parseFiles(files, true, []);
         let zeroErrorResults: Map<string, Map<string, number>> = this.reduceEvaluationMap(parserResult.evaluation, this.getAmountPredicate(0));
@@ -26,26 +29,48 @@ export class GithubActions2StalkCdEvaluation {
 
         // Get evaluation basis
         let workflowsValidityMap: Map<string, boolean> = this.schemaValidation(generatedWorkflows);
-        let workflowsComparisonMap: Map<string, Map<string, string[]>> = this.compareDeeply(generatedWorkflows);
+        let workflowsComparisonDeeplyMap: Map<string, Map<string, string[]>> = this.compareDeeply(generatedWorkflows);
+        let workflowsComparisonSemanticMap: Map<string, Map<string, string[]>> = this.compareSemantically(generatedWorkflows);
 
-        // check if everything has run successfully
-        workflowsValidityMap.forEach((value, key) => {
-            if (!value) {
-                console.log(key + " was unable to be validated after generation.")
-            }
-        });
-        console.log();
-        let counter = 0
-        workflowsComparisonMap.forEach((value, key) => {
+        // check successful for success
+        let totalFiles = files.length
+        // @ts-ignore
+        let resultOfProcessing: number = parserResult.evaluation.get("total");
+        let failedSemanticComparison = this.getFailedComparisons(workflowsComparisonSemanticMap)
+        let failedDeepComparison = this.getFailedComparisons(workflowsComparisonDeeplyMap)
+
+        let validWorkflowsAfterProcessing: number = 0
+        let failedValidationAfterProcessing: number = 0
+        workflowsValidityMap.forEach((value) => value ? validWorkflowsAfterProcessing++ : failedValidationAfterProcessing++)
+
+        console.log("Total Files found and processed: " + totalFiles)
+        console.log("Result of processing:")
+        console.log(resultOfProcessing)
+        console.log("Schema-Valid Workflows after processing: " + validWorkflowsAfterProcessing)
+        console.log("Failed validation of Workflows after processing: " + failedValidationAfterProcessing)
+        console.log("Failed deep comparison for: " + failedDeepComparison)
+        console.log("Failed semantic comparison for: " + failedSemanticComparison)
+        console.log("Total successful Converted: " + (workflowsComparisonSemanticMap.size - failedSemanticComparison))
+
+    }
+
+    private static getFailedComparisons(workflowsComparisonDeeplyMap: Map<string, Map<string, string[]>>): number {
+        let failedComparison = 0
+        workflowsComparisonDeeplyMap.forEach((value) => {
             if (value.size > 0) {
-                counter++
-                console.log(key + " contains deep comparioson errors.")
-                console.log(value)
-                console.log()
+                failedComparison++
             }
         })
-        console.log("Failed deep comparison for: " + counter)
-        console.log("Total Converted: " + workflowsComparisonMap.size)
+        return failedComparison;
+    }
+
+    private static async setup(): Promise<string[]> {
+        if (fs.existsSync(this._sourcePath)) {
+            TestUtils.removeDirectoryRecursively(this._sourcePath);
+        }
+        fs.mkdirSync(this._sourcePath);
+        await this.unzipSourceData()
+        return this.getFiles();
     }
 
     /**
@@ -95,7 +120,7 @@ export class GithubActions2StalkCdEvaluation {
         for (let element of workflowMap) {
             let isValid = true
             try {
-                validator.validate(element[1]);
+                validator.validateObject(element[1]);
             } catch (err) {
                 isValid = false
             }
@@ -104,7 +129,7 @@ export class GithubActions2StalkCdEvaluation {
         return isSchemaValidMap;
     }
 
-    public static compareDeeply(workflowMap: Map<string, any>) {
+    public static compareSemantically(workflowMap: Map<string, any>) {
         let compareDeeplyMap: Map<string, Map<string, string[]>> = new Map();
         for (let element of workflowMap) {
             let expected: object = this.loadFile(element[0]);
@@ -116,6 +141,19 @@ export class GithubActions2StalkCdEvaluation {
                         || this.specialCaseEqualityNeeds([...c], e, a)
                         || this.specialCaseEqualityEnvAndEnvironment([...c], e)
                 )
+            )
+        }
+        return compareDeeplyMap
+    }
+
+    public static compareDeeply(workflowMap: Map<string, any>) {
+        let compareDeeplyMap: Map<string, Map<string, string[]>> = new Map();
+        for (let element of workflowMap) {
+            let expected: object = this.loadFile(element[0]);
+            let actual: object = element[1];
+            compareDeeplyMap.set(
+                element[0],
+                Comparator.compareObjects(expected, actual)
             )
         }
         return compareDeeplyMap
@@ -290,4 +328,17 @@ export class GithubActions2StalkCdEvaluation {
         }
         return false
     }
+
+    private static async unzipSourceData() {
+        await TestUtils.unzip("res/GithubActions.source.zip", (file: JSZipObject, content: Buffer) => {
+                if (file.dir) {
+                    return;
+                }
+
+                let indexOf = file.name.lastIndexOf('/');
+                fs.writeFileSync(this._sourcePath + "/" + file.name.slice(indexOf), content)
+            }
+        )
+    }
+
 }

@@ -24,4 +24,9 @@ export class JsonSchemaValidator {
         valid ? console.log(`successfully validated file ${dataPath}.`) : throws(() => new ValidationError(this.schema.errors));
     }
 
+    public validateObject(data: object ) {
+        const valid: boolean = this.schema(data);
+        valid ? console.log("successfully validated.") : throws(() => new ValidationError(this.schema.errors));
+    }
+
 }
