@@ -6,8 +6,11 @@ import {separateKeyValue} from "../../util";
 import {EnvironmentVariable} from "../pipeline/EnvironmentSection";
 import {IAgentOption} from "../pipeline/AgentSection";
 
+export interface WorkflowGenerator {
+    run(pipeline: Pipeline): any;
+}
 
-export class GithubWorkflowGenerator {
+export class GithubWorkflowGenerator implements WorkflowGenerator{
 
     private builder: WorkflowBuilder;
     private doExperimentalConversion: boolean
