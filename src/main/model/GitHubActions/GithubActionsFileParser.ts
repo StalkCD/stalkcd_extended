@@ -179,6 +179,9 @@ export class GithubActionsFileParser {
             if (job.name) {
                 pipelineStage.baseName = job.name;
             }
+
+            this.failIfUnsuportedJobAttributePresent(job)
+
             pipelineStage.when = GithubActionsFileParser.when(job)
             pipelineStage.agent = this.agent(job)
             pipelineStage.environment = GithubActionsFileParser.environment(job)
@@ -475,5 +478,25 @@ export class GithubActionsFileParser {
             })
         }
         return agents;
+    }
+
+    private failIfUnsuportedJobAttributePresent(job: NormalJob): void {
+        // @ts-ignore
+        let uses: any = job.uses;
+        if (uses !== undefined) {
+            this.error("The attribute 'uses' is present in job: '" + uses + "'", PIR.JobUses)
+        }
+
+        // @ts-ignore
+        let jobWith: any = job.with
+        if (jobWith !== undefined) {
+            this.error("The attribute 'with' is present in job: '" + jobWith + "'", PIR.JobWith)
+        }
+
+        // @ts-ignore
+        let jobSecrets: any = job.secrets
+        if (jobSecrets !== undefined) {
+            this.error("The attribute 'secrets' is present in job: '" + jobSecrets + "'", PIR.JobSecrets)
+        }
     }
 }
