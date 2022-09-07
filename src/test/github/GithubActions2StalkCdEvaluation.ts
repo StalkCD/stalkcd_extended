@@ -9,10 +9,32 @@ import {GithubWorkflow} from "../../main/model/GitHubActions/GeneratedTypes";
 import * as yaml from "js-yaml";
 import {TestUtils} from "../TestUtils";
 import {JSZipObject} from "jszip";
+import {ValidationError} from "../../main/errors/ValidationError";
 
 export class GithubActions2StalkCdEvaluation {
 
     private static readonly _sourcePath: PathLike = "res/GithubActions.source";
+
+    private static expectedResultMap = new Map<string, number>();
+
+    static {
+        this.expectedResultMap.set("OnIsUnknownType", 0)
+        this.expectedResultMap.set("UnableToHandleReusableWorkflowCallJob", 20)
+        this.expectedResultMap.set("SelfHosted", 11)
+        this.expectedResultMap.set("HasOutput", 41)
+        this.expectedResultMap.set("ContinueOnErrorIsString", 0)
+        this.expectedResultMap.set("StepId", 1038)
+        this.expectedResultMap.set("StepIf", 0)
+        this.expectedResultMap.set("StepWith", 0)
+        this.expectedResultMap.set("StepEnvironment", 0)
+        this.expectedResultMap.set("StepTimeoutMinutes", 360)
+        this.expectedResultMap.set("StepContinueOnError", 190)
+        this.expectedResultMap.set("ValidationFailed", 95)
+        this.expectedResultMap.set("UnknownError", 84)
+        this.expectedResultMap.set("StepWithArgs", 0)
+        this.expectedResultMap.set("StepWithEntrypoint", 0)
+        this.expectedResultMap.set("StepWorkingDirectory", 0)
+    }
 
     public static async evaluate() {
         let files = await this.setup();
@@ -35,7 +57,7 @@ export class GithubActions2StalkCdEvaluation {
         // check successful for success
         let totalFiles = files.length
         // @ts-ignore
-        let resultOfProcessing: number = parserResult.evaluation.get("total");
+        let resultOfProcessing: Map<string, number> = parserResult.evaluation.get("total");
         let failedSemanticComparison = this.getFailedComparisons(workflowsComparisonSemanticMap)
         let failedDeepComparison = this.getFailedComparisons(workflowsComparisonDeeplyMap)
 
@@ -50,9 +72,55 @@ export class GithubActions2StalkCdEvaluation {
         console.log("Failed validation of Workflows after processing: " + failedValidationAfterProcessing)
         console.log("Failed deep comparison for: " + failedDeepComparison)
         console.log("Failed semantic comparison for: " + failedSemanticComparison)
-        console.log("Total successful Converted: " + (workflowsComparisonSemanticMap.size - failedSemanticComparison))
+        let successfullyConverted: number = workflowsComparisonSemanticMap.size - failedSemanticComparison;
+        console.log("Total successful Converted: " + successfullyConverted)
+
+        this.checkValidation(totalFiles, resultOfProcessing, successfullyConverted, validWorkflowsAfterProcessing, failedValidationAfterProcessing, failedDeepComparison, failedSemanticComparison)
 
     }
+
+    private static checkValidation(totalFiles: number, resultOfProcessing: Map<string, number>, successfullyConverted: number, validWorkflowsAfterProcessing: number, failedValidationAfterProcessing: number, failedDeepComparison: number, failedSemanticComparison: number): void {
+        if (totalFiles !== 1182) {
+            throw new ValidationError("Wrong number of Files found for correct Processing")
+        }
+        if (resultOfProcessing.size === this.expectedResultMap.size) {
+            for (let entry of resultOfProcessing) {
+                let expectedValue: number | undefined = this.expectedResultMap.get(entry[0]);
+                if (expectedValue === undefined) {
+                    throw new ValidationError(entry[0] + " is not defined in the expectedResultMap.");
+                }
+                if (expectedValue !== entry[1]) {
+                    throw new ValidationError("The error-type " + entry[0] + " has not the expected amount of " + expectedValue);
+                }
+
+            }
+        } else {
+            throw new ValidationError("There are more error-types than know to the expected error map.")
+        }
+
+        if (successfullyConverted !== 727) {
+            throw new ValidationError("The successfull conversion was not as expected.\nexpected: 727\actual: " + successfullyConverted)
+        }
+
+        if (validWorkflowsAfterProcessing !== 723) {
+            throw new ValidationError("The schema-valid workflows was not as expected.\nexpected: 723\actual: " + validWorkflowsAfterProcessing)
+        }
+
+        if (failedValidationAfterProcessing !== 5) {
+            throw new ValidationError("The failed schema-validation of workflows was not as expected.\nexpected: 5\actual: " + failedValidationAfterProcessing)
+        }
+
+        if (failedDeepComparison !== 88) {
+            throw new ValidationError("The failed deep comparison of workflows was not as expected.\nexpected: 88\actual: " + failedDeepComparison)
+        }
+
+        if (failedSemanticComparison !== 1) {
+            throw new ValidationError("The failed semantic comparison of workflows was not as expected.\nexpected: 88\actual: " + failedSemanticComparison)
+        }
+
+        console.log("All values are as expected.")
+    }
+
 
     private static getFailedComparisons(workflowsComparisonDeeplyMap: Map<string, Map<string, string[]>>): number {
         let failedComparison = 0
