@@ -1,25 +1,25 @@
-import {IPipeline, Pipeline} from "../pipeline/Pipeline";
-import {IStage} from "../pipeline/Stage";
-import {IStep} from "../pipeline/Step";
+import {GithubWorkflowGenerator} from "./GitHubWorkflowGenerator";
 import {WorkflowBuilder} from "./GithubWorkflowBuilder";
-import {separateKeyValue} from "../../util";
+import {IPipeline, Pipeline} from "../pipeline/Pipeline";
 import {EnvironmentVariable} from "../pipeline/EnvironmentSection";
+import {IStage} from "../pipeline/Stage";
 import {IAgentOption} from "../pipeline/AgentSection";
+import {separateKeyValue} from "../../util";
+import {IPostSection} from "../pipeline/PostSection";
+import {IStep} from "../pipeline/Step";
+import * as YAML from "json-to-pretty-yaml";
 
+export class GitHubWorkflowGeneratorFromJenkinsPipeline extends GithubWorkflowGenerator{
 
-export class GithubWorkflowGeneratorFromJenkinsPipeline {
-
-    private builder: WorkflowBuilder;
-
-    constructor() {
-        this.builder = new WorkflowBuilder()
-    }
+constructor() {
+   super()
+}
 
     run(pipeline: Pipeline) {
         this.doPipeline(pipeline);
         let stages = pipeline.stages;
         for (let stage of stages) {
-            this.doStage(stage, pipeline);
+            this.doStageWPipeline(stage, pipeline);
             let steps = stage.steps;
             if (steps !== undefined) {
                 for (let step of steps) {
@@ -32,7 +32,8 @@ export class GithubWorkflowGeneratorFromJenkinsPipeline {
         return this.builder.build();
     }
 
-    private doPipeline(pipeline: IPipeline) {
+
+    protected doPipeline(pipeline: IPipeline) {
         let triggers
         if (pipeline.triggers == undefined)
         {
@@ -55,18 +56,27 @@ export class GithubWorkflowGeneratorFromJenkinsPipeline {
             .on(triggers)
             .name(name[0])
 
+
+        //TODO Add mapping for jenkinsfile options to GHA, see https://www.jenkins.io/doc/book/pipeline/syntax/#options
+        //Options for jobs in a pipeline are not parsed with StalkCD yet, so there is no corresponding implementation for workflow options
         let options: string[] | undefined = pipeline.options;
         if (options) {
-            options.forEach(s => this.doOptionForWorkflow(s))
+            this.builder.unknownOptionsObjects(options)
         }
 
         let env: EnvironmentVariable[] | undefined = pipeline.environment;
         if (env) {
             env.forEach(e => this.builder.env(e.name, e.value))
         }
+
+        let post: IPostSection | undefined = pipeline.post;
+        if (post) {
+            this.doPostSection(post, false);
+        }
     }
 
-    private doStage(stage: IStage, pipeline: IPipeline): void {
+
+    protected doStageWPipeline (stage: IStage, pipeline: IPipeline): void {
         let id: string | undefined = stage.name;
 
         //in jenkinsfiles a name for stages is also mandatory
@@ -87,13 +97,11 @@ export class GithubWorkflowGeneratorFromJenkinsPipeline {
             if (agent) {
                 agent.forEach(keyValue => this.doAgent(keyValue))
             }
-            else{   //Jenkinsfiles without Agent are invalid because Agent is mandatory in jeknkins
+            else{   //Jenkinsfiles without Agent are invalid because Agent is mandatory in jenkins
                 throw new Error("There was no Agent declared in the Jenkinsfile. ")
             }
 
-
         }
-
 
 
         let options: string[] | undefined = stage.options;
@@ -114,29 +122,47 @@ export class GithubWorkflowGeneratorFromJenkinsPipeline {
                 this.builder.currentJob().env(environmentVariable.name, environmentVariable.value);
             }
         }
+
+
+        let post: IPostSection | undefined = stage.post
+        if (post) {
+            this.doPostSection(post, true)
+        }
+
+
     }
 
-    private doAgent(keyValue: IAgentOption) {
+
+    protected doAgent(keyValue: IAgentOption) {
         if (keyValue.name === "runs-on") {
             this.builder.currentJob().runsOn(keyValue.value)
         }
 
         else{
-            keyValue.value = " # Please replace former jenkins file entry for agent '" + keyValue.name + "' with corresponding GHA run environment."
-            this.builder.currentJob().runsOn(keyValue.value)
+            let jobAgent = " # Please replace former jenkins file entry for agent '" + JSON.stringify(keyValue)+ "' with corresponding GHA run environment."
+            this.builder.currentJob().runsOn(jobAgent)
         }
 
     }
 
-    private doStep(step: IStep): void {
-        this.builder.currentJob().step()
-            .name(step.label)
-            .shell(this.getShell(step.command))
-            .run(this.getRun(step.command))
-            .end()
+
+    protected doPostSection(postSection: IPostSection, postOnJobLayer : Boolean) {
+
+        var postString = ""
+        Object.entries(postSection).forEach(prop => {
+            if (prop[1].length > 0 && prop[0] != "propertiesOrder") {
+                 postString = postString + JSON.stringify(prop)
+            }
+        })
+        if (postString.length > 0 && postOnJobLayer == false)
+        {this.builder.postSection(postString)}
+        else if (postString.length > 0 && postOnJobLayer == true)
+        {this.builder.currentJob().postSection(postString)}
     }
 
-    private getShell(command: string | undefined): string | undefined {
+
+
+    protected getShell(command: string | undefined): string | undefined {
         let split: any = command?.split(" ");
         if(split[0] == "bash" || split[0] == "pwsh" || split[0] == "python" || split[0] == "sh" || split[0] == "cmd" || split[0] == "powershell"){
             return split[0]
@@ -147,7 +173,9 @@ export class GithubWorkflowGeneratorFromJenkinsPipeline {
 
     }
 
-    private getRun(command: string | undefined): string | undefined {
+
+
+    protected getRun(command: string | undefined): string | undefined {
         if (command) {
             let shell: string | undefined = this.getShell(command);
             if (shell != undefined) {
@@ -160,63 +188,6 @@ export class GithubWorkflowGeneratorFromJenkinsPipeline {
         return command;
     }
 
-    private doOptionForWorkflow(optionString: string): void {
-        let strings: string[] = separateKeyValue(optionString);
-        let key: string = strings[0];
-        let value: string = strings[1];
-
-        if (key.startsWith("defaults.run_")) {
-            let defaultRunKey: string = key.split("_")[1];
-            this.builder.defaultsRun(defaultRunKey, value);
-        }
-
-        if (key.startsWith("concurrency")) {
-            this.builder.concurrency(value);
-        }
-        if (key.startsWith("concurrencyJSON")) {
-            this.builder.concurrency(JSON.parse(value));
-        }
-
-        if (key.startsWith("permissions")) {
-            this.builder.permissions(value);
-        }
-        if (key.startsWith("permissionsJSON")) {
-            this.builder.permissions(JSON.parse(value));
-        }
-    }
-
-    private doOptionForJob(optionString: string): void {
-        let strings: string[] = separateKeyValue(optionString);
-        let key: string = strings[0];
-        let value: string = strings[1];
-
-        if (key.startsWith("defaults.run_")) {
-            let defaultRunKey: string = key.split("_")[1];
-            this.builder.currentJob().defaultsRun(defaultRunKey, value);
-        }
-
-        if (key.startsWith("concurrency")) {
-            this.builder.currentJob().concurrency(value);
-        }
-        if (key.startsWith("concurrencyJSON")) {
-            this.builder.currentJob().concurrency(JSON.parse(value));
-        }
-
-        if (key.startsWith("permissions")) {
-            this.builder.currentJob().permissions(value);
-        }
-        if (key.startsWith("permissionsJSON")) {
-            this.builder.currentJob().permissions(JSON.parse(value));
-        }
-
-        if (key.startsWith("timeout-minutes")) {
-            this.builder.currentJob().timeoutMinutes(Number.parseInt(value))
-        }
-
-        if (key.startsWith("needs")) {
-            this.builder.currentJob().needs(value)
-        }
-    }
 
 
 }

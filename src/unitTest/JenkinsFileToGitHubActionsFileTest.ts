@@ -3,24 +3,31 @@ import * as fs from 'fs';
 import {GithubWorkflowGenerator} from "../main/model/GitHubActions/GitHubWorkflowGenerator";
 import {JsonSchemaValidator} from "../main/JsonSchemaValidator";
 import {GithubActionsFileParser} from "../main/model/GitHubActions/GithubActionsFileParser";
-import {
-    GithubWorkflowGeneratorFromJenkinsPipeline
-} from "../main/model/GitHubActions/GHWorkflowGeneratorFromJenkinsPipeline";
 import {StalkCdWriter} from "../main/io/StalkCdWriter";
 import * as yaml from "js-yaml";
 import * as YAML from "json-to-pretty-yaml";
+import {
+    GitHubWorkflowGeneratorFromJenkinsPipeline
+} from "../main/model/GitHubActions/GitHubWorkflowGeneratorFromJenkinsPipeline";
 
 //parse jenkinsfile to pipeline
 const parser = new JenkinsfileParser();
-const pipeline = parser.parse(fs.readFileSync("testRes/jenkinsToGHA/azerbadjani_jenkins.Jenkinsfile").toString());
+const readFile = fs.readFileSync("testRes/jenkinsToGHA/teknofile_maven-test.Jenkinsfile").toString()
+const pipeline = parser.parse(readFile);
 
 //generate GHA file from pipeline
-let generator: GithubWorkflowGeneratorFromJenkinsPipeline = new GithubWorkflowGeneratorFromJenkinsPipeline();
+let generator: GitHubWorkflowGeneratorFromJenkinsPipeline = new GitHubWorkflowGeneratorFromJenkinsPipeline();
 let result = generator.run(pipeline)
-let resultString: string = JSON.stringify(generator.run(pipeline));
+//let jenkinsYaml = YAML.stringify(readFile)
+
+//var readFileWithoutQuotes= readFile.replace(/[\n]+/g, '\\')
+result.originalJenkinsfile = readFile
+
+let resultString: string = JSON.stringify(result);
+
 console.log("-----------------")
 console.log(resultString)
 console.log("-----------------")
 fs.writeFileSync("testJ2GHAfile.json", resultString)
-fs.writeFileSync("testJ2GHAfile.yaml", YAML.stringify(result))
+fs.writeFileSync("testJ2GHAfile.yaml", YAML.stringify(result).replace(/["]+/g, ' '))
 new JsonSchemaValidator(GithubActionsFileParser.GITHUB_WORKFLOW_SCHEMA_PATH).validate("testJ2GHAfile.json")

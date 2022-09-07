@@ -18,6 +18,12 @@ export class WorkflowBuilder {
     } = {}
     private _currentJob: JobBuilder = new JobBuilder(this, "", this._jobs);
 
+    //used to store information from jenkinsfile which could not mapped to a valid GitHub Workflow object
+    private _unknownWorkflowOptions : string | object | undefined;
+
+    // used to store the post section from a jenkinsfile workflow
+    private _postsection : string | object | undefined;
+
     // flags
     private readonly doExperimentalConversion: boolean;
 
@@ -91,6 +97,18 @@ export class WorkflowBuilder {
         return this;
     }
 
+    unknownOptionsObjects(value: string | object | undefined): WorkflowBuilder {
+        this._unknownWorkflowOptions = " # The following options could not be mapped to GitHub Actions: " + value
+        return this;
+    }
+
+    // TODO: this is conceptually wrong, please correct if possible
+    //  The reason is that it is not a part of the GithubWorkflow-Datastructure but originated from Jenkins
+    postSection(value: string | object | undefined): WorkflowBuilder {
+        this._postsection = " #The following steps were part of the post section in the jenkinsfile. Please transform these to steps with the corresponding GHA condition: " + value
+        return this;
+    }
+
     job(id: string): JobBuilder {
         this._currentJob = new JobBuilder(this, id, this._jobs);
         return this._currentJob;
@@ -109,7 +127,7 @@ export class WorkflowBuilder {
 
     build(): any {
         // TODO: "timeout-minutes": this._timeoutMinutes,
-        // TODO: options for Job(s),
+        // TODO: options for Job(s), Henning: Die werden aus meiner Sicht nicht geparst von StalkCD?!
         let obj = {
             name: this._name,
             on: this._on,
@@ -117,7 +135,9 @@ export class WorkflowBuilder {
             defaults: this.workflowDefaulthelper(),
             concurrency: this._concurrency,
             permissions: this._permissions,
-            jobs: this._jobs
+            jobs: this._jobs,
+            unknownWorkflowOptions: this._unknownWorkflowOptions, // TODO: remove this in future version; this is not part of GithubWorkflow-Datastructure
+            jenkins_post_steps: this._postsection // TODO: remove this in future version; this is not part of GithubWorkflow-Datastructure
         };
         return removeUndefinedKeys(obj);
     }
@@ -148,6 +168,10 @@ class JobBuilder {
     private _continueOnError: boolean | undefined;
     private _container: object | undefined;
     private _services: object | undefined;
+
+    // used to store the post section from a jenkinsfile job
+    private _postsection : string | object | undefined; // TODO: remove this in future version; this is not part of GithubWorkflow-Datastructure
+
 
     constructor(parent: WorkflowBuilder, id: string, jobs: { [p: string]: any }) {
         this._id = id
@@ -237,6 +261,12 @@ class JobBuilder {
         return this;
     }
 
+    // TODO: remove this in future version; this is not part of GithubWorkflow-Datastructure
+    postSection(value: string | object | undefined): JobBuilder {
+        this._postsection = " #The following steps were part of the post section in the jenkinsfile. Please transform these to steps with the corresponding GHA condition: " + value
+        return this;
+    }
+
     end(): WorkflowBuilder {
         if (this.isEnd) { // never add the save job twice
             return this._parent;
@@ -293,7 +323,8 @@ class JobBuilder {
             "timeout-minutes": this._timeoutMinutes,
             if: this._if,
             steps: this._steps,
-            "continue-on-error": this._continueOnError
+            "continue-on-error": this._continueOnError,
+            jenkins_post_steps: this._postsection // TODO: remove this in future version; this is not part of GithubWorkflow-Datastructure
         }
     }
 }

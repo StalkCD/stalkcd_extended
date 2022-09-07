@@ -12,7 +12,7 @@ export interface WorkflowGenerator {
 
 export class GithubWorkflowGenerator implements WorkflowGenerator{
 
-    private builder: WorkflowBuilder;
+    protected builder: WorkflowBuilder;
     private doExperimentalConversion: boolean
 
     constructor(doExperimentalConversion?: boolean) {
@@ -25,7 +25,7 @@ export class GithubWorkflowGenerator implements WorkflowGenerator{
         this.doPipeline(pipeline);
         let stages = pipeline.stages;
         for (let stage of stages) {
-            this.doStage(stage);
+            this.doStageWithPipeline(stage);
             let steps = stage.steps;
             if (steps !== undefined) {
                 for (let step of steps) {
@@ -38,7 +38,7 @@ export class GithubWorkflowGenerator implements WorkflowGenerator{
         return this.builder.build();
     }
 
-    private doPipeline(pipeline: IPipeline) {
+    protected doPipeline(pipeline: IPipeline) {
         let triggers = pipeline.triggers;
         let name: string[] = pipeline.definitions ? pipeline.definitions : [];
         if (!triggers) {
@@ -59,7 +59,8 @@ export class GithubWorkflowGenerator implements WorkflowGenerator{
             env.forEach(e => this.builder.env(e.name === "EXTERNAL_ENVIRONMENT" ? undefined : e.name, e.value))
         }
     }
-    private doStage(stage: IStage): void {
+
+    protected doStageWithPipeline(stage: IStage): void {
         let id: string | undefined = stage.name;
         if (id === undefined) {
             throw new Error("name of Stage is required.")
@@ -106,7 +107,7 @@ export class GithubWorkflowGenerator implements WorkflowGenerator{
         }
     }
 
-    private doAgent(keyValue: IAgentOption) {
+    protected doAgent(keyValue: IAgentOption) {
         if (keyValue.name === "runs-on") {
             this.builder.currentJob().runsOn(keyValue.value)
         }
@@ -120,7 +121,7 @@ export class GithubWorkflowGenerator implements WorkflowGenerator{
         }
     }
 
-    private doStep(step: IStep): void {
+    protected doStep(step: IStep): void {
         this.builder.currentJob().step()
             .name(step.label)
             .shell(this.getShell(step.command))
@@ -133,14 +134,14 @@ export class GithubWorkflowGenerator implements WorkflowGenerator{
             .end()
     }
 
-    private getIfStatement(step: IStep): string | undefined {
+    protected getIfStatement(step: IStep): string | undefined {
         if (!step.when) {
             return undefined
         }
         return step.when.join(" || ");
     }
 
-    private getShell(command: string | undefined): string | undefined {
+    protected getShell(command: string | undefined): string | undefined {
         if (command) {
             if (command.startsWith("$uses$ ")) {
                 return undefined;
@@ -150,7 +151,7 @@ export class GithubWorkflowGenerator implements WorkflowGenerator{
         }
     }
 
-    private doOptionForWorkflow(optionString: string): void {
+    protected doOptionForWorkflow(optionString: string): void {
         let strings: string[] = separateKeyValue(optionString);
         let key: string = strings[0];
         let value: string = strings[1];
@@ -175,7 +176,7 @@ export class GithubWorkflowGenerator implements WorkflowGenerator{
         }
     }
 
-    private doOptionForJob(optionString: string): void {
+    protected doOptionForJob(optionString: string): void {
         let strings: string[] = separateKeyValue(optionString);
         let key: string = strings[0];
         let value: string = strings[1];
@@ -208,7 +209,7 @@ export class GithubWorkflowGenerator implements WorkflowGenerator{
         }
     }
 
-    private getRun(command: string | undefined): string | undefined {
+    protected getRun(command: string | undefined): string | undefined {
         if (command) {
             if (command.startsWith("$uses$ ")) {
                 return undefined
