@@ -2,6 +2,7 @@ import { Runner } from './Runner';
 import { GitHubDownloader } from './JenkinsfileDownloader';
 import { Jenkins2StalkCDEvaluation } from '../test/jenkins/Jenkins2StalkCdEvaluation';
 import {GithubActions2StalkCdEvaluation} from "../test/github/GithubActions2StalkCdEvaluation";
+import {JenkinsFileToGitHubActionsFileEvaluation} from "../test/JenkinsFileToGitHubActionsFileEvaluation";
 
 enum Mode {
     Help,
@@ -13,9 +14,11 @@ enum Mode {
     NormalizeJenkinsfile,
     DownloadSampleJenkinsfiles,
     EvaluateJ2S,
-    Test,
     DownloadSampleGithhubActionFiles,
     EvaluateGithub2StalkCD,
+    Jenkins2GitHubActions,
+    EvaluateJenkins2GHA,
+    Test
 }
 
 let mode: Mode = Mode.Help;
@@ -112,6 +115,23 @@ program
         config = cmd;
     });
 
+program
+    .command('jenkins2GitHubActions')
+    .option('-s, --source [file]', 'the source file [Jenkinsfile]', 'Jenkinsfile')
+    // TODO option for json target? Brauchen wir json Datei Generierung, wenn YAML?
+    .option('-t, --target [file]', 'the target file [GHA.yml]', 'GHA.yml')
+    .action((cmd:String) => {
+        mode = Mode.Jenkins2GitHubActions;
+        config = cmd;
+    });
+
+program
+    .command('evaluate-jenkins2GitHubActions')
+    .action((cmd:String) => {
+        mode = Mode.EvaluateJenkins2GHA;
+        config = cmd;
+    });
+
 program.command('test')
     .action((cmd:String) => {
         mode = Mode.Test;
@@ -183,6 +203,18 @@ switch (+mode) {
         require('../unitTest/GithubActionsRoundtripTest.js')
         GithubActions2StalkCdEvaluation.evaluate()
         break;
+
+    case Mode.Jenkins2GitHubActions:
+        console.log('Transforming Jenkinsfile > GitHubActions-file...');
+        //TODO Runner muss mit JenkinsfileToGitHubActionsFileTest.ts integriert werden.
+        new Runner().jenkinsfile2ghaFile(config, true);
+        break;
+
+    case Mode.EvaluateJenkins2GHA:
+        //TODO soll JenkinsFileToGitHubActionsFileEvaluation in Unit Test bleiben?
+        new JenkinsFileToGitHubActionsFileEvaluation().evaluate();
+        break;
+
     case Mode.Test:
 
         break;

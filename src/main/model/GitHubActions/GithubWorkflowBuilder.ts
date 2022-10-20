@@ -18,11 +18,7 @@ export class WorkflowBuilder {
     } = {}
     private _currentJob: JobBuilder = new JobBuilder(this, "", this._jobs);
 
-    //used to store information from jenkinsfile which could not mapped to a valid GitHub Workflow object
-    private _unknownWorkflowOptions : string | object | undefined;
-
-    // used to store the post section from a jenkinsfile workflow
-    private _postsection : string | object | undefined;
+    private _comments: string[] = [];
 
     // flags
     private readonly doExperimentalConversion: boolean;
@@ -35,8 +31,14 @@ export class WorkflowBuilder {
         this.doExperimentalConversion = doExperimentalConversions !== undefined ? doExperimentalConversions : false;
     }
 
-    on(value: string[]): WorkflowBuilder {
-        if (value.length === 1) {
+    on(value: string[]|undefined): WorkflowBuilder {
+
+        if(value === undefined)
+        {
+            this._on = undefined;
+        }
+
+        else if (value.length === 1) {
             this._on = value[0];
         } else if (this.doExperimentalConversion && value.length == 2 && value[0] === "onJSON") {
             this._on = JSON.parse(value[1])
@@ -97,17 +99,6 @@ export class WorkflowBuilder {
         return this;
     }
 
-    unknownOptionsObjects(value: string | object | undefined): WorkflowBuilder {
-        this._unknownWorkflowOptions = " # The following options could not be mapped to GitHub Actions: " + value
-        return this;
-    }
-
-    // TODO: this is conceptually wrong, please correct if possible
-    //  The reason is that it is not a part of the GithubWorkflow-Datastructure but originated from Jenkins
-    postSection(value: string | object | undefined): WorkflowBuilder {
-        this._postsection = " #The following steps were part of the post section in the jenkinsfile. Please transform these to steps with the corresponding GHA condition: " + value
-        return this;
-    }
 
     job(id: string): JobBuilder {
         this._currentJob = new JobBuilder(this, id, this._jobs);
@@ -124,6 +115,10 @@ export class WorkflowBuilder {
         }
     }
 
+    appendToComments(value: string){
+        this._comments?.push(value)
+    }
+
 
     build(): any {
         // TODO: "timeout-minutes": this._timeoutMinutes,
@@ -135,11 +130,28 @@ export class WorkflowBuilder {
             defaults: this.workflowDefaulthelper(),
             concurrency: this._concurrency,
             permissions: this._permissions,
-            jobs: this._jobs,
-            unknownWorkflowOptions: this._unknownWorkflowOptions, // TODO: remove this in future version; this is not part of GithubWorkflow-Datastructure
-            jenkins_post_steps: this._postsection // TODO: remove this in future version; this is not part of GithubWorkflow-Datastructure
+            jobs: this._jobs
         };
         return removeUndefinedKeys(obj);
+    }
+
+
+    buildComments(): any {
+
+        if(this._comments.length >0)
+        {
+            let commentString: string = "These are tips to make your generated, non-valid GHA-file  a valid one.\n\n";
+            this._comments.forEach(function (value) {
+                commentString = commentString + "-" + value + "\n\n"
+            });
+            return commentString;
+        }
+
+        else
+        {
+            return undefined;
+        }
+
     }
 
 }
@@ -258,12 +270,6 @@ class JobBuilder {
 
     runsOn(value: string | undefined): JobBuilder {
         this._runsOn = value;
-        return this;
-    }
-
-    // TODO: remove this in future version; this is not part of GithubWorkflow-Datastructure
-    postSection(value: string | object | undefined): JobBuilder {
-        this._postsection = " #The following steps were part of the post section in the jenkinsfile. Please transform these to steps with the corresponding GHA condition: " + value
         return this;
     }
 
