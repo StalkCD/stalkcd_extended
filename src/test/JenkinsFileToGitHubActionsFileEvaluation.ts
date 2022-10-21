@@ -1,7 +1,5 @@
 import {TestUtils} from "./TestUtils";
 import * as fs from 'fs';
-import {JenkinsfileStats} from "./JenkinsfileStats";
-import {JenkinsfileCollector, FileConfig} from "./JenkinsfileCollector";
 import {Runner} from "../main/Runner";
 import {reporters} from 'mocha';
 import {JSZipObject} from "jszip";
@@ -84,7 +82,7 @@ export class JenkinsFileToGitHubActionsFileEvaluation {
 
 
         let ghaValidator = new JsonSchemaValidator(GithubActionsFileParser.GITHUB_WORKFLOW_SCHEMA_PATH)
-        let schemaResult = ghaValidator.validate(config.ghaFileTarget)
+        let schemaResult = ghaValidator.validateWithoutException(config.ghaFileTarget)
 
         if(schemaResult == true)
         {

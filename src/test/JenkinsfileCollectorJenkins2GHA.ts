@@ -1,5 +1,4 @@
 import * as fs from 'fs';
-import {JenkinsfileStats} from './JenkinsfileStats';
 import {JenkinsfileStatsJenkins2GHA} from "./JenkinsfileStatsJenkins2GHA";
 
 export interface FileConfigJenkins2GHA {
