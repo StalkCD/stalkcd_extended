@@ -5,10 +5,8 @@ import {WorkflowBuilder} from "./GithubWorkflowBuilder";
 import {separateKeyValue} from "../../util";
 import {EnvironmentVariable} from "../pipeline/EnvironmentSection";
 import {IAgentOption} from "../pipeline/AgentSection";
+import {WorkflowGenerator} from "./WorkflowGenerator";
 
-export interface WorkflowGenerator {
-    run(pipeline: Pipeline): any;
-}
 
 export class GithubWorkflowGenerator implements WorkflowGenerator{
 

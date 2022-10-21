@@ -8,12 +8,15 @@ import {separateKeyValue} from "../../util";
 import {IPostSection} from "../pipeline/PostSection";
 import {IStep} from "../pipeline/Step";
 import * as YAML from "json-to-pretty-yaml";
+import {WorkflowGenerator} from "./WorkflowGenerator";
 
-export class GitHubWorkflowGeneratorFromJenkinsPipeline extends GithubWorkflowGenerator{
+export class GitHubWorkflowGeneratorFromJenkinsPipeline implements WorkflowGenerator{
 
-constructor() {
-   super()
-}
+    protected builder: WorkflowBuilder;
+
+    constructor() {
+        this.builder = new WorkflowBuilder();
+    }
 
     run(pipeline: Pipeline) {
         this.doPipeline(pipeline);
@@ -149,6 +152,26 @@ constructor() {
 
     }
 
+    protected doStep(step: IStep): void {
+        this.builder.currentJob().step()
+            .name(step.label)
+            .shell(this.getShell(step.command))
+            .run(this.getRun(step.command))
+            .uses(this.getUses(step.command))
+            .if(this.getIfStatement(step))
+            .with(step.reusableCallParameters)
+            .env(step.environment)
+            .workingDirectory(step.workingDirectory)
+            .end()
+    }
+
+    protected getIfStatement(step: IStep): string | undefined {
+        if (!step.when) {
+            return undefined
+        }
+        return step.when.join(" || ");
+    }
+
 
     protected doPostSection(postSection: IPostSection, postOnJobLayer : Boolean, jobId?:string) {
 
@@ -172,7 +195,6 @@ constructor() {
     }
 
 
-
     protected getShell(command: string | undefined): string | undefined {
         let split: any = command?.split(" ");
         if(split[0] == "bash" || split[0] == "pwsh" || split[0] == "python" || split[0] == "sh" || split[0] == "cmd" || split[0] == "powershell"){
@@ -184,6 +206,38 @@ constructor() {
 
     }
 
+    protected doOptionForJob(optionString: string): void {
+        let strings: string[] = separateKeyValue(optionString);
+        let key: string = strings[0];
+        let value: string = strings[1];
+
+        if (key.startsWith("defaults.run_")) {
+            let defaultRunKey: string = key.split("_")[1];
+            this.builder.currentJob().defaultsRun(defaultRunKey, value);
+        }
+
+        if (key.startsWith("concurrency")) {
+            this.builder.currentJob().concurrency(value);
+        }
+        if (key.startsWith("concurrencyJSON")) {
+            this.builder.currentJob().concurrency(JSON.parse(value));
+        }
+
+        if (key.startsWith("permissions")) {
+            this.builder.currentJob().permissions(value);
+        }
+        if (key.startsWith("permissionsJSON")) {
+            this.builder.currentJob().permissions(JSON.parse(value));
+        }
+
+        if (key.startsWith("timeout-minutes")) {
+            this.builder.currentJob().timeoutMinutes(Number.parseInt(value))
+        }
+
+        if (key.startsWith("needs")) {
+            this.builder.currentJob().needs(value)
+        }
+    }
 
 
     protected getRun(command: string | undefined): string | undefined {
@@ -199,6 +253,15 @@ constructor() {
         return command;
     }
 
+    private getUses(command: string | undefined) {
+        if (command) {
+            if (!command.includes("$uses$ ")) {
+                return undefined;
+            }
+            return command.replace("$uses$ ", "");
+        }
+
+    }
 
 
 }
