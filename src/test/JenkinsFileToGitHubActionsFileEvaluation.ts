@@ -1,6 +1,6 @@
 import {TestUtils} from "./TestUtils";
 import * as fs from 'fs';
-import {Runner} from "../main/Runner";
+import {FileGeneratorConfig, Runner} from "../main/Runner";
 import {reporters} from 'mocha';
 import {JSZipObject} from "jszip";
 import {FileConfigJenkins2GHA, JenkinsfileCollectorJenkins2GHA} from "./JenkinsfileCollectorJenkins2GHA";
@@ -8,6 +8,9 @@ import {JsonSchemaValidator} from "../main/JsonSchemaValidator";
 import {GithubActionsFileParser} from "../main/model/GitHubActions/GithubActionsFileParser";
 import {JenkinsfileStatsJenkins2GHA} from "./JenkinsfileStatsJenkins2GHA";
 import {eachItem} from "ajv/dist/compile/util";
+import {JenkinsfileParser} from "../main/io/jenkinsfile/jenkinsfile-parser";
+
+
 
 export class JenkinsFileToGitHubActionsFileEvaluation {
 
@@ -17,7 +20,31 @@ export class JenkinsFileToGitHubActionsFileEvaluation {
 
     private readonly _ghaTarget = 'res/GHAFiles.target';
 
-    async evaluate() {
+    /**
+     * Checks the configuration for validity
+     * @param config The configuration to check
+     */
+    assertFilePrerequisites(config: any) {
+
+        if(config.keepGeneratedFiles === "true"){
+            return true;
+        }
+
+        else if (config.keepGeneratedFiles === "false"){
+            return false
+        }
+
+        else {
+            throw new Error('The option to keep target files or not has to be defined with "true" or "false" instead of ' + config.keepGeneratedFiles);
+        }
+
+    }
+
+
+    async evaluate(config:String) {
+
+        const keepTargetFiles:Boolean = this.assertFilePrerequisites(config);
+
         if (fs.existsSync(this._jenkinsfileSource)) {
             TestUtils.removeDirectoryRecursively(this._jenkinsfileSource)
         }
@@ -32,7 +59,7 @@ export class JenkinsFileToGitHubActionsFileEvaluation {
         for (const config of configurations) {
             console.log(reporters.Base.color('suite', `\n-- ${config.jenkinsFileSource}\n-> ${config.ghaFileTarget}`));
             try {
-                await this.processFile(config);
+                await this.processFile(config, keepTargetFiles);
             } catch (err) {
                 console.trace(err);
             }
@@ -47,7 +74,10 @@ export class JenkinsFileToGitHubActionsFileEvaluation {
 
        // Cleanup
         TestUtils.removeDirectoryRecursively(this._jenkinsfileSource)
-        TestUtils.removeDirectoryRecursively(this._ghaTarget)
+
+        if (!keepTargetFiles){
+            TestUtils.removeDirectoryRecursively(this._ghaTarget)
+        }
 
     }
 
@@ -69,7 +99,7 @@ export class JenkinsFileToGitHubActionsFileEvaluation {
      * Process a Jenkinsfile
      * @param config The file configuration
      */
-    private async processFile(config: FileConfigJenkins2GHA) {
+    private async processFile(config: FileConfigJenkins2GHA, createYaml:Boolean) {
         // Jenkinsfile > GHAFile
         if (fs.existsSync(config.ghaFileTarget)) {
             fs.unlinkSync(config.ghaFileTarget);
@@ -78,7 +108,7 @@ export class JenkinsFileToGitHubActionsFileEvaluation {
         await new Runner().jenkinsfile2ghaFile({
             source: config.jenkinsFileSource,
             target: config.ghaFileTarget,
-        }, false);
+        }, false, createYaml);
 
 
         let ghaValidator = new JsonSchemaValidator(GithubActionsFileParser.GITHUB_WORKFLOW_SCHEMA_PATH)

@@ -128,7 +128,7 @@ export class Runner {
      * Transform a Jenkinsfile into a GitHubActions file
      * @param config The configuration
      */
-    async jenkinsfile2ghaFile(config: JenkinsfileParserConfig, singleFileTransformation: Boolean) {
+    async jenkinsfile2ghaFile(config: JenkinsfileParserConfig, singleFileTransformation: Boolean, evaluationCreateYaml?: Boolean) {
 
         this.assertFilePrerequisites(config);
 
@@ -144,6 +144,9 @@ export class Runner {
         //create GHAfile in JSON, creation of json is necessary for the validation of a generated GHA file
         if(!singleFileTransformation){
             fs.writeFileSync(config.target, JSON.stringify(results[0]));
+            if (evaluationCreateYaml === true){
+                fs.writeFileSync(config.target + ".yaml", YAML.stringify(results[0]).replace(/["]+/g, ' '))
+            }
         }
 
         //if the conversion is done with the evaluation, the following steps are not needed (validation is done in other class, no yaml needed)

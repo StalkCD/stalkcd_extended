@@ -127,6 +127,7 @@ program
 
 program
     .command('evaluate-jenkins2GitHubActions')
+    .option('-k, --keepGeneratedFiles [Boolean]', 'Boolean value determines if generated files are saved', 'false')
     .action((cmd:String) => {
         mode = Mode.EvaluateJenkins2GHA;
         config = cmd;
@@ -206,13 +207,12 @@ switch (+mode) {
 
     case Mode.Jenkins2GitHubActions:
         console.log('Transforming Jenkinsfile > GitHubActions-file...');
-        //TODO Runner muss mit JenkinsfileToGitHubActionsFileTest.ts integriert werden.
         new Runner().jenkinsfile2ghaFile(config, true);
         break;
 
     case Mode.EvaluateJenkins2GHA:
         //TODO soll JenkinsFileToGitHubActionsFileEvaluation in Unit Test bleiben?
-        new JenkinsFileToGitHubActionsFileEvaluation().evaluate();
+        new JenkinsFileToGitHubActionsFileEvaluation().evaluate(config);
         break;
 
     case Mode.Test:
