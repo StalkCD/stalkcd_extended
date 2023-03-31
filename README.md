@@ -49,6 +49,9 @@ Some example commands:
 ./stalkcd evaluate-github2stalkcd
 ```
 
+## 
+./stalkcd download-ghafiles-and-logs -o hibernate -n hibernate-orm
+
 ## Further Information
 
 * [Development](documentation/Development.md)

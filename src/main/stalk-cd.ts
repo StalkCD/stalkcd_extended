@@ -3,6 +3,7 @@ import { GitHubDownloader } from './JenkinsfileDownloader';
 import { Jenkins2StalkCDEvaluation } from '../test/jenkins/Jenkins2StalkCdEvaluation';
 import {GithubActions2StalkCdEvaluation} from "../test/github/GithubActions2StalkCdEvaluation";
 import {JenkinsFileToGitHubActionsFileEvaluation} from "../test/JenkinsFileToGitHubActionsFileEvaluation";
+import {DownloadGHAFilesAndLogs} from "./DownloadGHAFilesAndLogs";
 
 enum Mode {
     Help,
@@ -18,7 +19,8 @@ enum Mode {
     EvaluateGithub2StalkCD,
     Jenkins2GitHubActions,
     EvaluateJenkins2GHA,
-    Test
+    Test,
+    DownloadGHAFilesAndLogs
 }
 
 let mode: Mode = Mode.Help;
@@ -139,6 +141,14 @@ program.command('test')
         config = cmd;
     })
 
+program.command('download-ghafiles-and-logs')
+    .option('-o, --owner [owner]', 'owner of the repository')
+    .option('-n, --name [name]', 'name of the repository')
+    .action((cmd:String) => {
+        mode = Mode.DownloadGHAFilesAndLogs;
+        config = cmd;
+    })
+
 program.on('--help', () => {
     console.log('');
     console.log('For more information, append -h after a command');
@@ -218,6 +228,19 @@ switch (+mode) {
     case Mode.Test:
 
         break;
+
+    case Mode.DownloadGHAFilesAndLogs:
+        let repoOwner = 'curl';
+        if (config.owner) {
+            repoOwner = config.owner;
+        }
+        let repoName = 'curl';
+        if (config.name) {
+            repoName = config.name;
+        }
+        new DownloadGHAFilesAndLogs(repoOwner, repoName).downloadFiles();
+        break;
+
     default:
         program.outputHelp();
         break;
