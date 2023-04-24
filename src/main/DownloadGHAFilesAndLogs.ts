@@ -20,15 +20,16 @@ export class DownloadGHAFilesAndLogs {
 
     repoName: string;
     repoOwner: string;
+    workflowName: string;
 
-    constructor(repoOwner: string, repoName: string) {
+    constructor(repoOwner: string, repoName: string, workflowName: string) {
 
         this.repoName = repoName;
         this.repoOwner = repoOwner;
-
+        this.workflowName = workflowName;
     }
 
-    private token: string = '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'
+    private token: string = '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'
     private targetFileName = "";
     private targetDir = "res/GHAFilesandLogs/";
 
@@ -40,14 +41,15 @@ export class DownloadGHAFilesAndLogs {
 
         try {
 
-            const fileContents = this.getAllWorkflows();
-            //const differentWorkflows: Workflow[] = this.getWorkflows(fileContents);
-            const workflowsJson = JSON.parse(await fileContents);
+            let fileContents = await this.getAllWorkflows();
+
+            const workflowsJson = JSON.parse(fileContents);
             const amountWorkflows = Object.keys(workflowsJson.workflows).length;
 
             for (let i = 0; i < amountWorkflows; i++) {
                 if(workflowsJson.workflows[i] !== undefined) {
                     this.createWorkflowFoldersAndFile(workflowsJson.workflows[i] as Workflow);
+                    this.DownloadYamlFile(workflowsJson.workflows[i]);
                 }
             }
 
@@ -61,9 +63,25 @@ export class DownloadGHAFilesAndLogs {
                         let path = workflowsJson.workflows[i].name + "/" + "runid_" + RunsOfWorkflowJson.workflow_runs[j].id;
                         this.createTargetDir(path);
                         let writePath = this.targetDir + "/" + path + "/" + "runid_" + RunsOfWorkflowJson.workflow_runs[j].id +".json";
-                        fs.writeFileSync(writePath, JSON.stringify(RunsOfWorkflowJson.workflow_runs[j]), {encoding: 'utf8'});
+                        fs.writeFile(writePath, JSON.stringify(RunsOfWorkflowJson.workflow_runs[j]), {encoding: 'utf8'}, err => {});
 
-                        const JobsOfWorkflow = await this.getJobsOfRun(RunsOfWorkflowJson.workflow_runs[j].id);
+                        const jobsOfRun = await this.getJobsOfRun(RunsOfWorkflowJson.workflow_runs[j].id);
+                        const jobsOfRunJson = JSON.parse(jobsOfRun);
+                        const amountJobsOfRun = Object.keys(jobsOfRunJson.jobs).length;
+                        const jobPath = this.targetDir + "/" + path + "/" + "runid_" + RunsOfWorkflowJson.workflow_runs[j].id + "_jobs.json";
+                        fs.writeFile(jobPath, JSON.stringify(jobsOfRunJson), {encoding: 'utf8'}, err => {})
+                        console.log(Object.keys(jobsOfRunJson.jobs).length);
+
+                        for (let k = 0; k < amountJobsOfRun; k++) {
+                            let path = workflowsJson.workflows[i].name + "/" + "runid_" + RunsOfWorkflowJson.workflow_runs[j].id + "/jobid_" + jobsOfRunJson.jobs[k].id;
+                            let filePath = this.targetDir + "/" + path + "/jobid_" + jobsOfRunJson.jobs[k].id + ".json";
+                            this.createTargetDir(path);
+                            fs.writeFile(filePath, JSON.stringify(jobsOfRunJson.jobs[k]), {encoding: 'utf8'}, err => {})
+
+                            const logOfJob = await this.getLogOfJob(jobsOfRunJson.jobs[k].id);
+                            let logPath = this.targetDir + "/" + path + "/jobid_" + jobsOfRunJson.jobs[k].id + "_log.json";
+                            fs.writeFile(logPath, logOfJob, {encoding: 'utf8'}, err => {})
+                        }
                     }
                     console.log(amountRunsOfWorkflow);
                 }
@@ -74,9 +92,17 @@ export class DownloadGHAFilesAndLogs {
         }
     }
 
-    private async getJobsOfRun(runID: any): Promise<any> {
 
+    private async getLogOfJob(jobId: any): Promise<any> {
+        let fileContentsResponse = await this.tryFetch(`https://api.github.com/repos/${this.repoOwner}/${this.repoName}/actions/jobs/${jobId}/logs`);
+        let fileContents = await fileContentsResponse.text();
+        return fileContents;
+    }
 
+    private async getJobsOfRun(runId: any): Promise<any> {
+        let fileContentsResponse = await this.tryFetch(`https://api.github.com/repos/${this.repoOwner}/${this.repoName}/actions/runs/${runId}/jobs`);
+        let fileContents = await fileContentsResponse.text();
+        return fileContents;
     }
 
 
@@ -104,7 +130,7 @@ export class DownloadGHAFilesAndLogs {
         totalContents = totalContents + "]}"
         const path: string = this.targetDir + "/" + workflow.name + "/";
         const fileName: string = workflow.name + "_runs.json";
-        //fs.writeFileSync(path + fileName, totalContents, {encoding: 'utf8'});
+        fs.writeFile(path + fileName, totalContents, {encoding: 'utf8'}, err => {});
         return totalContents;
     }
     /**
@@ -118,7 +144,9 @@ export class DownloadGHAFilesAndLogs {
         this.createTargetDir(workflow.name);
         const json = JSON.stringify(workflow);
         const path: string = this.targetDir + "/" + workflow.name + "/" + workflow.name + ".json";
-        fs.writeFileSync(path, json, {encoding: 'utf8'});
+        if(!fs.existsSync(path)) {
+            fs.writeFile(path, json, {encoding: 'utf8'}, err => {});
+        }
     }
 
     /**
@@ -148,7 +176,8 @@ export class DownloadGHAFilesAndLogs {
      */
     private async getAllWorkflows(): Promise<any> {
         const fileContentsResponse = await this.tryFetch(`https://api.github.com/repos/${this.repoOwner}/${this.repoName}/actions/workflows`);
-        const fileContents = await fileContentsResponse.text();
+        let fileContentsJson = await fileContentsResponse.json();
+        let fileContents = JSON.stringify(fileContentsJson);
 
         this.targetDir = this.targetDir + this.repoName;
         this.createTargetDir();
@@ -156,6 +185,16 @@ export class DownloadGHAFilesAndLogs {
         this.targetFileName = this.repoName + "_workflows.json";
 
         const path: string = this.targetDir + '/' + this.targetFileName;
+
+        if(this.workflowName != null && this.workflowName != "") {
+            let indexOfWorkflow = 0;
+            for(let i = 0; i < Object.keys(fileContentsJson.workflows).length; i++) {
+                if(fileContentsJson.workflows[i].name == this.workflowName) {
+                    indexOfWorkflow = i;
+                }
+            }
+            fileContents = "{\"workflows\":[" + JSON.stringify(fileContentsJson.workflows[indexOfWorkflow]) + "]}";
+        }
 
         fs.writeFile(path, fileContents, {encoding: 'utf8'}, (err: any) => {
 
@@ -190,5 +229,18 @@ export class DownloadGHAFilesAndLogs {
 
         console.log("request successful: " + url)
         return res;
+    }
+
+    private async DownloadYamlFile(workflow: any) {
+        let path = workflow.path;
+        const fileContentsResponse = await this.tryFetch(`https://api.github.com/repos/${this.repoOwner}/${this.repoName}/contents/${path}`);
+        const fileContentsJson = await fileContentsResponse.json();
+        const fileContents = JSON.stringify(fileContentsJson);
+        fs.writeFile(this.targetDir + "/" + workflow.name + "/yaml_" + workflow.name +".json", fileContents, {encoding: 'utf8'}, (err: any) => {
+        })
+        const yamlContentsResponse = await this.tryFetch(fileContentsJson.download_url);
+        const yamlContents = await yamlContentsResponse.text();
+        fs.writeFile(this.targetDir + "/" + workflow.name + "/" + workflow.name +".yml", yamlContents, {encoding: 'utf8'}, (err: any) => {
+        })
     }
 }

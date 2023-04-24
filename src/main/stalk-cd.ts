@@ -4,6 +4,7 @@ import { Jenkins2StalkCDEvaluation } from '../test/jenkins/Jenkins2StalkCdEvalua
 import {GithubActions2StalkCdEvaluation} from "../test/github/GithubActions2StalkCdEvaluation";
 import {JenkinsFileToGitHubActionsFileEvaluation} from "../test/JenkinsFileToGitHubActionsFileEvaluation";
 import {DownloadGHAFilesAndLogs} from "./DownloadGHAFilesAndLogs";
+import {GetKPIs} from "./GetKPIs";
 
 enum Mode {
     Help,
@@ -20,7 +21,8 @@ enum Mode {
     Jenkins2GitHubActions,
     EvaluateJenkins2GHA,
     Test,
-    DownloadGHAFilesAndLogs
+    DownloadGHAFilesAndLogs,
+    GetKPIs
 }
 
 let mode: Mode = Mode.Help;
@@ -144,8 +146,17 @@ program.command('test')
 program.command('download-ghafiles-and-logs')
     .option('-o, --owner [owner]', 'owner of the repository')
     .option('-n, --name [name]', 'name of the repository')
+    .option('-w, --workflow [workflow]', 'workflow of the repository')
     .action((cmd:String) => {
         mode = Mode.DownloadGHAFilesAndLogs;
+        config = cmd;
+    })
+
+program.command('get-kpis')
+    .option('-n, --name [name]', 'name of the repository')
+    .option('-w, --workflow [workflow]', 'workflow of the repository')
+    .action((cmd:string) => {
+        mode = Mode.GetKPIs;
         config = cmd;
     })
 
@@ -238,7 +249,23 @@ switch (+mode) {
         if (config.name) {
             repoName = config.name;
         }
-        new DownloadGHAFilesAndLogs(repoOwner, repoName).downloadFiles();
+        let workflowName = '';
+        if(config.workflow) {
+            workflowName = config.workflow;
+        }
+        new DownloadGHAFilesAndLogs(repoOwner, repoName,workflowName).downloadFiles();
+        break;
+
+    case Mode.GetKPIs:
+        let repoNameForKPIs = 'curl';
+        if (config.name) {
+            repoNameForKPIs = config.name;
+        }
+        let workflowNameForKPIs = 'CodeQL';
+        if(config.workflow) {
+            workflowNameForKPIs = config.workflow;
+        }
+        new GetKPIs(repoNameForKPIs, workflowNameForKPIs).getKPIs();
         break;
 
     default:
