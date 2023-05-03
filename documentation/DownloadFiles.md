@@ -25,7 +25,7 @@ When creating the token no scope is required.
 After the token is created, it is only shown once.
 It is therefore required to save it separately.
 
-![Github generate token page](images/github_tokenPage.png)
+![Github generate token page](../images/github_tokenPage.png)
 
 [//]: # (![Github token scope]&#40;images/github_scopePage.png&#41;)
 
@@ -37,6 +37,6 @@ There are some tools available which support making REST-Requests, notably is [c
 
 The following Screenshots are taken in Postman.
 The first shows how the request is structured and the second how to do the authentication with the Github-API.
-![Get-Request-Parameters](images/postman_query.png)
-![Authorization Github-API](images/postman_authorization.png)
+![Get-Request-Parameters](../images/postman_query.png)
+![Authorization Github-API](../images/postman_authorization.png)
 
