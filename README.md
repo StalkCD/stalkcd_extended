@@ -36,3 +36,4 @@ tsc
 * [Download Files from Github](documentation/DownloadFiles.md)
 * [Docker](documentation/Docker.md)
 * [CLI Commands](documentation/Commands.md)
+* [ANTLR Grammar Update](documentation/AntlrUpgrade.md)
