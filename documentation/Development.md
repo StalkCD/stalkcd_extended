@@ -9,6 +9,8 @@ Just run:
 tsc -watch
 ```
 
+or activate it in the settings of your IDE.
+
 ## Important Packages and Classes
 ```
 src/main/stalk-cd.ts

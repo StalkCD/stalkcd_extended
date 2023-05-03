@@ -30,26 +30,9 @@ Or, if you have installed typescript globally (`npm -g i typescript`), just run:
 tsc
 ```
 
-## Execute Transformations
-The application can be used 
-* to transform Jenkinsfiles to BPMN and back.
-* to transform Github Action Files to StalkCD and back.
-* to transform Jenkinsfiles to Github Action Files (viá StalkCD)
-
-You can get help on the usage of the tool by running `./stalkcd`.
-For more detailed help, append '-h' to a command, e.g.: `./stalkcd jenkins2stalkcd -h`.
-
-Some example commands:
-
-```shell
-./stalkcd jenkins2stalkcd -s ./Jenkinsfile -t ./Jenkinsfile.yml
-./stalkcd stalkcd2bpmn -s ./Jenkinsfile.yml -t ./Jenkinsfile.bpmn
-./stalkcd bpmn2stalkcd -s ./Jenkinsfile.bpmn -t ./Jenkinsfile.yml
-./stalkcd stalkcd2jenkins -s ./Jenkinsfile.yml -t ./Jenkinsfile
-./stalkcd evaluate-github2stalkcd
-```
-
 ## Further Information
 
 * [Development](documentation/Development.md)
 * [Download Files from Github](documentation/DownloadFiles.md)
+* [Docker](documentation/Docker.md)
+* [CLI Commands](documentation/Commands.md)
