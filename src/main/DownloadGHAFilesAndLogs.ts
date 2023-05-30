@@ -29,7 +29,8 @@ export class DownloadGHAFilesAndLogs {
         this.workflowName = workflowName;
     }
 
-    private token: string = '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'
+    //TODO: make token varibale 
+    private token: string = ''
     private targetFileName = "";
     private targetDir = "res/GHAFilesandLogs/";
 
@@ -38,6 +39,14 @@ export class DownloadGHAFilesAndLogs {
      *
      */
     async downloadFiles() {
+        let baseDir: string = 'res/GHAFilesandLogs'
+        if(!fs.existsSync(baseDir)) {
+            fs.mkdir(baseDir, 0o777, (err: any) => {
+                if (err) {
+                    console.error(`Could not create directory '${baseDir}'`, err);
+                }
+            });
+        }
 
         try {
 
@@ -155,15 +164,9 @@ export class DownloadGHAFilesAndLogs {
      * @private
      */
     private createTargetDir(folder?: string) {
+        
         let targetDir: string = this.targetDir;
-        let baseDir: string = 'res/GHAFilesandLogs'
-        if(!fs.existsSync(baseDir)) {
-            fs.mkdir(baseDir, 0o777, (err: any) => {
-                if (err) {
-                    console.error(`Could not create directory '${baseDir}'`, err);
-                }
-            });
-        }
+        
         if(typeof folder !== 'undefined') {
             targetDir = targetDir + "/" + folder;
         }

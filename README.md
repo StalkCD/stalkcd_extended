@@ -52,6 +52,10 @@ Some example commands:
 ## 
 ./stalkcd download-ghafiles-and-logs -o hibernate -n hibernate-orm -w CodeQL
 
+## Run the Server
+- run "npm install express @types/express nodemon"
+- start server with "npm run dev"
+
 ## Further Information
 
 * [Development](documentation/Development.md)
