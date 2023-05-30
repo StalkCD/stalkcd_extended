@@ -24,7 +24,42 @@ export class GetKPIs {
 
         let avgBuildDuration = this.getAvgBuildDuration(runsFileJson);
         let arrivalRate = this.getArrivalRate(runsFileJson);
-        //this.test();
+        let buildResults = this.getBuildResults(runsFileJson);
+    }
+
+    private getBuildResults(runsFileJson: any) {
+
+        let results: any[] = [];
+
+        const amountWorkflowRuns = Object.keys(runsFileJson.workflow_runs).length;
+        for (let i = 0; i < amountWorkflowRuns; i++) {
+            results.push(runsFileJson.workflow_runs[i].conclusion);
+        }
+
+        let map  = results.reduce(function (prev, cur) {
+            prev[cur] = (prev[cur] || 0) + 1;
+            return prev;
+        }, {});
+
+        let unique = results.filter(function onlyUnique(value, index, array) {
+            return array.indexOf(value) === index;
+        });
+
+        let resultsArray: any[][] = [];
+
+        for(let i = 0; i < unique.length; i++) {
+            let arrival: any[] = [];
+            arrival.push(unique[i]);
+            arrival.push(map[unique[i]]);
+            resultsArray.push(arrival);
+        }
+        /*
+        for(let j = 0; j < resultsArray.length; j++) {
+            console.log(resultsArray[j][0]);
+            console.log(resultsArray[j][1]);
+        }
+         */
+        return resultsArray;
     }
 
     private getAvgBuildDuration(runsFileJson: any) {

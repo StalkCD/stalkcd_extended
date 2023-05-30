@@ -50,7 +50,7 @@ Some example commands:
 ```
 
 ## 
-./stalkcd download-ghafiles-and-logs -o hibernate -n hibernate-orm
+./stalkcd download-ghafiles-and-logs -o hibernate -n hibernate-orm -w CodeQL
 
 ## Further Information
 

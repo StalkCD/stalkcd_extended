@@ -29,7 +29,7 @@ export class DownloadGHAFilesAndLogs {
         this.workflowName = workflowName;
     }
 
-    private token: string = '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'
+    private token: string = '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'
     private targetFileName = "";
     private targetDir = "res/GHAFilesandLogs/";
 
