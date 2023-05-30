@@ -21,16 +21,16 @@ export class DownloadGHAFilesAndLogs {
     repoName: string;
     repoOwner: string;
     workflowName: string;
+    token: string;
 
-    constructor(repoOwner: string, repoName: string, workflowName: string) {
+    constructor(repoOwner: string, repoName: string, workflowName: string, token: string) {
 
         this.repoName = repoName;
         this.repoOwner = repoOwner;
         this.workflowName = workflowName;
+        this.token = token;
     }
 
-    //TODO: make token varibale 
-    private token: string = ''
     private targetFileName = "";
     private targetDir = "res/GHAFilesandLogs/";
 

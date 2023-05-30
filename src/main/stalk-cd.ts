@@ -147,6 +147,7 @@ program.command('download-ghafiles-and-logs')
     .option('-o, --owner [owner]', 'owner of the repository')
     .option('-n, --name [name]', 'name of the repository')
     .option('-w, --workflow [workflow]', 'workflow of the repository')
+    .option('-t, --token [token]', 'token for the github api')
     .action((cmd:String) => {
         mode = Mode.DownloadGHAFilesAndLogs;
         config = cmd;
@@ -253,7 +254,12 @@ switch (+mode) {
         if(config.workflow) {
             workflowName = config.workflow;
         }
-        new DownloadGHAFilesAndLogs(repoOwner, repoName,workflowName).downloadFiles();
+        let token = '';
+        if(config.token) {
+            token = config.token;
+        }
+
+        new DownloadGHAFilesAndLogs(repoOwner, repoName, workflowName, token).downloadFiles();
         break;
 
     case Mode.GetKPIs:

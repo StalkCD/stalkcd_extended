@@ -50,7 +50,7 @@ Some example commands:
 ```
 
 ## 
-./stalkcd download-ghafiles-and-logs -o hibernate -n hibernate-orm -w CodeQL
+./stalkcd download-ghafiles-and-logs -o hibernate -n hibernate-orm -w CodeQL -t "YOUR GitHub-Token"
 
 ## Run the Server
 - run "npm install express @types/express nodemon"
