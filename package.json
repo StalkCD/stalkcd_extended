@@ -7,7 +7,8 @@
     "start": "node dist/index.js",
     "test": "nyc mocha --inline-diffs -r ts-node/register test/**/*.ts --timeout=10000",
     "prestart": "tsc",
-    "antlr4ts": "antlr4ts -visitor src/main/io/jenkinsfile/antlr4/jenkinsfile.g4"
+    "antlr4ts": "antlr4ts -visitor src/main/io/jenkinsfile/antlr4/jenkinsfile.g4",
+    "dev": "nodemon src/main/server.ts"
   },
   "comments": {
     "On Scripts": "To generate new antlr4ts files, e.g. after changing the grammarfile, please downgrade antlr4ts to version \"0.5.0-alpha.1\", generate the antlr files and upgrade back to version \"0.5.0-alpha.4\" before compiling to JS.",
