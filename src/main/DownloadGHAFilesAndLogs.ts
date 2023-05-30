@@ -156,6 +156,14 @@ export class DownloadGHAFilesAndLogs {
      */
     private createTargetDir(folder?: string) {
         let targetDir: string = this.targetDir;
+        let baseDir: string = 'res/GHAFilesandLogs'
+        if(!fs.existsSync(baseDir)) {
+            fs.mkdir(baseDir, 0o777, (err: any) => {
+                if (err) {
+                    console.error(`Could not create directory '${baseDir}'`, err);
+                }
+            });
+        }
         if(typeof folder !== 'undefined') {
             targetDir = targetDir + "/" + folder;
         }
