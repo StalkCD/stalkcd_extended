@@ -1,5 +1,11 @@
 import * as fs from 'fs';
 
+interface KPIs {
+    avgBuildDuration: number;
+    arrivalRate: string;
+    buildResults: any[];
+}
+
 export class GetKPIs {
 
     repoNameForKPIs: string;
@@ -11,7 +17,7 @@ export class GetKPIs {
         this.workflowNameForKPIs = workflowNameForKPIs;
     }
 
-    async getKPIs() {
+    async getKPIs(): Promise<KPIs> {
 
         if (!fs.existsSync(`./res/GHAFilesandLogs/${this.repoNameForKPIs}`)) {
             throw new Error('The repo does not exist.');
@@ -23,8 +29,16 @@ export class GetKPIs {
         let runsFileJson = JSON.parse(runsFile);
 
         let avgBuildDuration = this.getAvgBuildDuration(runsFileJson);
-        let arrivalRate = this.getArrivalRate(runsFileJson);
+        console.log("avgBuildDuration is " + avgBuildDuration + "ms or " + avgBuildDuration/1000 + " seconds with " + Object.keys(runsFileJson.workflow_runs).length + " runs.");
+        
+        let arrivalRate = (await this.getArrivalRate(runsFileJson)).toString();
+        console.log("arrivalRate is " + arrivalRate);
+        
         let buildResults = this.getBuildResults(runsFileJson);
+        console.log("buildResults is " + buildResults);
+
+        //TODO: return KPIs with right values (arrivalrate??)
+        return {avgBuildDuration, arrivalRate, buildResults}
     }
 
     private getBuildResults(runsFileJson: any) {

@@ -1,5 +1,6 @@
 import { Express } from "express";
-import routes from "./routes/download";
+import downloadRoutes from "./routes/download";
+import kPIRoutes from "./routes/kpis";
 import * as http from "http";
 import express = require("express");
 
@@ -26,7 +27,8 @@ router.use((req, res, next) => {
 });
 
 /** Routes */
-router.use("/", routes);
+router.use("/download", downloadRoutes);
+router.use("/kpis", kPIRoutes);
 
 /** Error handling */
 router.use((req, res, next) => {
