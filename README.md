@@ -54,7 +54,7 @@ Some example commands:
 
 ## Run the Server
 - run "npm install express @types/express nodemon"
-- start server with "npm run dev"
+- start server with "npm run server"
 - Test with Postman: "http://localhost:6060/download/hibernate/hibernate-orm/CodeQL/YOUR GitHub-Token"
 
 ## Further Information

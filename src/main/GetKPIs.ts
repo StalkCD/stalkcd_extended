@@ -2,7 +2,7 @@ import * as fs from 'fs';
 
 interface KPIs {
     avgBuildDuration: number;
-    arrivalRate: string;
+    arrivalRate: any[];
     buildResults: any[];
 }
 
@@ -29,15 +29,9 @@ export class GetKPIs {
         let runsFileJson = JSON.parse(runsFile);
 
         let avgBuildDuration = this.getAvgBuildDuration(runsFileJson);
-        console.log("avgBuildDuration is " + avgBuildDuration + "ms or " + avgBuildDuration/1000 + " seconds with " + Object.keys(runsFileJson.workflow_runs).length + " runs.");
-        
-        let arrivalRate = (await this.getArrivalRate(runsFileJson)).toString();
-        console.log("arrivalRate is " + arrivalRate);
-        
+        let arrivalRate = (await this.getArrivalRate(runsFileJson));
         let buildResults = this.getBuildResults(runsFileJson);
-        console.log("buildResults is " + buildResults);
 
-        //TODO: return KPIs with right values (arrivalrate??)
         return {avgBuildDuration, arrivalRate, buildResults}
     }
 
