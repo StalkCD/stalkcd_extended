@@ -1,10 +1,5 @@
 import * as fs from 'fs';
-
-interface Kpis {
-    avgBuildDuration: number;
-    arrivalRate: any[];
-    buildResults: any[];
-}
+import { Kpis } from './DTOs/kpis';
 
 export class GetKPIs {
 
@@ -29,7 +24,7 @@ export class GetKPIs {
         let runsFileJson = JSON.parse(runsFile);
 
         let avgBuildDuration = this.getAvgBuildDuration(runsFileJson);
-        let arrivalRate = (await this.getArrivalRate(runsFileJson));
+        let arrivalRate = await this.getArrivalRate(runsFileJson);
         let buildResults = this.getBuildResults(runsFileJson);
 
         let kpis: Kpis = {avgBuildDuration, arrivalRate, buildResults};

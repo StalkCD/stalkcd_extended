@@ -1,15 +1,14 @@
 import { Request, Response } from "express";
 import { GetKPIs } from "../GetKPIs";
+import { Kpis } from "../DTOs/kpis";
 
 const getKPIs = async (req: Request, res: Response) => {
     let repoNameForKPIs: string = req.params.repoName;
     let workflowNameForKPIs: string = req.params.workflowName;
   
-    let kpis = await new GetKPIs(repoNameForKPIs, workflowNameForKPIs).getKPIs();
+    let kpis: Kpis = await new GetKPIs(repoNameForKPIs, workflowNameForKPIs).getKPIs();
   
-    return res.status(200).json({
-        kpis
-    });
+    return res.status(200).json({kpis});
   };
   
   export default { getKPIs };
