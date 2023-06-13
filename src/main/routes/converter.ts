@@ -3,7 +3,7 @@ import controller from "../controllers/converter";
 
 const router = Router();
 
-router.get(
+router.post(
   "/JenkinsToStalkCd",
   controller.konvertJenkinsToStalkCd
 );

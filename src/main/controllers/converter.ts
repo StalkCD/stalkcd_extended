@@ -8,14 +8,19 @@ const konvertJenkinsToStalkCd = async (req: Request, res: Response) => {
 
     //target name + location
     // let target = req.body.target;
-    let target = './testRes/test.yml';
+    let target = './res/StalkCDYamls/';
+
+    // let fileName = req.body.fileName;
+    let fileName = 'test.yml';
+
 
     let config: any = {
         source: source,
-        target: target
+        target: target + fileName
     };
 
     await new Runner().jenkinsfile2stalkCd(config);
+    
     return res.status(200).json({
         message: 'Konverting complete.'
     });
