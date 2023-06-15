@@ -3,8 +3,8 @@ import { GitHubDownloader } from './JenkinsfileDownloader';
 import { Jenkins2StalkCDEvaluation } from '../test/jenkins/Jenkins2StalkCdEvaluation';
 import {GithubActions2StalkCdEvaluation} from "../test/github/GithubActions2StalkCdEvaluation";
 import {JenkinsFileToGitHubActionsFileEvaluation} from "../test/JenkinsFileToGitHubActionsFileEvaluation";
-import {DownloadGHAFilesAndLogs} from "./DownloadGHAFilesAndLogs";
-import {GetKPIs} from "./GetKPIs";
+import {DownloadGHAFilesAndLogs} from "./GHAFilesAndCharacteristics/DownloadGHAFilesAndLogs";
+import {GetKPIs} from "./GHAFilesAndCharacteristics/GetKPIs";
 
 enum Mode {
     Help,
@@ -259,7 +259,9 @@ switch (+mode) {
             token = config.token;
         }
 
-        new DownloadGHAFilesAndLogs(repoOwner, repoName, workflowName, token).downloadFiles();
+        let save : boolean;
+        save = true;
+        new DownloadGHAFilesAndLogs(repoOwner, repoName, workflowName, token).downloadFiles(save);
         break;
 
     case Mode.GetKPIs:

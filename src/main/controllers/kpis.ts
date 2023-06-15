@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { GetKPIs } from "../GetKPIs";
+import { GetKPIs } from "../GHAFilesAndCharacteristics/GetKPIs";
 import { Kpis } from "../DTOs/kpis";
 
 const getKPIs = async (req: Request, res: Response) => {

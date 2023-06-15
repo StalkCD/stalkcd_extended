@@ -49,7 +49,7 @@ Some example commands:
 ./stalkcd evaluate-github2stalkcd
 ```
 
-## 
+## Example to download the .yaml and historical execution data of a workflow
 ./stalkcd download-ghafiles-and-logs -o hibernate -n hibernate-orm -w CodeQL -t "YOUR GitHub-Token"
 
 ## Run the Server

@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { Kpis } from './DTOs/kpis';
+import { Kpis } from '../DTOs/kpis';
 
 export class GetKPIs {
 
@@ -57,12 +57,7 @@ export class GetKPIs {
             arrival.push(map[unique[i]]);
             resultsArray.push(arrival);
         }
-        /*
-        for(let j = 0; j < resultsArray.length; j++) {
-            console.log(resultsArray[j][0]);
-            console.log(resultsArray[j][1]);
-        }
-         */
+
         return resultsArray;
     }
 
@@ -74,12 +69,11 @@ export class GetKPIs {
             let startTime = Date.parse(runsFileJson.workflow_runs[i].created_at);
             let endTime = Date.parse(runsFileJson.workflow_runs[i].updated_at);
             let runTime = endTime - startTime;
-            //console.log(runsFileJson.workflow_runs[i].id + " " + runTime);
+
             totalDur += runTime;
         }
         let avgDur = totalDur/amountWorkflowRuns;
-        //console.log("avgDur is " + avgDur + "ms or " + avgDur/1000 + " seconds with " + amountWorkflowRuns + " runs.");
-        //console.log("In HH:MM:SS: " + new Date(avgDur).toISOString().slice(11, 19));
+
         return avgDur;
     }
 
