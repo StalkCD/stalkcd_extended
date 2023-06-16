@@ -1,18 +1,31 @@
 import * as fs from 'fs';
 import { Kpis } from '../DTOs/kpis';
+import {GHAHistoryBuilder} from "./GHAHistoryBuilder";
+import {GHAFileLoader} from "./GHAFileLoader";
+import {DownloadGHAFilesAndLogs} from "./DownloadGHAFilesAndLogs";
 
 export class GetKPIs {
 
     repoNameForKPIs: string;
     workflowNameForKPIs: string;
+    load: string;
+    repoOwnerForKPIs: string | undefined;
+    token: string | undefined;
 
-    constructor(repoNameForKPIs: string, workflowNameForKPIs: string) {
+    constructor(repoNameForKPIs: string, workflowNameForKPIs: string, load: string, repoOwnerForKPIs?: string, token?: string) {
 
         this.repoNameForKPIs = repoNameForKPIs;
         this.workflowNameForKPIs = workflowNameForKPIs;
+        this.load = load;
+        if(repoOwnerForKPIs != undefined && repoOwnerForKPIs != "") {
+            this.repoOwnerForKPIs = repoOwnerForKPIs;
+        }
+        if(token != undefined && token != "") {
+            this.token = token;
+        }
     }
 
-    async getKPIs(): Promise<Kpis> {
+    async getKPIs(save: boolean): Promise<Kpis> {
 
         if (!fs.existsSync(`./res/GHAFilesandLogs/${this.repoNameForKPIs}`)) {
             throw new Error('The repo does not exist.');
@@ -20,14 +33,33 @@ export class GetKPIs {
         if (!fs.existsSync(`./res/GHAFilesandLogs/${this.repoNameForKPIs}/${this.workflowNameForKPIs}`)) {
             throw new Error('The workflow does not exist.');
         }
-        const runsFile = fs.readFileSync(`./res/GHAFilesandLogs/${this.repoNameForKPIs}/${this.workflowNameForKPIs}/${this.workflowNameForKPIs}_runs.json`, 'utf-8');
-        let runsFileJson = JSON.parse(runsFile);
+        if (this.load != 'local' && this.load != 'download') {
+            throw new Error('No valid load type.');
+        }
+        let history = new GHAHistoryBuilder();
+        if(this.load == 'local') {
+            let loader: GHAFileLoader = new GHAFileLoader(this.repoNameForKPIs, this.workflowNameForKPIs);
+            history = loader.loadFiles();
+        }
+        if(this.load == 'download') {
+            if(this.repoOwnerForKPIs == undefined || this.repoOwnerForKPIs == "") {
+                throw new Error('No repo owner available for download.');
+            }
+            if(this.token == undefined || this.token == "") {
+                throw new Error('No token available for download.');
+            }
+            let loader: DownloadGHAFilesAndLogs = new DownloadGHAFilesAndLogs(this.repoOwnerForKPIs!, this.repoNameForKPIs, this.workflowNameForKPIs, this.token!);
+            history = await loader.downloadFiles(save);
+        }
+        const runsFileJson = history.workflows![0].runsFile;
 
         let avgBuildDuration = this.getAvgBuildDuration(runsFileJson);
         let arrivalRate = await this.getArrivalRate(runsFileJson);
         let buildResults = this.getBuildResults(runsFileJson);
 
         let kpis: Kpis = {avgBuildDuration, arrivalRate, buildResults};
+
+        console.log(kpis);
         return kpis;
     }
 

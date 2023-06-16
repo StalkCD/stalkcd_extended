@@ -5,6 +5,8 @@ import {GithubActions2StalkCdEvaluation} from "../test/github/GithubActions2Stal
 import {JenkinsFileToGitHubActionsFileEvaluation} from "../test/JenkinsFileToGitHubActionsFileEvaluation";
 import {DownloadGHAFilesAndLogs} from "./GHAFilesAndCharacteristics/DownloadGHAFilesAndLogs";
 import {GetKPIs} from "./GHAFilesAndCharacteristics/GetKPIs";
+import {GetWorkflowFile} from "./GHAFilesAndCharacteristics/GetWorkflowFile";
+import {GHAFileLoader} from "./GHAFilesAndCharacteristics/GHAFileLoader";
 
 enum Mode {
     Help,
@@ -22,7 +24,9 @@ enum Mode {
     EvaluateJenkins2GHA,
     Test,
     DownloadGHAFilesAndLogs,
-    GetKPIs
+    GetKPIs,
+    GetWorkflowFile,
+    GHAFileLoader
 }
 
 let mode: Mode = Mode.Help;
@@ -156,8 +160,27 @@ program.command('download-ghafiles-and-logs')
 program.command('get-kpis')
     .option('-n, --name [name]', 'name of the repository')
     .option('-w, --workflow [workflow]', 'workflow of the repository')
+    .option('-l, --load [load]', 'load data via api or locally')
+    .option('-o, --owner [owner]', 'owner of the repository')
+    .option('-t, --token [token]', 'token for the github api')
     .action((cmd:string) => {
         mode = Mode.GetKPIs;
+        config = cmd;
+    })
+program.command('get-workflow-file')
+    .option('-o, --owner [owner]', 'owner of the repository')
+    .option('-n, --name [name]', 'name of the repository')
+    .option('-w, --workflow [workflow]', 'workflow of the repository')
+    .option('-t, --token [token]', 'token for the github api')
+    .action((cmd:String) => {
+        mode = Mode.GetWorkflowFile;
+        config = cmd;
+    })
+program.command('gha-file-loader')
+    .option('-n, --name [name]', 'name of the repository')
+    .option('-w, --workflow [workflow]', 'workflow of the repository')
+    .action((cmd:String) => {
+        mode = Mode.GHAFileLoader;
         config = cmd;
     })
 
@@ -261,7 +284,7 @@ switch (+mode) {
 
         let save : boolean;
         save = true;
-        new DownloadGHAFilesAndLogs(repoOwner, repoName, workflowName, token).downloadFiles(save);
+        new DownloadGHAFilesAndLogs(repoOwner, repoName, workflowName, token).downloadFiles(save); //TODO in der Schnittstelle berücksichtigen ob gespeichert werden soll
         break;
 
     case Mode.GetKPIs:
@@ -273,7 +296,54 @@ switch (+mode) {
         if(config.workflow) {
             workflowNameForKPIs = config.workflow;
         }
-        new GetKPIs(repoNameForKPIs, workflowNameForKPIs).getKPIs();
+        let load = 'local';
+        if(config.load) {
+            load = config.load;
+        }
+        let repoOwnerForKPIs = '';
+        if (config.owner) {
+            repoOwnerForKPIs = config.owner;
+        }
+        let tokenForKPIs = '';
+        if(config.token) {
+            tokenForKPIs = config.token;
+        }
+        let saveForKPIs = false;
+        new GetKPIs(repoNameForKPIs, workflowNameForKPIs, load, repoOwnerForKPIs, tokenForKPIs).getKPIs(false);
+        break;
+
+    case Mode.GetWorkflowFile:
+        let repoOwnerWF = 'curl';
+        if (config.owner) {
+            repoOwnerWF = config.owner;
+        }
+        let repoNameWF = 'curl';
+        if (config.name) {
+            repoNameWF = config.name;
+        }
+        let workflowNameWF = 'CodeQL';
+        if(config.workflow) {
+            workflowNameWF = config.workflow;
+        }
+        let tokenWF = '';
+        if(config.token) {
+            tokenWF = config.token;
+        }
+        let saveWF : boolean;
+        saveWF = true;
+        new GetWorkflowFile(repoOwnerWF, repoNameWF, workflowNameWF, tokenWF).getWorkflowFile(saveWF); //TODO in der Schnittstelle berücksichtigen ob gespeichert werden soll
+        break;
+
+    case Mode.GHAFileLoader:
+        let repoNameForLoad = 'hibernate-orm';
+        if (config.name) {
+            repoNameForLoad = config.name;
+        }
+        let workflowNameForLoad = '';
+        if(config.workflow) {
+            workflowNameForLoad = config.workflow;
+        }
+        new GHAFileLoader(repoNameForLoad, workflowNameForLoad).loadFiles();
         break;
 
     default:
