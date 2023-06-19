@@ -1,6 +1,4 @@
 import { Express } from "express";
-import downloadRoutes from "./routes/download";
-import kPIRoutes from "./routes/kpis";
 import converterRoutes from "./routes/converter";
 import * as http from "http";
 import express = require("express");
@@ -28,8 +26,6 @@ router.use((req, res, next) => {
 });
 
 /** Routes */
-router.use("/download", downloadRoutes);
-router.use("/kpis", kPIRoutes);
 router.use("/converter", converterRoutes);
 
 /** Error handling */
