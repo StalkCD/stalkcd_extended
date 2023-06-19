@@ -7,7 +7,8 @@ import {IAgentOption} from "../pipeline/AgentSection";
 import {separateKeyValue} from "../../util";
 import {IPostSection} from "../pipeline/PostSection";
 import {IStep} from "../pipeline/Step";
-import * as YAML from "json-to-pretty-yaml";
+// import * as YAML from "json-to-pretty-yaml";
+const YAML = require('json-to-pretty-yaml');
 import {WorkflowGenerator} from "./WorkflowGenerator";
 
 export class GitHubWorkflowGeneratorFromJenkinsPipeline implements WorkflowGenerator{

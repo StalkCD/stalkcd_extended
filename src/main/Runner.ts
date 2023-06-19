@@ -8,7 +8,7 @@ import { JenkinsfileParser } from './io/jenkinsfile/jenkinsfile-parser';
 import { JenkinsfileCollector } from '../test/jenkins/JenkinsfileCollector';
 import { TestUtils } from '../test/TestUtils';
 import { GitHubWorkflowGeneratorFromJenkinsPipeline} from "./model/GitHubActions/GitHubWorkflowGeneratorFromJenkinsPipeline";
-import * as YAML from "json-to-pretty-yaml";
+const YAML = require('json-to-pretty-yaml');
 import {JsonSchemaValidator} from "./JsonSchemaValidator";
 import {GithubActionsFileParser} from "./model/GitHubActions/GithubActionsFileParser";
 
@@ -106,7 +106,6 @@ export class Runner {
      */
     async jenkinsfile2stalkCd(config: JenkinsfileParserConfig) {
         this.assertFilePrerequisites(config);
-
         const parser = new JenkinsfileParser();
         const pipeline = parser.parse(fs.readFileSync(config.source).toString());
         fs.writeFileSync(config.target, await new StalkCdWriter().write(pipeline));
