@@ -8,7 +8,7 @@ const convertJenkinsToStalkCd = async (req: Request, res: Response) => {
 
     //target name + location
     // let target = req.body.target;
-    let target = './res/StalkCDYamls/';
+    let target = './res/_StalkCDYamls/';
 
     // let fileName = req.body.fileName;
     let fileName = 'test.yml';
@@ -29,11 +29,11 @@ const convertJenkinsToStalkCd = async (req: Request, res: Response) => {
 const convertStalkCdToJenkins = async (req: Request, res: Response) => {
     //source location
     // let source = req.body.source;
-    let source = './res/StalkCDYamls/test.yml';
+    let source = './res/_StalkCDYamls/test.yml';
 
     //target name + location
     // let target = req.body.target;
-    let target = './res/JenkinsFiles/';
+    let target = './res/_JenkinsFiles/';
 
     // let fileName = req.body.fileName;
     let fileName = 'test.Jenkinsfile';
@@ -55,11 +55,11 @@ const convertStalkCdToJenkins = async (req: Request, res: Response) => {
 const convertStalkCdToBPMN = async (req: Request, res: Response) => {
     //source location
     // let source = req.body.source;
-    let source = './res/StalkCDYamls/test.yml';
+    let source = './res/_StalkCDYamls/test.yml';
 
     //target name + location
     // let target = req.body.target;
-    let target = './res/BPMNFiles/';
+    let target = './res/_BPMNFiles/';
 
     // let fileName = req.body.fileName;
     let fileName = 'test.bpmn';
@@ -81,11 +81,11 @@ const convertStalkCdToBPMN = async (req: Request, res: Response) => {
 const convertBPMNToStalkCd = async (req: Request, res: Response) => {
 //source location
     // let source = req.body.source;
-    let source = './res/BPMNFiles/test.bpmn';
+    let source = './res/_BPMNFiles/test.bpmn';
 
     //target name + location
     // let target = req.body.target;
-    let target = './res/StalkCDYamls/';
+    let target = './res/_StalkCDYamls/';
 
     // let fileName = req.body.fileName;
     let fileName = 'testFromBPMN.yml';
@@ -107,11 +107,11 @@ const convertBPMNToStalkCd = async (req: Request, res: Response) => {
 const convertBPMNToJenkins = async (req: Request, res: Response) => {
     //source location
     // let source = req.body.source;
-    let source = './res/BPMNFiles/test.bpmn';
+    let source = './res/_BPMNFiles/test.bpmn';
 
     //target name + location
     // let target = req.body.target;
-    let target = './res/JenkinsFiles/';
+    let target = './res/_JenkinsFiles/';
 
     // let fileName = req.body.fileName;
     let fileName = 'testFromBPMN.Jenkinsfile';
@@ -133,11 +133,11 @@ const convertBPMNToJenkins = async (req: Request, res: Response) => {
 const convertJenkinsToGitHubActions = async (req: Request, res: Response) => {
     //source location
     // let source = req.body.source;
-    let source = './res/JenkinsFiles/test.Jenkinsfile';
+    let source = './res/_JenkinsFiles/test.Jenkinsfile';
 
     //target name + location
     // let target = req.body.target;
-    let target = './res/GitHubActionsFiles/';
+    let target = './res/_GitHubActionsFiles/';
 
     // let fileName = req.body.fileName;
     let fileName = 'test.yml';
