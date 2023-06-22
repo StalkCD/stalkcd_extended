@@ -17,6 +17,63 @@
 				],
 				"type": "object",
 				"additionalProperties": false
+			},
+			"IConverterResponse": {
+				"properties": {
+					"message": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"message"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"IConverterConfig": {
+				"properties": {
+					"source": {
+						"type": "string"
+					},
+					"target": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"source",
+					"target"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"Boolean": {
+				"properties": {},
+				"type": "object",
+				"additionalProperties": false
+			},
+			"IGitHubActionsConverterConfig": {
+				"properties": {
+					"source": {
+						"type": "string"
+					},
+					"target": {
+						"type": "string"
+					},
+					"singleFileTransformation": {
+						"$ref": "#/components/schemas/Boolean"
+					},
+					"evaluationCreateYaml": {
+						"$ref": "#/components/schemas/Boolean"
+					}
+				},
+				"required": [
+					"source",
+					"target",
+					"singleFileTransformation",
+					"evaluationCreateYaml"
+				],
+				"type": "object",
+				"additionalProperties": false
 			}
 		},
 		"securitySchemes": {}
@@ -48,6 +105,220 @@
 						}
 					}
 				},
+				"security": [],
+				"parameters": []
+			}
+		},
+		"/converter/jenkinstostalklcd": {
+			"post": {
+				"operationId": "ConvertJenkinsToStalkCd",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/IConverterResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Converter"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/IConverterConfig"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/converter/stalkcdtojenkins": {
+			"post": {
+				"operationId": "ConvertStalkCdToJenkins",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/IConverterResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Converter"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/IConverterConfig"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/converter/stalkcdtobpmn": {
+			"post": {
+				"operationId": "ConvertStalkCdToBPMN",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/IConverterResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Converter"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/IConverterConfig"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/converter/bpmntostalkcd": {
+			"post": {
+				"operationId": "ConvertBPMNToStalkCd",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/IConverterResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Converter"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/IConverterConfig"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/converter/bpmntojenkins": {
+			"post": {
+				"operationId": "ConvertBPMNToJenkins",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/IConverterResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Converter"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/IConverterConfig"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/converter/jenkinstogithubactions": {
+			"post": {
+				"operationId": "ConvertJenkinsToGitHubActions",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/IConverterResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Converter"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/IGitHubActionsConverterConfig"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/converter/test": {
+			"get": {
+				"operationId": "Test",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/IConverterResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Converter"
+				],
 				"security": [],
 				"parameters": []
 			}

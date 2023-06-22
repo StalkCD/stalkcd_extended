@@ -13,7 +13,15 @@ app.use(express.json());
 app.use(morgan("tiny"));
 app.use(express.static("public"));
 
-app.use("/docs", swaggerUI.serve, swaggerUI.setup(undefined, { swaggerOptions: { url: "/swagger.json" } }))
+app.use(
+    "/docs", 
+    swaggerUI.serve, 
+    swaggerUI.setup(undefined, { 
+        swaggerOptions: { 
+            url: "/swagger.json",
+        }, 
+    })
+);
 
 app.use(Router);
 

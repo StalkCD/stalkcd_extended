@@ -4,7 +4,7 @@
   "description": "",
   "main": "dist/stalk-cd.js",
   "scripts": {
-    "start": "node dist/index.js",
+    "start": "node dist/main/index.js",
     "test": "nyc mocha --inline-diffs -r ts-node/register test/**/*.ts --timeout=10000",
     "antlr4ts": "antlr4ts -visitor src/main/io/jenkinsfile/antlr4/jenkinsfile.g4",
     "prebuild": "npm run swagger",
@@ -61,7 +61,7 @@
     "antlr4ts-cli": "0.5.0-alpha.4",
     "chai": "^4.3.6",
     "concurrently": "^8.2.0",
-    "mocha": "^10.0.0",
+    "mocha": "^10.2.0",
     "nodemon": "^2.0.22",
     "nyc": "^15.1.0",
     "ts-node": "^10.9.1",
