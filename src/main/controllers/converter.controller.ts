@@ -83,7 +83,7 @@ export default class ConverterController {
             };
           } else {
             return {
-                message: "File dont exists.",
+                message: "File doesnt exist.",
             };
           }
     }
