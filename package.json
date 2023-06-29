@@ -29,6 +29,7 @@
     "ajv": "^8.11.0",
     "antlr4ts": "0.5.0-alpha.4",
     "commander": "^9.2.0",
+    "cors": "^2.8.5",
     "dagre": "^0.8.4",
     "deep-cleaner": "^1.2.1",
     "diff": "^5.0.0",

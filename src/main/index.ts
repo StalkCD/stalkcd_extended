@@ -5,10 +5,14 @@ import swaggerUI = require("swagger-ui-express");
 
 import Router from "./routes";
 
+var cors = require("cors");
 const PORT = process.env.PORT || 8000;
 
 const app: Application = express();
 
+app.use(cors({
+    origin: "http://localhost:4200",
+}));
 app.use(express.json());
 app.use(morgan("tiny"));
 app.use(express.static("public"));
