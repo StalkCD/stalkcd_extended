@@ -1,4 +1,4 @@
-import { Application, Request, Response } from "express";
+import { Application } from "express";
 import express = require("express");
 import morgan =  require("morgan");
 import swaggerUI = require("swagger-ui-express");
@@ -6,7 +6,7 @@ import swaggerUI = require("swagger-ui-express");
 import Router from "./routes";
 
 var cors = require("cors");
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 8081;
 
 const app: Application = express();
 
