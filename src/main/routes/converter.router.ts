@@ -3,7 +3,7 @@ import ConverterController from "../controllers/converter.controller";
 
 const router = express.Router();
 
-router.post("/jenkinstostalklcd", async (req, res) => {
+router.post("/jenkinstostalkcd", async (req, res) => {
     const controller = new ConverterController();
     const response = await controller.convertJenkinsToStalkCd(req.body);
     return res.send(response);
