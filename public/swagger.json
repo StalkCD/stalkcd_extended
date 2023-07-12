@@ -109,7 +109,7 @@
 				"parameters": []
 			}
 		},
-		"/converter/jenkinstostalklcd": {
+		"/converter/jenkinstostalkcd": {
 			"post": {
 				"operationId": "ConvertJenkinsToStalkCd",
 				"responses": {

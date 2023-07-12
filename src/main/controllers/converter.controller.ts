@@ -7,16 +7,10 @@ import fs = require('fs');
 @Tags("Converter")
 export default class ConverterController {
     
-    @Post("/jenkinstostalklcd")
+    @Post("/jenkinstostalkcd")
     public async convertJenkinsToStalkCd(@Body() body: IConverterConfig): Promise<IConverterResponse>{
-        
-
-        let config = {
-            source: './testRes/jenkinsToGHA/azerbadjani_jenkins.Jenkinsfile',
-            target: './res/_StalkCDYamls/test.yml'
-        }
-            
-        await new Runner().jenkinsfile2stalkCd(config);
+                    
+        await new Runner().jenkinsfile2stalkCd(body);
 
         return {
             message: "The Conversion from Jenkinsfile to StalkCD filen was successful.",
