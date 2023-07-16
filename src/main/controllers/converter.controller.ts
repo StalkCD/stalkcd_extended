@@ -8,8 +8,7 @@ import fs = require('fs');
 export default class ConverterController {
     
     @Post("/jenkinstostalkcd")
-    public async convertJenkinsToStalkCd(@Body() body: IConverterConfig): Promise<IConverterResponse>{
-                    
+    public async convertJenkinsToStalkCd(@Body() body: IConverterConfig): Promise<IConverterResponse>{                    
         await new Runner().jenkinsfile2stalkCd(body);
 
         return {
