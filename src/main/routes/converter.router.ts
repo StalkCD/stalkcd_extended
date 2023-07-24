@@ -1,5 +1,7 @@
 import express = require("express");
 import ConverterController from "../controllers/converter.controller";
+const multipart = require("connect-multiparty");
+const multipartMiddleware = multipart({ uploadDir: "./src/main/uploads" });
 
 const router = express.Router();
 
@@ -37,6 +39,13 @@ router.post("/jenkinstogithubactions", async (req, res) => {
     const controller = new ConverterController();
     const response = await controller.convertJenkinsToGitHubActions(req.body);
     return res.send(response);
+});
+
+router.post("/upload", multipartMiddleware, async (req, res) => {
+    console.log();
+    res.status(200).json({
+        message: "File uploaded successfully",
+    })
 });
 
 router.get("/test", async (req, res) => {
