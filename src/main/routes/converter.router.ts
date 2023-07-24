@@ -1,8 +1,9 @@
 import express = require("express");
 import ConverterController from "../controllers/converter.controller";
-const multipart = require("connect-multiparty");
-const multipartMiddleware = multipart({ uploadDir: "./src/main/uploads" });
 
+const multer  = require('multer')
+const upload = multer({ dest: './src/main/uploads' })
+const fs = require("fs");
 const router = express.Router();
 
 router.post("/jenkinstostalkcd", async (req, res) => {
@@ -41,10 +42,21 @@ router.post("/jenkinstogithubactions", async (req, res) => {
     return res.send(response);
 });
 
-router.post("/upload", multipartMiddleware, async (req, res) => {
-    console.log();
+router.post("/upload", upload.single('file'), async (req, res) => {
+    var tmp_path = req.file?.path;
+    var name = req.body['fileName'];
+    var target_path = "./src/main/uploads/" + name;
+
+    fs.rename(tmp_path, target_path, function (err: any) {
+        if(err) throw err;
+        fs.unlink(tmp_path, function () {
+            if(err) throw err;
+        });
+    });
+
     res.status(200).json({
-        message: "File uploaded successfully",
+        path: "./src/main/uploads/",
+        name: name,
     })
 });
 
