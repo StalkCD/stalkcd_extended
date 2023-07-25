@@ -44,8 +44,11 @@ router.post("/jenkinstogithubactions", async (req, res) => {
 
 router.post("/upload", upload.single('file'), async (req, res) => {
     var tmp_path = req.file?.path;
-    var name = req.body['fileName'];
-    var target_path = "./src/main/uploads/" + name;
+    var fullName = req.body['fileName'];
+    var target_path = "./src/main/uploads/" + fullName;
+
+    var name = fullName.split(".")[0];
+    var format = fullName.split(".")[1];
 
     fs.rename(tmp_path, target_path, function (err: any) {
         if(err) throw err;
@@ -57,7 +60,20 @@ router.post("/upload", upload.single('file'), async (req, res) => {
     res.status(200).json({
         path: "./src/main/uploads/",
         name: name,
+        format: format
     })
+});
+
+router.post("/getFile", async (req, res) => {
+    var path = req.body['path'];
+    console.log(path);
+    res.download(path, function (err: any) {
+        if (err) {
+            console.log(err);
+        } else {
+            console.log("File downloaded");
+        }
+    });
 });
 
 router.get("/test", async (req, res) => {

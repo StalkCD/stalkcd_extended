@@ -13,17 +13,4 @@ router.get("/ping", async (_req, res) => {
 
 router.use("/converter", ConverterRouter);
 
-router.post("/download", async (req, res) => {
-    var filePath = req.body.path;
-    var response: IConverterResponse = {
-        message: "",
-    }
-
-    res.download(
-        filePath, 
-        "archive.zip"
-    );
-});
-
-
 export default router;
