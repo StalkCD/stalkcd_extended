@@ -2,7 +2,7 @@ import express = require("express");
 import ConverterController from "../controllers/converter.controller";
 
 const multer  = require('multer')
-const upload = multer({ dest: './src/main/uploads' })
+const upload = multer({ dest: 'public/uploads' })
 const fs = require("fs");
 const router = express.Router();
 
@@ -45,7 +45,7 @@ router.post("/jenkinstogithubactions", async (req, res) => {
 router.post("/upload", upload.single('file'), async (req, res) => {
     var tmp_path = req.file?.path;
     var fullName = req.body['fileName'];
-    var target_path = "./src/main/uploads/" + fullName;
+    var target_path = "public/uploads/" + fullName;
 
     var name = fullName.split(".")[0];
     var format = fullName.split(".")[1];
@@ -58,7 +58,7 @@ router.post("/upload", upload.single('file'), async (req, res) => {
     });
 
     res.status(200).json({
-        path: "./src/main/uploads/",
+        path: "public/uploads/",
         name: name,
         format: format
     })
