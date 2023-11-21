@@ -11,7 +11,7 @@ const PORT = process.env.PORT || 8081;
 const app: Application = express();
 
 app.use(cors({
-    origin: ["http://localhost:4200", "http://localhost:8080"],
+    origin: ["http://localhost:4200", "http://localhost:8080", "http://18.193.68.144:8080"],
     optionsSuccessStatus: 200,
 }));
 app.use(bodyParser.json());
