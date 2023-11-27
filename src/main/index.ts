@@ -10,7 +10,10 @@ const PORT = process.env.PORT || 8081;
 
 const app: Application = express();
 
-app.use(cors());
+app.use(cors({
+    credentials: true,
+    origin: true
+}));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
