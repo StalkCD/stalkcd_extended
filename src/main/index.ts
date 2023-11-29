@@ -1,19 +1,20 @@
-import { Application } from "express";
-import express = require("express");
 import morgan =  require("morgan");
+import Router from "./routes";
 import swaggerUI = require("swagger-ui-express");
 
-import Router from "./routes";
 const bodyParser = require("body-parser");
-var cors = require("cors");
-const PORT = process.env.PORT || 8081;
+const express = require("express");
+const cors = require("cors");
+const app = express();
 
-const app: Application = express();
-
-app.use(cors({
-    credentials: true,
-    origin: true
-}));
+const corsOptions = {
+    origin: '*',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true, // Erlaube Cookies und andere Anmeldeinformationen
+    optionsSuccessStatus: 204, // Einige Legacy-Browser (IE11) erfordern 204
+};
+  
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
@@ -32,6 +33,7 @@ app.use(
 
 app.use(Router);
 
+const PORT = process.env.PORT || 8081;
 app.listen(PORT, () => {
     console.log("Server is running on port", PORT);
 });
